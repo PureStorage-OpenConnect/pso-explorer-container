@@ -11,6 +11,9 @@
     <!-- Title -->
     <title>{{ config('app.name', 'PSO Analytics GUI') . ' - ' . config('app.version', '0.1')}}</title>
 
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}">
+    
     <!-- CSS Files -->
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/metisMenu.min.css') }}" rel="stylesheet">

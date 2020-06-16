@@ -28,6 +28,7 @@
                                         <th>Provisioned size</th>
                                         <th>Used capacity</th>
                                         <th>IOPS (R/W)</th>
+                                        <th>Bandwidth (R/W)</th>
                                         <th data-hide="all">Storageclass</th>
                                         <th data-hide="all">Persistent volume</th>
                                         <th data-hide="all">Labels</th>
@@ -49,6 +50,7 @@
                                                 <td>{{ $vol['size'] ?? '' }}</td>
                                                 <td>{{ $vol['pure_usedFormatted'] ?? ''}}</td>
                                                 <td>{{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }}</td>
+                                                <td>{{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }}</td>
 
                                                 <td>{{ $vol['storageClass'] ?? '' }}</td>
                                                 <td>{{ $vol['pv_name'] ?? '' }}</td>
@@ -57,7 +59,7 @@
                                                 <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a></td>
                                                 <td>{{ number_format($vol['pure_drr'] ?? 1 , 1) }}:1</td>
                                                 <td>{{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }}</td>
-                                                <td>{{ $vol['pure_input_per_sec_formatted'] }} / {{ $vol['pure_output_per_sec_formatted'] }}</td>
+                                                <td>{{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }}</td>
                                                 <td>{{ $vol['pure_usec_per_read_op'] }} / {{ $vol['pure_usec_per_write_op'] }}</td>
 
                                                 @if($vol['status'] == 'Bound')
@@ -70,6 +72,7 @@
                                         @if(count($pso_vols) == 0)
                                             <tr>
                                                 <td><i>No Volumes found</i></td>
+                                                <td> </td>
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>
