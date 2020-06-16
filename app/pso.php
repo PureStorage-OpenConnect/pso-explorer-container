@@ -531,8 +531,19 @@ class pso
         $this->pso_info->total_iops_write = $total_iops_write;
         $this->pso_info->total_bw_read = $total_bw_read;
         $this->pso_info->total_bw_write = $total_bw_write;
-        $this->pso_info->low_msec_read = $low_msec_read;
-        $this->pso_info->low_msec_write = $low_msec_write;
+
+        if ($low_msec_read = -1) {
+            $this->pso_info->low_msec_read = 0;
+        } else {
+            $this->pso_info->low_msec_read = $low_msec_read;
+        }
+
+        if ($low_msec_write = -1) {
+            $this->pso_info->low_msec_write = 0;
+        } else {
+            $this->pso_info->low_msec_write = $low_msec_write;
+        }
+
         $this->pso_info->high_msec_read = $high_msec_read;
         $this->pso_info->high_msec_write = $high_msec_write;
     }
@@ -602,7 +613,6 @@ class pso
                 'token' => '/Users/rdeenik/LocalFiles/k8s/certs/token',
             ];
 
-/*
             // Use for test cluster Amsterdam
             $this->master = 'https://10.233.0.1';
             $this->authentication = [

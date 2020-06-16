@@ -1,4 +1,4 @@
-FROM php:7.4.7-fpm
+FROM php:7.4.4-fpm
 
 # Copy composer.lock and composer.json
 COPY composer.lock composer.json /var/www/
@@ -26,6 +26,9 @@ RUN pecl install redis yaml
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# PHP_CPPFLAGS are used by the docker-php-ext-* scripts
+#ENV PHP_CPPFLAGS="$PHP_CPPFLAGS -std=c++11"
 
 # Install extensions
 RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl \
