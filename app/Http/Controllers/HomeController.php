@@ -43,17 +43,21 @@ class HomeController extends Controller
 
     public function refreshdata(Request $request)
     {
+        if ($request->input('route') !== 'RefreshData') {
+            $redirectTo = $request->input('route');
+        } else {
+            $redirectTo = 'Dashboard';
+        }
+
         $pso = new pso();
 
         if ($pso->RefreshData(true)) {
             if ($request['route'] !== 'Error') {
                 $dashboard = $pso->dashboard();
                 $portal_info = $pso->portal_info();
-                return view('dashboard', ['dashboard' => $dashboard, 'portal_info' => $portal_info]);
-
-                //return redirect()->route($request['route']);
+                return redirect()->route($redirectTo);
             } else {
-                return redirect()->route('Dashboard');
+                return redirect()->route($redirectTo);
             }
         } else {
             $request->session()->flash('alert-class', 'alert-danger');
@@ -61,7 +65,7 @@ class HomeController extends Controller
             $request->session()->flash('source', $pso->error_source);
             $request->session()->flash('yaml', $pso->pso_info->yaml);
 
-            return redirect()->route('Dashboard');
+            return redirect()->route($redirectTo);
         }
     }
 }

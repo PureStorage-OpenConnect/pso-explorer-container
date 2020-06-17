@@ -588,7 +588,7 @@ class pso
 
         $this->addArrayVolumeInfo();
 
-        Redis::set(self::VALID_PSO_DATA_KEY, now()->format('Y-m-d H:i:s'));
+        Redis::set(self::VALID_PSO_DATA_KEY, time());
         Redis::expire(self::VALID_PSO_DATA_KEY, $this->refresh_timeout);
 
         $this->error_source = '';
@@ -696,7 +696,9 @@ class pso
                         $size = $size + $myvol->pure_size;
                         $used = $used + $myvol->pure_used;
                         $volumeCount = $volumeCount + 1;
-                        if (!in_array($myvol->storageClass, $storageClasses)) array_push($storageClasses, $myvol->storageClass);
+                        if (!in_array($myvol->storageClass, $storageClasses) and ($myvol->storageClass !== null)) {
+                            array_push($storageClasses, $myvol->storageClass);
+                        }
                     }
                 }
 

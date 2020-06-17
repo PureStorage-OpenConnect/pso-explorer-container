@@ -13,7 +13,7 @@
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}">
-    
+
     <!-- CSS Files -->
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/metisMenu.min.css') }}" rel="stylesheet">
@@ -25,7 +25,7 @@
     @yield('css')
 </head>
 
-<body>
+<body onload="settime()">
 <div id="wrapper">
     <!-- Navigation sidebar -->
     <sidebar>
@@ -80,37 +80,44 @@
                         <ul class="mm-collapse">
                             <li @IF(Request::is('view/storagearrays'))class="mm-active"@ENDIF>
                                 <a href="{{ route('StorageArrays') }}">
-                                    <span class="fa fa-fw fa-code-fork"></span> Storage arrays
+                                    <img class="mm-sub" src="{{ asset('images/k8s/storage.svg') }}">
+                                    <span class="mm-sub-text">Storage arrays</span>
                                 </a>
                             </li>
                             <li @IF(Request::is('view/namespaces'))class="mm-active"@ENDIF>
                                 <a href="{{ route('Namespaces') }}">
-                                    <span class="fa fa-fw fa-code-fork"></span> Namespaces
+                                    <img class="mm-sub" src="{{ asset('images/k8s/ns-pure.svg') }}">
+                                    <span class="mm-sub-text">Namespaces</span>
                                 </a>
                             </li>
                             <li @IF(Request::is('view/storageclasses'))class="mm-active"@ENDIF>
                                 <a href="{{ route('StorageClasses') }}">
-                                    <span class="fa fa-fw fa-code-fork"></span> StorageClasses
+                                    <img class="mm-sub" src="{{ asset('images/k8s/sc-pure.svg') }}">
+                                    <span class="mm-sub-text">StorageClasses</span>
                                 </a>
                             </li>
                             <li @IF(Request::is('view/labels'))class="mm-active"@ENDIF>
                                 <a href="{{ route('Labels') }}">
-                                    <span class="fa fa-fw fa-code-fork"></span> Labels
+                                    <img class="mm-sub" src="{{ asset('images/k8s/cm-pure.svg') }}">
+                                    <span class="mm-sub-text">Labels</span>
                                 </a>
                             </li>
                             <li @IF(Request::is('view/deployments'))class="mm-active"@ENDIF>
                                 <a href="{{ route('Deployments') }}">
-                                    <span class="fa fa-fw fa-code-fork"></span> Deployments
+                                    <img class="mm-sub" src="{{ asset('images/k8s/deploy-pure.svg') }}">
+                                    <span class="mm-sub-text">Deployments</span>
                                 </a>
                             </li>
                             <li @IF(Request::is('view/statefulsets'))class="mm-active"@ENDIF>
                                 <a href="{{ route('StatefulSets') }}">
-                                    <span class="fa fa-fw fa-code-fork"></span> StatefullSets
+                                    <img class="mm-sub" src="{{ asset('images/k8s/sts-pure.svg') }}">
+                                    <span class="mm-sub-text">StatefulSets</span>
                                 </a>
                             </li>
                             <li @IF(Request::is('view/volumes'))class="mm-active"@ENDIF>
                                 <a href="{{ route('Volumes') }}">
-                                    <span class="fa fa-fw fa-code-fork"></span> All volumes
+                                    <img class="mm-sub" src="{{ asset('images/k8s/vol-pure.svg') }}">
+                                    <span class="mm-sub-text">All volumes</span>
                                 </a>
                             </li>
                         </ul>
@@ -123,7 +130,7 @@
                 <div class="sidebar-text">
                     {{-- <a class="sidebar-info sidebar-link" href="/help" id="help">Help</a> --}}
                     <a class="sidebar-info sidebar-link" href="http://www.purestorage.com/legal/productenduserinfo" id="eula" target="_blank">Terms</a>
-                    <a class="sidebar-info sidebar-link" href="#" onclick="event.preventDefault(); document.getElementById('refresh-form').submit();">Refresh data</a>
+                    <a class="sidebar-info sidebar-link" href="#" onclick="event.preventDefault(); document.getElementById('refresh-form').submit();"><span id="sidebar-refresh-link" >Refresh data</span></a>
                     <form id="refresh-form" action="{{ route('RefreshData') }}" method="POST" style="display: none;">
                         @csrf
                         <input value="{{ Route::current()->getName() }}" name="route" id="frm1_submit" />
@@ -147,7 +154,7 @@
                         </div>
                         <div class="sidebar-info">
                             <div>Last refresh at:</div>
-                            <div>
+                            <div id="sidebar-info-refresh-time">
                                 {!!  $portal_info['last_refesh'] ?? '<i>No valid data</i>' !!}
                             </div>
                         </div>
@@ -224,126 +231,19 @@
 
         <!-- Page content -->
         <div class="container-fluid" id="tab-content">
-
-            {{-- Show error messages if set --}}
-            @IF (session('message') or $errors->any())
-                <div class="row">
-                    <div class="col-xs-12 tab-container">
-                        <div class="with-padding">
-                            <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                                <div class="panel panel-default">
-                                    <div class="panel-heading">
-                                        <span>System messages</span>
-                                    </div>
-                                    <div class="panel-body list-container">
-                                        <div class="row with-padding margin-left">
-                                            @IF(session('message') !== null)
-                                                <div class="alert {{ Session::get('alert-class', 'alert-info') }}">
-                                                    {{ session('message') }}
-                                                </div>
-                                            @ENDIF
-                                            @IF ($errors->any())
-                                                @foreach ($errors->all() as $error)
-                                                    <div class="ibox-content" style="">
-                                                        <div class="alert alert-danger">
-                                                            {{ $error }}
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            @ENDIF
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @ENDIF
-
-            {{-- Show error message if K8S is not found --}}
-            @IF (session('source') !== null)
-                <div class="row">
-                    <div class="col-xs-12 tab-container">
-                        <div class="with-padding">
-                            <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                                <div class="panel panel-default">
-                                    <div class="panel-heading">
-                                        @IF (session('source') == 'k8s')
-                                            <span>Unable to connect to Kubernetes cluster</span>
-                                        @ELSE
-                                            <span>Pure Service Orchestrator not found</span>
-                                        @ENDIF
-                                    </div>
-                                    <div class="panel-body list-container">
-                                        <div class="row with-padding margin-left">
-
-
-                                            @if (session('source') == 'k8s')
-                                                <p><h3>Error while connecting to Kubernetes</h3></p>
-                                                <p>We ran into an error while connecting to the Kubernetes API service. To resolve this issue, make sure {{ config('app.name', 'PSO Analytics GUI') }} has access to the Kubernetes API services and that the roles and rolebindings are configured correctly.</p>
-                                                <p>For more information on how to install and configure {{ config('app.name', 'PSO Analytics GUI') }} correctly, please visit: <br><a href="https://github.com/PureStorage-OpenConnect/pso-analytics-gui" target="_blank">https://github.com/PureStorage-OpenConnect/pso-analytics-gui</a></p>
-                                            @else
-                                                <p><strong>The Pure Storage Pure Service Orchestrator was not foundor not correctly configured</strong></p>
-                                                <p>Please make sure you have installed the Pure Service Orchstrator (PSO) in your Kubernetes cluster.</p>
-                                                <p>
-                                                    For installation instruction of PSO, please visit<br>
-                                                    <a href="https://github.com/purestorage/helm-charts" target="_blank">https://github.com/purestorage/helm-charts</a>
-                                                </p>
-
-                                                <p><strong>Validation of values.yaml syntax:</strong></p>
-                                                <p>Also make sure your values.yaml file is formatted as shown below. Please note that YAML is case sensitive</p>
-
-                                                <table style="vertical-align:top; width:100%">
-                                                    <tr>
-                                                        <td style="vertical-align:top; width:45%">
-                                                            <strong>Correct usage</strong>
-                                                            <pre>arrays:
-  FlashArrays:
-    - MgmtEndPoint: "IP address"
-      APIToken: "API token"
-  FlashBlades:
-    - MgmtEndPoint: "IP address"
-      APIToken: "API token"
-      NfsEndPoint: "IP address"</pre>
-
-                                                            <p>Or when using labels:</p>
-
-                                                            <pre>arrays:
-  FlashArrays:
-    - MgmtEndPoint: "IP address"
-      APIToken: "API token"
-      Labels:
-        topology.purestorage.com/datacenter: "my datacenter"
-  FlashBlades:
-    - MgmtEndPoint: "IP address"
-      APIToken: "API token"
-      NfsEndPoint: "IP address"
-      Labels:
-        topology.purestorage.com/datacenter: "my datacenter"</pre>
-                                                        </td>
-                                                        <td style="vertical-align:top; width:10%"> </td>
-                                                        <td style="vertical-align:top; width:45%">
-                                                            <strong>Current settings for PSO</strong>
-                                                            <pre>{{ session('yaml') }}</pre>
-                                                        </td>
-                                                    </tr>
-                                                </table>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @ENDIF
+            @include('layouts.error')
 
             @yield('content')
         </div>
     </div>
-    <div class="footer fixed">
+    <div class="footer fixed" id="page-footer">
+        @ISSET($portal_info['total_used'])
         <div class="pull-right">
             Currently <strong>{{ $portal_info['total_used'] ?? 'unknown' }}</strong> of capacity is used out of <strong>{{ $portal_info['total_size'] ?? 'unknown' }}</strong> provisioned capacity
+        </div>
+        @ENDISSET
+        <div>
+            <strong>Copyright</strong> Pure Storage &copy; 2020
         </div>
     </div>
 </div>
@@ -355,6 +255,7 @@
 <script>
     $(function () {
         $('#sidebar-menu').metisMenu();
+
     });
 
     $("#toggle-btn").click(function(e) {
@@ -369,7 +270,38 @@
                 x[i].style.display = "none";
             }
         }
+
+        var y = document.getElementsByClassName("mm-sub-text");
+        for (var i=0, len=y.length|0; i<len; i=i+1|0) {
+            if (y[i].style.display === "none") {
+                y[i].style.display = "inline";
+            } else {
+                y[i].style.display = "none";
+            }
+        }
+
+        var lnk = document.getElementById("sidebar-refresh-link");
+        if (document.getElementById("wrapper").classList.contains("toggled")) {
+            lnk.innerHTML = "Refresh";
+        } else {
+            lnk.innerHTML = "Refresh data";
+        }
+        settime();
     });
+</script>
+
+{{-- Show localized refresh time --}}
+<script>
+    function settime() {
+        var date = new Date({{ ($portal_info['last_refesh'] * 1000 ) }});
+        if (document.getElementById("wrapper").classList.contains("toggled")) {
+            var s = date.getHours() + ":" + String(date.getMinutes()).padStart(2, "0") + ":" + String(date.getSeconds()).padStart(2, "0");
+        } else {
+            var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            var s = months[date.getMonth()] + " " + date.getDay()  + " " + date.getFullYear() + " " + date.getHours() + ":" + String(date.getMinutes()).padStart(2, "0") + ":" + String(date.getSeconds()).padStart(2, "0");
+        }
+        document.getElementById("sidebar-info-refresh-time").innerHTML = s;
+    }
 </script>
 
 <!-- Blade specific scripts -->
