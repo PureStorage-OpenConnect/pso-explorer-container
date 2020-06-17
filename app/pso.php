@@ -231,6 +231,7 @@ class pso
 
                     $newArray->name = $array['items'][0]['name'];
                     $newArray->model = 'Pure Storage FlashBlade';
+                    $newArray->model = 'Pure Storage FlashBlade';
                 } catch (Exception $e) {
                     $newArray->name = $flashblade->MgmtEndPoint;
                     $newArray->model = 'Offline';
@@ -307,25 +308,27 @@ class pso
         $pvc = new PersistentVolumeClaim();
         $pvc_list = $pvc->list('');
 
-        foreach ($pvc_list->items as $item) {
-            $myvol = new PsoPersistentVolumeClaim($item->metadata->uid);
-            $myvol->name = $item->metadata->name;
-            $myvol->namespace = $item->metadata->namespace;
-            $myvol->namespace_name = $item->metadata->namespace . ':' . $item->metadata->name;
-            $myvol->size = $item->spec->resources->requests['storage'];
-            $myvol->storageClass =  $item->spec->storageClassName;
-            $myvol->status = $item->status->phase;
+        if (isset($pvc_list->items)) {
+            foreach ($pvc_list->items as $item) {
+                $myvol = new PsoPersistentVolumeClaim($item->metadata->uid);
+                $myvol->name = $item->metadata->name;
+                $myvol->namespace = $item->metadata->namespace;
+                $myvol->namespace_name = $item->metadata->namespace . ':' . $item->metadata->name;
+                $myvol->size = $item->spec->resources->requests['storage'];
+                $myvol->storageClass =  $item->spec->storageClassName;
+                $myvol->status = $item->status->phase;
 
-            if (isset($item->metadata->labels)) {
-                $labels = [];
-                foreach (array_keys($item->metadata->labels) as $key) {
-                    array_push($labels, $key . '=' . $item->metadata->labels[$key]);
+                if (isset($item->metadata->labels)) {
+                    $labels = [];
+                    foreach (array_keys($item->metadata->labels) as $key) {
+                        array_push($labels, $key . '=' . $item->metadata->labels[$key]);
+                    }
+                    $myvol->labels = $labels;
                 }
-                $myvol->labels = $labels;
-            }
 
-            if (isset($item->spec->volumeName)) {
-                $myvol->pv_name = $item->spec->volumeName;
+                if (isset($item->spec->volumeName)) {
+                    $myvol->pv_name = $item->spec->volumeName;
+                }
             }
         }
     }
@@ -406,6 +409,9 @@ class pso
                             $myvol->pure_totalReduction = $vol['total_reduction'] ?? 1;
                             if ($myvol->name == null) {
                                 $myvol->pure_orphaned = $uid;
+                                $myvol->pure_orphaned_state = 'Unmanaged by PSO';
+                                $myvol->pure_orphaned_pvc_name = 'Unknown';
+                                $myvol->pure_orphaned_pvc_namespace = 'Unknown';
                             }
 
                             $total_used = $total_used + $vol['size']  * (1 - $vol['thin_provisioning'] ?? 0);
@@ -515,6 +521,9 @@ class pso
                             $myvol->pure_totalReduction = $filesystem['space']['data_reduction'] ?? 1;
                             if ($myvol->name == null) {
                                 $myvol->pure_orphaned = $uid;
+                                $myvol->pure_orphaned_state = 'Unmanaged by PSO';
+                                $myvol->pure_orphaned_pvc_name = 'Unknown';
+                                $myvol->pure_orphaned_pvc_namespace = 'Unknown';
                             }
 
                             $total_used = $total_used + $filesystem['space']['virtual'];
@@ -548,8 +557,35 @@ class pso
         $this->pso_info->high_msec_write = $high_msec_write;
     }
 
+    private function getPersistentVolumes()
+    {
+        // Retrieve all Kubernetes PVC's for this cluster
+        Client::configure($this->master, $this->authentication);
+        $pv = new PersistentVolume();
+        $pv_list = $pv->list();
+
+        if (isset($pv_list->items)) {
+            foreach ($pv_list->items as $item) {
+                if (in_array($item->spec->storageClassName, PsoStorageClass::items(PsoStorageClass::PREFIX, 'name')) and ($item->status->phase == 'Released')) {
+                    $uid = str_replace('pvc-', '', $item->metadata->name);
+
+                    $orphaned_list = PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'pure_orphaned');
+                    if (in_array($uid, $orphaned_list)) {
+                        $vol = new PsoPersistentVolumeClaim($uid);
+                        $vol->pure_orphaned_state = 'Released PV';
+                        $vol->pure_orphaned_pvc_name = $item->spec->claimRef->name;
+                        $vol->pure_orphaned_pvc_namespace = $item->spec->claimRef->namespace;
+                    }
+                }
+            }
+        }
+    }
+
     public function RefreshData($force = false)
     {
+
+        $this->getPersistentVolumes();
+
         // Only refresh data if the redis data is stale
         if ((Redis::get(self::VALID_PSO_DATA_KEY) !== null) and (!$force)) {
             $this->pso_found = true;
@@ -586,7 +622,11 @@ class pso
         // Get the deployments
         $this->getDeployments();
 
+        // Get Pure Storage array information
         $this->addArrayVolumeInfo();
+
+        // Check for released PV's
+        $this->getPersistentVolumes();
 
         Redis::set(self::VALID_PSO_DATA_KEY, time());
         Redis::expire(self::VALID_PSO_DATA_KEY, $this->refresh_timeout);

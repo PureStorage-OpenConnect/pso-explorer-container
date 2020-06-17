@@ -13,7 +13,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Pure Storage systems configured for PSO</span>
+                            <span>Pure Storage systems configured for this cluster</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">

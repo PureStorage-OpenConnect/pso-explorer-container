@@ -13,7 +13,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>StatefulSets using PSO managed volumes</span>
+                            <span>StatefulSets with managed persistent volume claims</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">

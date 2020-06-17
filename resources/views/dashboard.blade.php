@@ -17,7 +17,7 @@
                                 <span>Volumes</span>
                                 @if($dashboard['orphaned_count'] > 0)
                                 <a href="{{ route('Volumes') . '#orphaned'}}" >
-                                    <span class="label label-warning float-right">{{ $dashboard['orphaned_count'] }} orphaned</span>
+                                    <span class="label label-warning float-right">{{ $dashboard['orphaned_count'] }} unclaimed</span>
                                 </a>
                                 @endif
                             </div>
@@ -42,7 +42,7 @@
                                 <div class="list-section">
                                     <div class="no-padding">
                                         <h1 class="no-margin"><a href="{{ route('StorageClasses') }}">{{ $dashboard['storageclass_count'] ?? 0 }}</a></h1>
-                                        <small>Used by PSO</small>
+                                        <small>Used for provisioning</small>
                                     </div>
                                 </div>
                             </div>
@@ -59,7 +59,7 @@
                                 <div class="list-section">
                                     <div class="no-padding">
                                         <h1 class="no-margin"><a href="{{ route('StatefulSets') }}">{{ $dashboard['statefulset_count'] ?? 0 }}</a></h1>
-                                        <small>Provisioned using PSO</small>
+                                        <small>Using managed volumes</small>
                                     </div>
                                 </div>
                             </div>
@@ -81,7 +81,7 @@
                                 <div class="list-section">
                                     <div class="no-padding">
                                         <h1 class="no-margin"><a href="{{ route('StorageArrays') }}">{{ $dashboard['array_count'] ?? 0 }}</a></h1>
-                                        <small>Configured in PSO</small>
+                                        <small>Configured in cluster</small>
                                     </div>
                                 </div>
                             </div>

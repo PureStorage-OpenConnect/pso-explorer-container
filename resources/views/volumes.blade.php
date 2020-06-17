@@ -13,14 +13,14 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Persistent volumes managed by PSO</span>
+                            <span>Managed Persistent Volume Claims</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
-                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter" placeholder="Search in table">
+                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter2" placeholder="Search in table">
                             </div>
                             <div class="row with-padding">
-                                <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter>
+                                <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter2>
                                     <thead>
                                     <tr>
                                         <th data-toggle="true">Namespace</th>
@@ -110,14 +110,14 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12" id="orphaned">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Orphaned volumes, no longer under management of PSO</span>
+                            <span>Unclaimed or orphaned volumes</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
-                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter" placeholder="Search in table">
+                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter1" placeholder="Search in table">
                             </div>
                             <div class="row with-padding">
-                                <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter>
+                                <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter1>
                                     <thead>
                                     <tr>
                                         <th data-toggle="true">Storage array</th>
@@ -125,6 +125,9 @@
                                         <th>Provisioned size</th>
                                         <th>Used capacity</th>
                                         <th>Data reduction</th>
+                                        <th data-hide="all">Original claim name</th>
+                                        <th data-hide="all">Original claim namespace</th>
+                                        <th>State</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -136,11 +139,22 @@
                                                 <td>{{ $vol['pure_sizeFormatted'] }}</td>
                                                 <td>{{ $vol['pure_usedFormatted'] }}</td>
                                                 <td>{{ number_format($vol['pure_drr'], 1) }}:1</td>
+                                                <td>{{ $vol['pure_orphaned_pvc_name'] ?? '' }}</td>
+                                                <td>{{ $vol['pure_orphaned_pvc_namespace'] ?? '' }}</td>
+
+                                                @if($vol['pure_orphaned_state'] == 'Released PV')
+                                                    <td><span class="label label-success">{{ $vol['pure_orphaned_state'] }}</span></td>
+                                                @else
+                                                    <td><span class="label label-warning">{{ $vol['pure_orphaned_state'] }}</span></td>
+                                                @endif
                                             </tr>
                                         @endforeach
                                         @if(count($orphaned_vols) == 0)
                                             <tr>
-                                                <td><i>No orphaned Volumes found</i></td>
+                                                <td><i>No orphaned or released volumes found</i></td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>

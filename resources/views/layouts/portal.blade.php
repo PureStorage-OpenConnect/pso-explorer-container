@@ -243,7 +243,7 @@
         </div>
         @ENDISSET
         <div>
-            <strong>Copyright</strong> Pure Storage &copy; 2020
+            <strong>Copyright</strong> Remko Deenik / Pure Storage &copy; 2020
         </div>
     </div>
 </div>
@@ -293,7 +293,7 @@
 {{-- Show localized refresh time --}}
 <script>
     function settime() {
-        var date = new Date({{ ($portal_info['last_refesh'] * 1000 ) }});
+        var date = new Date({{ ($portal_info['last_refesh'] ?? 0 * 1000 ) }});
         if (document.getElementById("wrapper").classList.contains("toggled")) {
             var s = date.getHours() + ":" + String(date.getMinutes()).padStart(2, "0") + ":" + String(date.getSeconds()).padStart(2, "0");
         } else {

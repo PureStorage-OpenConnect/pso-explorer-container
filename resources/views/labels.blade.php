@@ -13,7 +13,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Provisioned volume stats per PVC label</span>
+                            <span>Managed persistent volume claims per label</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">

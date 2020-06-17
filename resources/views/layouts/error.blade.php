@@ -50,9 +50,9 @@
                         <div class="panel-body list-container">
                             <div class="row with-padding margin-left">
                                 @IF (session('source') == 'k8s')
-                                    <h3><p>Error while connecting to Kubernetes</p></h3>
-                                    <p>We ran into an error while connecting to the Kubernetes API service. To resolve this issue, make sure {{ config('app.name', 'PSO Analytics GUI') }} has access to the Kubernetes API services and that the roles and rolebindings are configured correctly.</p><br>
-                                    <p>For more information on how to install and configure {{ config('app.name', 'PSO Analytics GUI') }} correctly, please visit: <br><a href="https://github.com/PureStorage-OpenConnect/pso-analytics-gui" target="_blank">https://github.com/PureStorage-OpenConnect/pso-analytics-gui</a></p>
+                                    <div class="text-body"><h3>Error while connecting to Kubernetes</h3></div>
+                                    <div class="text-body">We ran into an error while connecting to the Kubernetes API service. To resolve this issue, make sure {{ config('app.name', 'PSO Analytics GUI') }} has access to the Kubernetes API services and that the roles and rolebindings are configured correctly.</div><br>
+                                    <div class="text-body">For more information on how to install and configure {{ config('app.name', 'PSO Analytics GUI') }} correctly, please visit: <br><a href="https://github.com/PureStorage-OpenConnect/pso-analytics-gui" target="_blank">https://github.com/PureStorage-OpenConnect/pso-analytics-gui</a></div>
                                 @ELSE
                                     <p><strong>The Pure Storage Pure Service Orchestrator was not foundor not correctly configured</strong></p>
                                     <p>Please make sure you have installed the Pure Service Orchstrator (PSO) in your Kubernetes cluster.</p>

@@ -37,6 +37,10 @@ class PsoPersistentVolumeClaim extends RedisModel
         'pure_sharedSpace',
         'pure_totalReduction',
         'pure_orphaned',
+        'pure_orphaned_state',
+        'pure_orphaned_pvc_name',
+        'pure_orphaned_pvc_namespace',
+
         'pure_reads_per_sec',
         'pure_writes_per_sec',
         'pure_input_per_sec',
