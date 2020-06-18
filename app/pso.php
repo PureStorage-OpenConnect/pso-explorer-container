@@ -168,7 +168,16 @@ class pso
         // Get the PSO secret from Kubernetes to retrieve the MgmtEndPoint and APIToken
         Client::configure($this->master, $this->authentication);
         $secret = new Secret($this->pso_info->namespace);
-        $pso_secret_data = $secret->read($this->pso_info->namespace, 'pure-provisioner-secret')->data;
+
+        $pso_config = $secret->read($this->pso_info->namespace, 'pure-provisioner-secret');
+        if (isset($pso_config->code)) {
+            $this->pso_found = false;
+            $this->error_source = 'k8s';
+            $this->error_message = 'Unable to read (get) the PSO secret. Check the ClusterRoles and ClusterRoleBindings.';
+            return false;
+        }
+
+        $pso_secret_data = $pso_config->data;
         $pso_config = json_decode(base64_decode($pso_secret_data['pure.json'], true));
 
         $pso_yaml = $this->objectToArray($pso_config);
@@ -259,6 +268,13 @@ class pso
         $storageclass = new StorageClass();
         $storageclass_list = $storageclass->list();
 
+        if (isset($storageclass_list->code)) {
+            $this->pso_found = false;
+            $this->error_source = 'k8s';
+            $this->error_message = 'Unable to list StorageClasses. Check the ClusterRoles and ClusterRoleBindings.';
+            return false;
+        }
+
         if (isset($storageclass_list->items)) {
             foreach ($storageclass_list->items as $item) {
                 // Add all storageclasses that use PSO
@@ -276,6 +292,13 @@ class pso
         Client::configure($this->master, $this->authentication);
         $statefulset = new StatefulSet();
         $statefulset_list = $statefulset->list('');
+
+        if (isset($statefulset_list->code)) {
+            $this->pso_found = false;
+            $this->error_source = 'k8s';
+            $this->error_message = 'Unable to list StatefulSets. Check the ClusterRoles and ClusterRoleBindings.';
+            return false;
+        }
 
         if (isset($statefulset_list->items)) {
             foreach ($statefulset_list->items as $item) {
@@ -299,6 +322,7 @@ class pso
                 }
             }
         }
+        return true;
     }
 
     private function getPersistentVolumeClaims()
@@ -307,6 +331,13 @@ class pso
         Client::configure($this->master, $this->authentication);
         $pvc = new PersistentVolumeClaim();
         $pvc_list = $pvc->list('');
+
+        if (isset($pvc_list->code)) {
+            $this->pso_found = false;
+            $this->error_source = 'k8s';
+            $this->error_message = 'Unable to list Persistent Volume Claims. Check the ClusterRoles and ClusterRoleBindings.';
+            return false;
+        }
 
         if (isset($pvc_list->items)) {
             foreach ($pvc_list->items as $item) {
@@ -331,6 +362,7 @@ class pso
                 }
             }
         }
+        return true;
     }
 
     private function getDeployments()
@@ -339,6 +371,13 @@ class pso
         Client::configure($this->master, $this->authentication);
         $deployment = new Deployment();
         $deployment_list = $deployment->list('');
+
+        if (isset($deployment_list->code)) {
+            $this->pso_found = false;
+            $this->error_source = 'k8s';
+            $this->error_message = 'Unable to list Deployments. Check the ClusterRoles and ClusterRoleBindings.';
+            return false;
+        }
 
         if (isset($deployment_list->items)) {
             foreach ($deployment_list->items as $item) {
@@ -358,6 +397,7 @@ class pso
                 }
             }
         }
+        return true;
     }
 
     private function addArrayVolumeInfo()
@@ -564,6 +604,13 @@ class pso
         $pv = new PersistentVolume();
         $pv_list = $pv->list();
 
+        if (isset($pv_list->code)) {
+            $this->pso_found = false;
+            $this->error_source = 'k8s';
+            $this->error_message = 'Unable to list Persistent Volumes (PV\'s). Check the ClusterRoles and ClusterRoleBindings.';
+            return false;
+        }
+
         if (isset($pv_list->items)) {
             foreach ($pv_list->items as $item) {
                 if (in_array($item->spec->storageClassName, PsoStorageClass::items(PsoStorageClass::PREFIX, 'name')) and ($item->status->phase == 'Released')) {
@@ -583,9 +630,6 @@ class pso
 
     public function RefreshData($force = false)
     {
-
-        $this->getPersistentVolumes();
-
         // Only refresh data if the redis data is stale
         if ((Redis::get(self::VALID_PSO_DATA_KEY) !== null) and (!$force)) {
             $this->pso_found = true;
@@ -614,19 +658,19 @@ class pso
         if (!$this->getStorageClasses()) return false;
 
         // Get the statefulsets
-        $this->getStatefulsets();
+        if (!$this->getStatefulsets()) return false;
 
         // Get the persistent volume claims
-        $this->getPersistentVolumeClaims();
+        if (!$this->getPersistentVolumeClaims()) return false;
 
         // Get the deployments
-        $this->getDeployments();
+        if (!$this->getDeployments()) return false;
 
         // Get Pure Storage array information
         $this->addArrayVolumeInfo();
 
         // Check for released PV's
-        $this->getPersistentVolumes();
+        if (!$this->getPersistentVolumes()) return false;
 
         Redis::set(self::VALID_PSO_DATA_KEY, time());
         Redis::expire(self::VALID_PSO_DATA_KEY, $this->refresh_timeout);

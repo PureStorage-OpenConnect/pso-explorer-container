@@ -110,3 +110,19 @@
     color: #f8f9fa;
     text-decoration: none;
 }
+
+.alert-message {
+    white-space: pre-line;
+    margin: 15px;
+    margin-right: 20px;
+    margin-left: -5px;
+    width: 100%;
+}
+
+.alert-panel {
+    padding: 10px;
+}
+
+.alert-heading {
+    padding: 10px;
+}
