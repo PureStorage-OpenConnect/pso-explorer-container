@@ -626,6 +626,7 @@ class pso
                 }
             }
         }
+        return true;
     }
 
     public function RefreshData($force = false)

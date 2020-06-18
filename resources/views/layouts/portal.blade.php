@@ -293,7 +293,9 @@
 {{-- Show localized refresh time --}}
 <script>
     function settime() {
-        var date = new Date({{ ($portal_info['last_refesh'] ?? 0 * 1000 ) }});
+        var timestamp = {{ $portal_info['last_refesh'] ?? 0 }}
+        var date = new Date(timestamp * 1000 );
+
         if (document.getElementById("wrapper").classList.contains("toggled")) {
             var s = date.getHours() + ":" + String(date.getMinutes()).padStart(2, "0") + ":" + String(date.getSeconds()).padStart(2, "0");
         } else {
