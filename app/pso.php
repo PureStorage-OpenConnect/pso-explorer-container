@@ -699,7 +699,6 @@ class pso
                 'token' => '/Users/rdeenik/LocalFiles/k8s/certs/token',
             ];
 
-            /*
             // Use for test cluster Amsterdam
             $this->master = 'https://10.233.0.1';
             $this->authentication = [
