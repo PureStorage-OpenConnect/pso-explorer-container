@@ -117,10 +117,15 @@
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        @foreach($portal_info['top10_growth_vols'] as $vol)
+                                        @ISSET($dashboard['top10_growth_vols'])
+                                        @FOREACH($dashboard['top10_growth_vols'] as $vol)
                                             <tr>
                                                 <td><a href="{{ route('Volumes') }}">{{ $vol['name'] }}</a></td>
+                                                @IF($vol['status'] == 'Bound')
                                                 <td>{{ $vol['sizeFormatted']}}</td>
+                                                @ELSE
+                                                    <td><i>{{ $vol['status']}}</i></td>
+                                                @ENDIF
 
                                                 @if(($vol['used'] !== null) and ($vol['size'] !== null))
                                                     <td>{{ number_format($vol['used']/$vol['size'] * 100, 1) }}%</td>
@@ -129,14 +134,24 @@
                                                 @endif
                                                 <td class="text-navy">
                                                     @if ($vol['growthPercentage'] > 0)
-                                                        <i class="fa fa-level-up"></i>
+                                                        ↑
                                                     @elseif (($vol['growthPercentage'] < 0))
-                                                        <i class="fa fa-level-down"></i>
+                                                        ↓
                                                     @endif
-                                                    {{ number_format($vol['growthPercentage'], 4) }}%
+                                                    @IF($vol['status'] == 'Bound')
+                                                    {{ number_format($vol['growthPercentage'], 2) }}%
+                                                    @ENDIF
                                                 </td>
                                             </tr>
-                                        @endforeach
+                                        @ENDFOREACH
+                                        @ELSE
+                                        <tr>
+                                            <td><i>No historic volume data</i></td>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                        </tr>
+                                        @ENDISSET
                                         </tbody>
                                     </table>
                                 </div>

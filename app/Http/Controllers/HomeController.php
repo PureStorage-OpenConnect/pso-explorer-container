@@ -52,13 +52,7 @@ class HomeController extends Controller
         $pso = new pso();
 
         if ($pso->RefreshData(true)) {
-            if ($request['route'] !== 'Error') {
-                $dashboard = $pso->dashboard();
-                $portal_info = $pso->portal_info();
-                return redirect()->route($redirectTo);
-            } else {
-                return redirect()->route($redirectTo);
-            }
+            return redirect()->route($redirectTo);
         } else {
             $request->session()->flash('alert-class', 'alert-danger');
             $request->session()->flash('message', $pso->error_message);

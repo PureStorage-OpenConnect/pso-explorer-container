@@ -734,6 +734,37 @@ class pso
         $dashboard['array_count'] = count(PsoArray::items(PsoArray::PREFIX, 'name'));
         $dashboard['offline_array_count'] = count(PsoArray::items(PsoArray::PREFIX, 'offline'));
 
+        $vols = [];
+        foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
+            $volume = new PsoPersistentVolumeClaim($uid);
+
+            if ($volume->pure_orphaned == null) {
+                $vol['uid'] = $uid;
+                $vol['name'] = $volume->name;
+                $vol['size'] = $volume->pure_size;
+                $vol['sizeFormatted'] = $volume->pure_sizeFormatted;
+                $vol['used'] = $volume->pure_used;
+                $vol['usedFormatted'] = $volume->pure_usedFormatted;
+                $vol['growth'] = $volume->pure_used - $volume->pure_24h_historic_used;
+                $vol['growthFormatted'] = $this->formatBytes($volume->pure_used - $volume->pure_24h_historic_used, 2);
+                $vol['status'] = $volume->status;
+
+                if ($volume->pure_size !== null) {
+                    $vol['growthPercentage'] = ($volume->pure_used - $volume->pure_24h_historic_used)/$volume->pure_size * 100;
+                } else {
+                    $vol['growthPercentage'] = 0;
+                }
+                array_push($vols, $vol);
+            }
+        }
+
+        $uids = array_column($vols, 'uid');
+        $growths = array_column($vols, 'growthPercentage');
+
+        array_multisort($growths, SORT_DESC, $uids, SORT_DESC, $vols);
+
+        $dashboard['top10_growth_vols'] = array_slice($vols, 0, 10);
+
         return $dashboard;
     }
 
@@ -1007,34 +1038,6 @@ class pso
         $portal_info['total_size_raw'] = $this->pso_info->totalsize;
         $portal_info['last_refesh'] = Redis::get(self::VALID_PSO_DATA_KEY);
 
-        $vols = [];
-        foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
-            $volume = new PsoPersistentVolumeClaim($uid);
-
-            if ($volume->pure_orphaned == null) {
-                $vol['uid'] = $uid;
-                $vol['name'] = $volume->name;;
-                $vol['size'] = $volume->pure_size;
-                $vol['sizeFormatted'] = $volume->pure_sizeFormatted;
-                $vol['used'] = $volume->pure_used;
-                $vol['usedFormatted'] = $volume->pure_usedFormatted;
-                $vol['growth'] = $volume->pure_used - $volume->pure_24h_historic_used;
-                $vol['growthFormatted'] = $this->formatBytes($volume->pure_used - $volume->pure_24h_historic_used, 2);
-
-                if ($volume->pure_size !== null) {
-                    $vol['growthPercentage'] = ($volume->pure_used - $volume->pure_24h_historic_used)/$volume->pure_size;
-                } else {
-                    $vol['growthPercentage'] = 0;
-                }
-                array_push($vols, $vol);
-            }
-        }
-
-        $uids = array_column($vols, 'uid');
-        $growths = array_column($vols, 'growthPercentage');
-
-        array_multisort($growths, SORT_DESC, $uids, SORT_DESC, $vols);
-
         $portal_info['total_iops_read'] = $this->pso_info->total_iops_read;
         $portal_info['total_iops_write'] = $this->pso_info->total_iops_write;
         $portal_info['total_bw'] = $this->formatBytes($this->pso_info->total_bw_read + $this->pso_info->total_bw_write);
@@ -1045,8 +1048,6 @@ class pso
         $portal_info['low_msec_write'] = round($this->pso_info->low_msec_write, 2);
         $portal_info['high_msec_read'] = round($this->pso_info->high_msec_read, 2);
         $portal_info['high_msec_write'] = round($this->pso_info->high_msec_write, 2);
-
-        $portal_info['top10_growth_vols'] = array_slice($vols, 0, 10);
 
         return $portal_info;
     }
