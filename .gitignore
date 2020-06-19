@@ -11,3 +11,4 @@ yarn-error.log
 .gitattributes
 .idea/*
 .styleci.yml
+composer.lock

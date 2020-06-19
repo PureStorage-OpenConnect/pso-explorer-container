@@ -509,10 +509,10 @@ class pso
                             $uid = str_ireplace($this->pso_info->prefix . '-pvc-', '', $vol_perf['name']) ;
 
                             if (isset($vol_hist_size[$uid]['first_date']) and (strtotime($vol_perf['time']) < $vol_hist_size[$uid]['first_date'])) {
-                                $vol_hist_size[$uid]['first_used'] = $vol_perf['volumes'] + $vol_perf['snapshots'] + $vol_perf['shared_space'] + $vol_perf['system'];
+                                $vol_hist_size[$uid]['first_used'] = $vol_perf['total'];
                                 $vol_hist_size[$uid]['first_date'] = strtotime($vol_perf['time']);
                             } elseif (!isset($vol_hist_size[$uid]['first_date'])) {
-                                $vol_hist_size[$uid]['first_used'] = $vol_perf['volumes'] + $vol_perf['snapshots'] + $vol_perf['shared_space'] + $vol_perf['system'];
+                                $vol_hist_size[$uid]['first_used'] = $vol_perf['total'];
                                 $vol_hist_size[$uid]['first_date'] = strtotime($vol_perf['time']);
                             }
                         }
@@ -521,6 +521,7 @@ class pso
 
                 foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
                     $vol = new PsoPersistentVolumeClaim($uid);
+
                     if (isset($vol_hist_size[$uid]['first_used'])) {
                         $vol->pure_24h_historic_used = $vol_hist_size[$uid]['first_used'];
                     }
@@ -698,6 +699,7 @@ class pso
                 'token' => '/Users/rdeenik/LocalFiles/k8s/certs/token',
             ];
 
+            /*
             // Use for test cluster Amsterdam
             $this->master = 'https://10.233.0.1';
             $this->authentication = [
@@ -1018,12 +1020,12 @@ class pso
                 $vol['usedFormatted'] = $volume->pure_usedFormatted;
                 $vol['growth'] = $volume->pure_used - $volume->pure_24h_historic_used;
                 $vol['growthFormatted'] = $this->formatBytes($volume->pure_used - $volume->pure_24h_historic_used, 2);
-                if (isset($volume->pure_size)) {
+
+                if ($volume->pure_size !== null) {
                     $vol['growthPercentage'] = ($volume->pure_used - $volume->pure_24h_historic_used)/$volume->pure_size;
                 } else {
                     $vol['growthPercentage'] = 0;
                 }
-
                 array_push($vols, $vol);
             }
         }
