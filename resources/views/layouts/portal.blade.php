@@ -188,9 +188,7 @@
                         </div>
                         <div class="sidebar-info">
                             <div>Last refresh at:</div>
-                            <div id="sidebar-info-refresh-time">
-                                {!!  $portal_info['last_refesh'] ?? '<i>No valid data</i>' !!}
-                            </div>
+                            <div id="sidebar-info-refresh-time"><i>No data found</i></div>
                         </div>
                     </div>
                 </div>
@@ -364,8 +362,7 @@
 {{-- Show localized refresh time --}}
 <script>
     function settime() {
-        var timestamp =
-                {{ $portal_info['last_refesh'] ?? 0 }}
+        var timestamp = {{ $portal_info['last_refesh'] ?? 0 }}
         var date = new Date(timestamp * 1000);
 
         if (document.getElementById("wrapper").classList.contains("toggled")) {
@@ -374,7 +371,12 @@
             var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
             var s = months[date.getMonth()] + " " + date.getDate() + " " + date.getFullYear() + " " + date.getHours() + ":" + String(date.getMinutes()).padStart(2, "0") + ":" + String(date.getSeconds()).padStart(2, "0");
         }
-        document.getElementById("sidebar-info-refresh-time").innerHTML = s;
+
+        if (timestamp !== 0) {
+            document.getElementById("sidebar-info-refresh-time").innerHTML = s;
+        } else {
+            document.getElementById("sidebar-info-refresh-time").innerHTML = '<i>No data found</i>';
+        }
     }
 </script>
 

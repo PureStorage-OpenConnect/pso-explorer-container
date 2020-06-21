@@ -280,6 +280,27 @@ class pso
                 // Add all storageclasses that use PSO
                 if (in_array($item->provisioner, self::PURE_PROVISIONERS)) {
                     $mystorageclass = new PsoStorageClass($item->metadata->name);
+
+                    if (isset($item->parameters)) {
+                        $parameters = [];
+                        foreach ($item->parameters as $key => $value) {
+                            array_push($parameters, $key . '=' . $value);
+                        }
+                        $mystorageclass->parameters = $parameters;
+                    }
+
+                    if (isset($item->mountOptions)) {
+                        $mountOptions = [];
+                        foreach ($item->mountOptions as $key => $value) {
+                            // no key applicavble
+                            array_push($mountOptions, $value);
+                        }
+                        $mystorageclass->mountOptions = $mountOptions;
+                    }
+
+                    $mystorageclass->allowVolumeExpansion = $item->allowVolumeExpansion;
+                    $mystorageclass->volumeBindingMode = $item->volumeBindingMode;
+                    $mystorageclass->reclaimPolicy = $item->reclaimPolicy;
                 }
             }
         }
@@ -351,8 +372,9 @@ class pso
 
                 if (isset($item->metadata->labels)) {
                     $labels = [];
-                    foreach (array_keys($item->metadata->labels) as $key) {
-                        array_push($labels, $key . '=' . $item->metadata->labels[$key]);
+
+                    foreach ($item->metadata->labels as $key => $value) {
+                        array_push($labels, $key . '=' . $value);
                     }
                     $myvol->labels = $labels;
                 }
@@ -862,7 +884,7 @@ class pso
             $namespace_info->used = $pure_used;
             $namespace_info->usedFormatted = $this->formatBytes($pure_used, 2);
             $namespace_info->volumeCount = $pure_volumes;
-            $namespace_info->storageClasses = implode(',', $storageclasses);
+            $namespace_info->storageClasses = implode(', ', $storageclasses);
 
             array_push($namespaces, $namespace_info->asArray());
         }
@@ -943,7 +965,7 @@ class pso
                 $label_info->used = $pure_used;
                 $label_info->usedFormatted = $this->formatBytes($pure_used, 2);
                 $label_info->volumeCount = $pure_volumes;
-                $label_info->storageClasses = implode(',', $storageclasses);
+                $label_info->storageClasses = implode(', ', $storageclasses);
 
                 array_push($labels, $label_info->asArray());
             }
@@ -983,7 +1005,7 @@ class pso
             $deployment->used = $pure_used;
             $deployment->usedFormatted = $this->formatBytes($pure_used, 2);
             $deployment->volumeCount = $pure_volumes;
-            $deployment->storageClasses = implode(',', $storageclasses);
+            $deployment->storageClasses = implode(', ', $storageclasses);
 
             array_push($deployments, $deployment->asArray());
         }
@@ -1021,7 +1043,7 @@ class pso
             $myset->used = $pure_used;
             $myset->usedFormatted = $this->formatBytes($pure_used, 2);
             $myset->volumeCount = $pure_volumes;
-            $myset->storageClasses = implode(',', $storageclasses);
+            $myset->storageClasses = implode(', ', $storageclasses);
 
             array_push($statefulsets, $myset->asArray());
         }

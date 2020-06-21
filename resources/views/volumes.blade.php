@@ -54,7 +54,7 @@
 
                                                 <td>{{ $vol['storageClass'] ?? '' }}</td>
                                                 <td>{{ $vol['pv_name'] ?? '' }}</td>
-                                                <td>@isset($vol['labels']){{ implode(',', $vol['labels']) }}@endisset </td>
+                                                <td>@isset($vol['labels']){{ implode(', ', $vol['labels']) }}@endisset </td>
                                                 <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}" target="_blank">{{ $vol['pure_arrayName'] }}</a></td>
                                                 <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a></td>
                                                 <td>{{ number_format($vol['pure_drr'] ?? 1 , 1) }}:1</td>
