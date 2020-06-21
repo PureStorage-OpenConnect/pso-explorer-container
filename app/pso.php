@@ -13,6 +13,7 @@ use App\Http\Classes\PsoPersistentVolumeClaim;
 use App\Http\Classes\PsoStatefulSet;
 use App\Http\Classes\PsoStorageClass;
 use Exception;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Kubernetes\API\Deployment;
 use Kubernetes\API\PersistentVolume;
@@ -34,6 +35,7 @@ use Kubernetes\Model\Io\K8s\Api\Storage\V1\StorageClassList;
 class pso
 {
     public const VALID_PSO_DATA_KEY = 'pso:timestamp';
+    public const PSO_UPDATE_KEY = 'pso:do_update';
     public const PURE_PROVISIONERS = ['pure-provisioner', 'pure-csi'];
 
     private $master = null;
@@ -662,6 +664,18 @@ class pso
             return true;
         }
 
+        if (Redis::get(self::PSO_UPDATE_KEY) !== null) {
+            Log::debug('--- Already busy with refresh');
+            $this->pso_found = false;
+            $this->error_source = 'k8s';
+            $this->error_message = 'Busy refreshing data, please try again in a few seconds.';
+            return true;
+        } else {
+            Log::debug('--- Start Refresh data');
+            Redis::set(self::PSO_UPDATE_KEY, time());
+            Redis::expire(self::PSO_UPDATE_KEY, 30);
+        }
+
         // Remove stale PSO data from Redis
         Redis::del(self::VALID_PSO_DATA_KEY);
         PsoInformation::deleteAll(PsoInformation::PREFIX);
@@ -701,6 +715,8 @@ class pso
 
         $this->error_source = '';
         $this->error_message = '';
+        Redis::del(self::PSO_UPDATE_KEY, time());
+        Log::debug('    Refresh data completed.');
         return true;
     }
 
