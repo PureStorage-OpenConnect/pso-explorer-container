@@ -48,6 +48,11 @@
     flex-direction: column;
 }
 
+.margin-left {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
 .sidebar-nav .metismenu li + li {
     margin-top: 0px;
 }

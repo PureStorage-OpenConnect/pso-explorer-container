@@ -22,14 +22,14 @@
                             <div class="row with-padding">
                                 <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter>
                                     <thead>
-                                    <tr>
-                                        <th data-toggle="true">Namespace</th>
-                                        <th>StatefulSet</th>
-                                        <th>Number of volumes</th>
-                                        <th>Provisioned size</th>
-                                        <th>Used capacity</th>
-                                        <th>StorageClasses</th>
-                                    </tr>
+                                        <tr>
+                                            <th data-toggle="true">Namespace</th>
+                                            <th>StatefulSet</th>
+                                            <th>Number of volumes</th>
+                                            <th>Provisioned size</th>
+                                            <th>Used capacity</th>
+                                            <th>StorageClasses</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
                                     @isset($pso_statefulsets)
@@ -45,7 +45,8 @@
                                         @endforeach
                                         @if(count($pso_statefulsets) == 0)
                                             <tr>
-                                                <td><i>No StatefulSets found using persistent volume claims</i></td>
+                                                <td><i>No StatefulSets found using PVCs</i></td>
+                                                <td> </td>
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>
@@ -56,7 +57,7 @@
                                     </tbody>
                                     <tfoot>
                                     <tr>
-                                        <td colspan="5">
+                                        <td colspan="6">
                                             <ul class="pagination float-right"></ul>
                                         </td>
                                     </tr>

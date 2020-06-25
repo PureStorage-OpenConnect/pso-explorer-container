@@ -158,7 +158,7 @@
                                 <div class="col-xs-4 col-md-4 col-lg-4">
                                     <div class="row border-bottom">
                                         <div class="col-12 with-padding-top border-bottom">
-                                            <p><strong>Storage Perfromance</strong></p>
+                                            <p style="margin: 0 0 9px;"><strong>Storage Perfromance</strong></p>
                                         </div>
                                     </div>
                                     <div class="row border-bottom">

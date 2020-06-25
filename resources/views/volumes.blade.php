@@ -93,13 +93,18 @@
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
                                             </tr>
                                         @endif
                                     @endisset
                                     </tbody>
                                     <tfoot>
                                     <tr>
-                                        <td colspan="5">
+                                        <td colspan="7">
                                             <ul class="pagination float-right"></ul>
                                         </td>
                                     </tr>
@@ -175,7 +180,7 @@
                                     </tbody>
                                     <tfoot>
                                     <tr>
-                                        <td colspan="5">
+                                        <td colspan="6">
                                             <ul class="pagination float-right"></ul>
                                         </td>
                                     </tr>

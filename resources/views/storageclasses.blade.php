@@ -67,7 +67,7 @@
                                     </tbody>
                                     <tfoot>
                                     <tr>
-                                        <td colspan="5">
+                                        <td colspan="4">
                                             <ul class="pagination float-right"></ul>
                                         </td>
                                     </tr>
@@ -106,7 +106,7 @@
                                         <th>Provisioned size</th>
                                         <th data-hide="all">Snapshotter</th>
                                         <th data-hide="all">Reclaim Policy</th>
-                                        <th dVolumeSnapshotClassesata-hide="all">Is default class</th>
+                                        <th data-hide="all">Is default class</th>
                                         <th>Used capacity</th>
                                     </tr>
                                     </thead>
@@ -132,15 +132,13 @@
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>
-                                                <td> </td>
-                                                <td> </td>
                                             </tr>
                                         @endif
                                     @endisset
                                     </tbody>
                                     <tfoot>
                                     <tr>
-                                        <td colspan="5">
+                                        <td colspan="4">
                                             <ul class="pagination float-right"></ul>
                                         </td>
                                     </tr>

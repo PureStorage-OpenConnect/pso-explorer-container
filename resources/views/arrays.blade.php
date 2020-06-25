@@ -27,10 +27,10 @@
                                         <th>Number of volumes</th>
                                         <th>Provisioned size</th>
                                         <th>Used capacity</th>
+                                        <th>Storageclasses</th>
                                         <th data-hide="all">Model</th>
                                         <th data-hide="all">IP Address</th>
                                         <th data-hide="all">Labels</th>
-                                        <th>Storageclasses</th>
                                         <th>Status</th>
                                     </tr>
                                     </thead>
@@ -42,10 +42,10 @@
                                                 <td>{{ $pso_array['volumeCount'] }}</td>
                                                 <td>{{ $pso_array['sizeFormatted'] }}</td>
                                                 <td>{{ $pso_array['usedFormatted'] }}</td>
+                                                <td>@isset($pso_array['storageClasses']){{ implode(', ', $pso_array['storageClasses']) }}@endisset</td>
                                                 <td>{{ $pso_array['model'] }}</td>
-                                                <td><a href="https://{{ $pso_array['mgmtEndPoint'] ?? '#' }}" target="_blank">{{ $pso_array['mgmtEndPoint'] }}</a></td>
+                                                <td><a href="https://{{ $pso_array['mgmtEndPoint'] ?? '#' }}" target="_blank">{{ $pso_array['mgmtEndPoint'] }} </a></td>
                                                 <td>@isset($pso_array['labels']){{ implode(', ', $pso_array['labels']) }}@endisset </td>
-                                                <td>@isset($pso_array['storageClasses']){{ implode(', ', $pso_array['storageClasses']) }}@endisset </td>
                                                 @if($pso_array['offline'] !== null)
                                                     <td><span class="label label-danger">Offline</span></td>
                                                 @else
@@ -60,13 +60,17 @@
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
                                             </tr>
                                         @endif
                                     @endisset
                                     </tbody>
                                     <tfoot>
                                     <tr>
-                                        <td colspan="5">
+                                        <td colspan="6">
                                             <ul class="pagination float-right"></ul>
                                         </td>
                                     </tr>

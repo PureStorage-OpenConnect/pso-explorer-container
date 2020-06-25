@@ -45,7 +45,8 @@
                                         @endforeach
                                         @if(count($pso_deployments) == 0)
                                             <tr>
-                                                <td><i>No deployments found using persistent volume claims</i></td>
+                                                <td><i>No deployments found using PVCs</i></td>
+                                                <td> </td>
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>
@@ -56,7 +57,7 @@
                                     </tbody>
                                     <tfoot>
                                     <tr>
-                                        <td colspan="5">
+                                        <td colspan="6">
                                             <ul class="pagination float-right"></ul>
                                         </td>
                                     </tr>
