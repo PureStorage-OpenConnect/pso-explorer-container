@@ -23,6 +23,7 @@ Route::get('/view/storageclasses', 'ViewController@StorageClasses')->name('Stora
 Route::get('/view/labels', 'ViewController@Labels')->name('Labels');
 Route::get('/view/deployments', 'ViewController@Deployments')->name('Deployments');
 Route::get('/view/statefulsets', 'ViewController@StatefulSets')->name('StatefulSets');
+Route::get('/view/snapshots', 'ViewController@Snapshots')->name('Snapshots');
 Route::get('/view/volumes', 'ViewController@Volumes')->name('Volumes');
 
 // GUI routes
@@ -33,4 +34,5 @@ Route::get('/api/storageclasses', 'ApiController@StorageClasses')->name('Storage
 Route::get('/api/labels', 'ApiController@Labels')->name('LabelsApi');
 Route::get('/api/deployments', 'ApiController@Deployments')->name('DeploymentsApi');
 Route::get('/api/statefulsets', 'ApiController@StatefulSets')->name('StatefulSetsApi');
+Route::get('/api/snapshots', 'ApiController@Snapshots')->name('SnapshotsApi');
 Route::get('/api/volumes', 'ApiController@Volumes')->name('VolumesApi');

@@ -4,9 +4,9 @@
 namespace App\Http\Classes;
 
 
-class PsoStorageClass extends RedisModel
+class PsoVolumeSnapshotClass extends RedisModel
 {
-    public const PREFIX='pso_storageclass';
+    public const PREFIX='pso_snapshotclass';
 
     protected $fillable = [
         'name',
@@ -15,11 +15,10 @@ class PsoStorageClass extends RedisModel
         'used',
         'usedFormatted',
         'volumeCount',
-        'mountOptions',
-        'parameters',
-        'allowVolumeExpansion',
-        'volumeBindingMode',
+
+        'snapshotter',
         'reclaimPolicy',
+        'is_default_class',
     ];
 
     protected $indexes = [

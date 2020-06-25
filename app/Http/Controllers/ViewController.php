@@ -52,9 +52,10 @@ class ViewController extends Controller
         }
 
         $pso_storageclasses = $pso->storageclasses();
+        $pso_volumesnapshotclasses = $pso->volumesnapshotclasses();
         $portal_info = $pso->portal_info();
 
-        return view('storageclasses', ['pso_storageclasses' => $pso_storageclasses, 'portal_info' => $portal_info]);
+        return view('storageclasses', ['pso_storageclasses' => $pso_storageclasses, 'pso_volumesnapshotclasses' => $pso_volumesnapshotclasses, 'portal_info' => $portal_info]);
     }
 
     public function Labels (Request $request)
@@ -108,6 +109,23 @@ class ViewController extends Controller
         return view('statefulsets', ['pso_statefulsets' => $pso_statefulsets, 'portal_info' => $portal_info]);
     }
 
+    public function Snapshots (Request $request)
+    {
+        $pso = new pso();
+        if (!$pso->pso_found)
+        {
+            $request->session()->flash('alert-class', 'alert-danger');
+            $request->session()->flash('message', $pso->error_message);
+            $request->session()->flash('source', $pso->error_source);
+            return redirect()->route('Dashboard');
+        }
+
+        $pso_volsnaps = $pso->volumesnapshots();
+        $portal_info = $pso->portal_info();
+
+        return view('snapshots', ['pso_volsnaps' => $pso_volsnaps, 'portal_info' => $portal_info, 'volume_keyword' => $request->input('volume_keyword') ?? '']);
+    }
+
     public function Volumes (Request $request)
     {
         $pso = new pso();
@@ -123,6 +141,6 @@ class ViewController extends Controller
         $orphaned_vols = $pso->orphaned();
         $portal_info = $pso->portal_info();
 
-        return view('volumes', ['pso_vols' => $pso_vols, 'orphaned_vols' => $orphaned_vols, 'portal_info' => $portal_info]);
+        return view('volumes', ['pso_vols' => $pso_vols, 'orphaned_vols' => $orphaned_vols, 'portal_info' => $portal_info, 'volume_keyword' => $request->input('volume_keyword') ?? '']);
     }
 }

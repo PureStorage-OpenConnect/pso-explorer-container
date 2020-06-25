@@ -142,6 +142,12 @@
                                     <span class="mm-sub-text">StatefulSets</span>
                                 </a>
                             </li>
+                            <li @IF(Request::is('view/snapshots'))class="mm-active"@ENDIF>
+                                <a href="{{ route('Snapshots') }}">
+                                    <img class="mm-sub" src="{{ asset('images/k8s/snap-pure.svg') }}">
+                                    <span class="mm-sub-text">Snapshots</span>
+                                </a>
+                            </li>
                             <li @IF(Request::is('view/volumes'))class="mm-active"@ENDIF>
                                 <a href="{{ route('Volumes') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/vol-pure.svg') }}">
@@ -257,7 +263,7 @@
                 @IF (Route::has(Route::currentRouteName() . 'Api'))
                     <form action="{{ Route(Route::currentRouteName() . 'Api') }}" method="get">
                         <input type="submit" class="btn btn-w-m btn-pure" value="View as JSON"
-                               name="Submit" id="frm1_submit"/>
+                               name="Submit" id="frm2_submit"/>
                     </form>
                 @ENDIF
             </div>

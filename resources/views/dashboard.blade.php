@@ -1,7 +1,7 @@
 @extends('layouts.portal')
 
 @section('css')
-
+    <meta http-equiv="refresh" content="300">
 @endsection
 
 @section('content')
@@ -24,8 +24,8 @@
                             <div class="panel-body list-container">
                                 <div class="list-section">
                                     <div class="no-padding align-middle">
-                                        <h1 class="no-margin"><a href="{{ route('Volumes') }}">{{ $dashboard['volume_count'] ?? 0 }}</a></h1>
-                                        <small>Provisioned</small>
+                                        <h1 class="no-margin"><a href="{{ route('Volumes') }}">{{ ($dashboard['volume_count'] - $dashboard['orphaned_count']) ?? 0 }}</a></h1>
+                                        <small>Persistent Volume Claims</small>
                                     </div>
                                 </div>
                             </div>
@@ -53,13 +53,13 @@
                     <div class="no-left-padding col-xs-12 col-sm-12 col-md-6 col-lg-3">
                         <div class="panel panel-default">
                             <div class="panel-heading">
-                                <span>StatefulSets</span>
+                                <span>Snapshots</span>
                             </div>
                             <div class="panel-body list-container">
                                 <div class="list-section">
                                     <div class="no-padding">
-                                        <h1 class="no-margin"><a href="{{ route('StatefulSets') }}">{{ $dashboard['statefulset_count'] ?? 0 }}</a></h1>
-                                        <small>Using managed volumes</small>
+                                        <h1 class="no-margin"><a href="{{ route('Snapshots') }}">{{ $dashboard['snapshot_count'] ?? 0 }}</a></h1>
+                                        <small>Volume Snapshots</small>
                                     </div>
                                 </div>
                             </div>
@@ -110,7 +110,7 @@
                                     <table class="table table-hover">
                                         <thead>
                                         <tr>
-                                            <th>PVC name</th>
+                                            <th>Block volumes</th>
                                             <th>Size</th>
                                             <th>Usage</th>
                                             <th>24h growth</th>
@@ -120,7 +120,7 @@
                                         @ISSET($dashboard['top10_growth_vols'])
                                         @FOREACH($dashboard['top10_growth_vols'] as $vol)
                                             <tr>
-                                                <td><a href="{{ route('Volumes') }}">{{ $vol['name'] }}</a></td>
+                                                <td><a href="{{ route('Volumes', ['volume_keyword' => $vol['pure_name']]) }}">{{ $vol['name'] }}</a></td>
                                                 @IF($vol['status'] == 'Bound')
                                                 <td>{{ $vol['sizeFormatted']}}</td>
                                                 @ELSE
@@ -198,7 +198,7 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-12">
-                                            <br><p><strong>Latency</strong></p>
+                                            <br><p><strong>Latency (block only)</strong></p>
                                         </div>
                                         <div class="col-6">
                                             <small class="stats-label">Range for reads</small>

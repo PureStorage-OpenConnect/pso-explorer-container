@@ -5,6 +5,7 @@
 @endsection
 
 @section('content')
+    {{-- StorageClasses --}}
     <div class="row">
         <div class="col-xs-12 tab-container">
             <div class="with-padding">
@@ -52,6 +53,79 @@
                                         @if(count($pso_storageclasses) == 0)
                                             <tr>
                                                 <td><i>No StorageClasses found</i></td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                            </tr>
+                                        @endif
+                                    @endisset
+                                    </tbody>
+                                    <tfoot>
+                                    <tr>
+                                        <td colspan="5">
+                                            <ul class="pagination float-right"></ul>
+                                        </td>
+                                    </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {{-- VolumeSnapshotClasses --}}
+    <div class="row">
+        <div class="col-xs-12 tab-container">
+            <div class="with-padding">
+
+                {{-- Storage Usage --}}
+                <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <span>PSO VolumeSnapshotClasses</span>
+                        </div>
+                        <div class="panel-body list-container">
+                            <div class="row with-padding">
+                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter" placeholder="Search in table">
+                            </div>
+                            <div class="row with-padding">
+                                <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter>
+                                    <thead>
+                                    <tr>
+                                        <th data-toggle="true">VolumeSnapshotClass</th>
+                                        <th>Number of snapshots</th>
+                                        <th>Provisioned size</th>
+                                        <th data-hide="all">Snapshotter</th>
+                                        <th data-hide="all">Reclaim Policy</th>
+                                        <th dVolumeSnapshotClassesata-hide="all">Is default class</th>
+                                        <th>Used capacity</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @isset($pso_volumesnapshotclasses)
+                                        @foreach($pso_volumesnapshotclasses as $pso_volumesnapshotclass)
+                                            <tr>
+                                                <td>{{ $pso_volumesnapshotclass['name'] ?? '<unknown>' }}</td>
+                                                <td>{{ $pso_volumesnapshotclass['volumeCount'] ?? '<unknown>' }}</td>
+                                                <td>{{ $pso_volumesnapshotclass['sizeFormatted'] ?? '<unknown>' }}</td>
+                                                <td>{{ $pso_volumesnapshotclass['snapshotter'] ?? '<unknown>' }}</td>
+                                                <td>{{ $pso_volumesnapshotclass['reclaimPolicy'] ?? '<unknown>' }}</td>
+                                                <td>@if($pso_volumesnapshotclass['is_default_class'] == 1)True @else False @endif</td>
+                                                <td>{{ $pso_volumesnapshotclass['usedFormatted'] ?? '<unknown>' }}</td>
+                                            </tr>
+                                        @endforeach
+                                        @if(count($pso_volumesnapshotclasses) == 0)
+                                            <tr>
+                                                <td><i>No VolumeSnapshotClasses found</i></td>
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>

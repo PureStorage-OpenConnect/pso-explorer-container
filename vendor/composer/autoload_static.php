@@ -495,6 +495,8 @@ class ComposerStaticInit281db010d9894750579c5b29f9eba354
     public static $classMap = array (
         'App\\Api\\FlashArrayAPI' => __DIR__ . '/../..' . '/app/Http/Api/FlashArrayApi.class.php',
         'App\\Api\\FlashBladeAPI' => __DIR__ . '/../..' . '/app/Http/Api/FlashBladeApi.class.php',
+        'App\\Api\\k8s\\VolumeSnapshot' => __DIR__ . '/../..' . '/app/Http/Api/k8s/VolumeSnapshot.class.php',
+        'App\\Api\\k8s\\VolumeSnapshotClass' => __DIR__ . '/../..' . '/app/Http/Api/k8s/VolumeSnapshotClass.class.php',
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
         'App\\Http\\Classes\\PsoArray' => __DIR__ . '/../..' . '/app/Http/Classes/PsoArray.php',
@@ -503,6 +505,7 @@ class ComposerStaticInit281db010d9894750579c5b29f9eba354
         'App\\Http\\Classes\\PsoLabels' => __DIR__ . '/../..' . '/app/Http/Classes/PsoLabels.php',
         'App\\Http\\Classes\\PsoNamespace' => __DIR__ . '/../..' . '/app/Http/Classes/PsoNamespace.php',
         'App\\Http\\Classes\\PsoPersistentVolumeClaim' => __DIR__ . '/../..' . '/app/Http/Classes/PsoPersistentVolumeClaim.php',
+        'App\\Http\\Classes\\PsoSnapshotClass' => __DIR__ . '/../..' . '/app/Http/Classes/PsoSnapshotClass.php',
         'App\\Http\\Classes\\PsoStatefulSet' => __DIR__ . '/../..' . '/app/Http/Classes/PsoStatefulSet.php',
         'App\\Http\\Classes\\PsoStorageClass' => __DIR__ . '/../..' . '/app/Http/Classes/PsoStorageClass.php',
         'App\\Http\\Classes\\RedisModel' => __DIR__ . '/../..' . '/app/Http/Classes/RedisModel.php',

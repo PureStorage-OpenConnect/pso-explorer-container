@@ -8,6 +8,8 @@ $baseDir = dirname($vendorDir);
 return array(
     'App\\Api\\FlashArrayAPI' => $baseDir . '/app/Http/Api/FlashArrayApi.class.php',
     'App\\Api\\FlashBladeAPI' => $baseDir . '/app/Http/Api/FlashBladeApi.class.php',
+    'App\\Api\\k8s\\VolumeSnapshot' => $baseDir . '/app/Http/Api/k8s/VolumeSnapshot.class.php',
+    'App\\Api\\k8s\\VolumeSnapshotClass' => $baseDir . '/app/Http/Api/k8s/VolumeSnapshotClass.class.php',
     'App\\Console\\Kernel' => $baseDir . '/app/Console/Kernel.php',
     'App\\Exceptions\\Handler' => $baseDir . '/app/Exceptions/Handler.php',
     'App\\Http\\Classes\\PsoArray' => $baseDir . '/app/Http/Classes/PsoArray.php',
@@ -16,6 +18,7 @@ return array(
     'App\\Http\\Classes\\PsoLabels' => $baseDir . '/app/Http/Classes/PsoLabels.php',
     'App\\Http\\Classes\\PsoNamespace' => $baseDir . '/app/Http/Classes/PsoNamespace.php',
     'App\\Http\\Classes\\PsoPersistentVolumeClaim' => $baseDir . '/app/Http/Classes/PsoPersistentVolumeClaim.php',
+    'App\\Http\\Classes\\PsoSnapshotClass' => $baseDir . '/app/Http/Classes/PsoSnapshotClass.php',
     'App\\Http\\Classes\\PsoStatefulSet' => $baseDir . '/app/Http/Classes/PsoStatefulSet.php',
     'App\\Http\\Classes\\PsoStorageClass' => $baseDir . '/app/Http/Classes/PsoStorageClass.php',
     'App\\Http\\Classes\\RedisModel' => $baseDir . '/app/Http/Classes/RedisModel.php',

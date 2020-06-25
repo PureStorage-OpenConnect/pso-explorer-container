@@ -4,12 +4,16 @@ namespace App;
 
 use App\Api\FlashArrayAPI;
 use App\Api\FlashBladeAPI;
+use App\Api\k8s\VolumeSnapshotClass;
+use App\Api\k8s\VolumeSnapshot;
 use App\Http\Classes\PsoArray;
 use App\Http\Classes\PsoDeployment;
 use App\Http\Classes\PsoInformation;
 use App\Http\Classes\PsoLabels;
 use App\Http\Classes\PsoNamespace;
 use App\Http\Classes\PsoPersistentVolumeClaim;
+use App\Http\Classes\PsoVolumeSnapshot;
+use App\Http\Classes\PsoVolumeSnapshotClass;
 use App\Http\Classes\PsoStatefulSet;
 use App\Http\Classes\PsoStorageClass;
 use Exception;
@@ -294,7 +298,7 @@ class pso
                     if (isset($item->mountOptions)) {
                         $mountOptions = [];
                         foreach ($item->mountOptions as $key => $value) {
-                            // no key applicavble
+                            // key is only the array counter
                             array_push($mountOptions, $value);
                         }
                         $mystorageclass->mountOptions = $mountOptions;
@@ -340,7 +344,7 @@ class pso
                         $myset = new PsoStatefulSet($item->metadata->uid);
                         $myset->name = $item->metadata->name;
                         $myset->namespace = $item->metadata->namespace;
-                        $myset->namespace_volnames = $vols;
+                        $myset->namespace_names = $vols;
                     }
                 }
             }
@@ -408,20 +412,85 @@ class pso
                 if (isset($item->spec->template->spec->volumes)) {
                     foreach ($item->spec->template->spec->volumes as $vol) {
                         if (isset($vol->persistentVolumeClaim->claimName)) {
-                            $namespace_volname = $item->metadata->namespace . ':' .  $vol->persistentVolumeClaim->claimName;
-                            if (in_array($namespace_volname, PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'namespace_name'))) {
+                            $namespace_name = $item->metadata->namespace . ':' .  $vol->persistentVolumeClaim->claimName;
+                            if (in_array($namespace_name, PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'namespace_name'))) {
                                 $mydeployment = new PsoDeployment($item->metadata->uid);
                                 $mydeployment->name = $item->metadata->name;
                                 $mydeployment->namespace = $item->metadata->namespace;
                                 $mydeployment->volumeCount = $mydeployment->volumeCount + 1;
-                                $mydeployment->namespace_volnames = [$namespace_volname];
+                                if ($mydeployment->namespace_names == null) {
+                                    $mydeployment->namespace_names = [$namespace_name];
+                                } else {
+                                    array_push($mydeployment->namespace_names, $namespace_name);
+                                }
+
                             }
                         }
                     }
                 }
             }
         }
+
         return true;
+    }
+
+    public function getVolumeSnapshotClasses()
+    {
+        Client::configure($this->master, $this->authentication, ['timeout' => 10]);
+        $class = new VolumeSnapshotClass;
+        $class_list = $class->listV1alpha1();
+
+        if (isset($class_list->code)) {
+            // Do not return an error if not found, since this is a feature gate that might not be enabled.
+            return false;
+        }
+
+        foreach ($class_list['items'] as $item) {
+            if (in_array($item['snapshotter'], self::PURE_PROVISIONERS)) {
+                $snapshotclass = new PsoVolumeSnapshotClass($item['metadata']['name']);
+
+                $snapshotclass->snapshotter = $item['snapshotter'];
+                $snapshotclass->reclaimPolicy = $item['reclaimPolicy'];
+
+                if (isset($item['metadata']['annotations']['snapshot.storage.kubernetes.io/is-default-class'])) {
+                    $snapshotclass->is_default_class = $item['metadata']['annotations']['snapshot.storage.kubernetes.io/is-default-class'];
+                } else {
+                    $snapshotclass->is_default_class = 'false';
+                }
+            }
+        }
+    }
+
+    public function getVolumeSnapshots()
+    {
+        Client::configure($this->master, $this->authentication, ['timeout' => 10]);
+        $snap = new VolumeSnapshot();
+        $snap_list = $snap->listV1alpha1('');
+
+        if (isset($snap_list->code)) {
+            // Do not return an error if not found, since this is a feature gate that might not be enabled.
+            return false;
+        }
+
+        foreach ($snap_list['items'] as $item) {
+            if (in_array($item['spec']['snapshotClassName'], PsoVolumeSnapshotClass::items(PsoVolumeSnapshotClass::PREFIX, 'name'))) {
+                $volumeSnapshot = new PsoVolumeSnapshot($item['metadata']['uid']);
+
+                $volumeSnapshot->name = $item['metadata']['name'];
+                $volumeSnapshot->namespace = $item['metadata']['namespace'];
+                $volumeSnapshot->snapshotClassName = $item['spec']['snapshotClassName'];
+                $volumeSnapshot->snapshotContentName = $item['spec']['snapshotContentName'];
+                $volumeSnapshot->source_name = $item['spec']['source']['name'];
+                $volumeSnapshot->source_kind = $item['spec']['source']['kind'];
+                $volumeSnapshot->creationTime = $item['status']['creationTime'];
+                $volumeSnapshot->readyToUse = $item['status']['readyToUse'];
+
+                $uid = PsoPersistentVolumeClaim::getUidByNamespaceName($volumeSnapshot->namespace, $volumeSnapshot->source_name);
+                $volumeSnapshot->pure_volname = $this->pso_info->prefix . '-pvc-' . $uid;
+                $pvc = new PsoPersistentVolumeClaim($uid);
+                $pvc->has_snaps = true;
+            }
+        }
     }
 
     private function addArrayVolumeInfo()
@@ -466,6 +535,7 @@ class pso
                             $myvol->pure_drr = $vol['data_reduction'] ?? 1;
                             $myvol->pure_thinProvisioning = $vol['thin_provisioning'] ?? 0;
                             $myvol->pure_arrayName = $array->name;
+                            $myvol->pure_arrayType = 'FA';
                             $myvol->pure_arrayMgmtEndPoint = $array->mgmtEndPoint;
                             $myvol->pure_snapshots = $vol['snapshots'] ?? 0;
                             $myvol->pure_volumes = $vol['volumes'] ?? 0;
@@ -474,8 +544,8 @@ class pso
                             if ($myvol->name == null) {
                                 $myvol->pure_orphaned = $uid;
                                 $myvol->pure_orphaned_state = 'Unmanaged by PSO';
-                                $myvol->pure_orphaned_pvc_name = 'Unknown';
-                                $myvol->pure_orphaned_pvc_namespace = 'Unknown';
+                                $myvol->pure_orphaned_pvc_name = 'Not available for unmanaged PV\'s';
+                                $myvol->pure_orphaned_pvc_namespace = 'Not available for unmanaged PV\'s';
                             }
 
                             $total_used = $total_used + $vol['size']  * (1 - $vol['thin_provisioning'] ?? 0);
@@ -519,7 +589,6 @@ class pso
                     }
                 }
 
-
                 $vols_perf = $fa_api->GetVolumes([
                     'names' => $this->pso_info->prefix . '-pvc-*',
                     'space' => 'true',
@@ -546,8 +615,36 @@ class pso
                 foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
                     $vol = new PsoPersistentVolumeClaim($uid);
 
-                    if (isset($vol_hist_size[$uid]['first_used'])) {
+                    if (isset($vol_hist_size[$uid]['first_used']) and ($vol->pure_arrayType == 'FA')) {
                         $vol->pure_24h_historic_used = $vol_hist_size[$uid]['first_used'];
+                    }
+                }
+
+                $snaps = $fa_api->GetVolumes([
+                    'names' => $this->pso_info->prefix . '-pvc-*',
+                    'space' => 'true',
+                    'snap' => 'true',
+                ]);
+
+                if (isset($snaps)) {
+                    foreach ($snaps as $snap) {
+                        if ($this->startsWith($this->pso_info->prefix . '-pvc-', $snap['name'])) {
+                            $snap_prefix = '.snapshot-';
+                            $pure_volname = substr($snap['name'], 0, strpos($snap['name'], $snap_prefix));
+                            $uid = substr($snap['name'], strpos($snap['name'], $snap_prefix) + strlen($snap_prefix));
+
+                            $mysnap = new PsoVolumeSnapshot($uid);
+                            $mysnap->pure_name = $snap['name'];
+                            $mysnap->pure_volname = $pure_volname;
+                            $mysnap->pure_size = $snap['size'];
+                            $mysnap->pure_sizeFormatted = $this->formatBytes($mysnap->pure_size, 2);;
+                            $mysnap->pure_used = $snap['total'];
+                            $mysnap->pure_usedFormatted = $this->formatBytes($mysnap->pure_used, 2);;
+
+                            $mysnap->pure_arrayName = $array->name;
+                            $mysnap->pure_arrayType = 'FA';
+                            $mysnap->pure_arrayMgmtEndPoint = $array->mgmtEndPoint;
+                        }
                     }
                 }
             } elseif (strpos($array->model, 'FlashBlade') and ($array->offline == null)) {
@@ -579,6 +676,7 @@ class pso
                             $myvol->pure_drr = $filesystem['space']['data_reduction'] ?? 1;
                             $myvol->pure_thinProvisioning = 0;
                             $myvol->pure_arrayName = $array->name;
+                            $myvol->pure_arrayType = 'FB';
                             $myvol->pure_arrayMgmtEndPoint = $array->mgmtEndPoint;
                             $myvol->pure_snapshots = $filesystem['space']['snapshots'] ?? 0;
                             $myvol->pure_volumes = $filesystem['space']['unique'] ?? 0;
@@ -593,6 +691,31 @@ class pso
 
                             $total_used = $total_used + $filesystem['space']['virtual'];
                             $total_size = $total_size + $filesystem['provisioned'];
+
+                            $fs_perf = $fb_api->GetFileSystemsPerformance([
+                                'names' => $filesystem['name'],
+                                'protocol' => 'nfs',
+                            ]);
+
+                            if (isset($fs_perf['items'])) {
+                                foreach ($fs_perf['items'] as $fs_perf_item) {
+                                    $myvol->pure_reads_per_sec = $fs_perf_item['reads_per_sec'];
+                                    $myvol->pure_writes_per_sec = $fs_perf_item['writes_per_sec'];
+                                    $myvol->pure_input_per_sec = $fs_perf_item['write_bytes_per_sec'];
+                                    $myvol->pure_input_per_sec_formatted = $this->formatBytes($fs_perf_item['write_bytes_per_sec'], 1);
+                                    $myvol->pure_output_per_sec = $fs_perf_item['read_bytes_per_sec'];
+                                    $myvol->pure_output_per_sec_formatted = $this->formatBytes($fs_perf_item['read_bytes_per_sec'], 1);
+                                    $myvol->pure_usec_per_read_op = round($fs_perf_item['usec_per_read_op'] / 1000, 2);
+                                    $myvol->pure_usec_per_write_op = round($fs_perf_item['usec_per_write_op'] / 1000, 2);
+
+                                    $total_iops_read = $total_iops_read + $fs_perf_item['reads_per_sec'];
+                                    $total_iops_write = $total_iops_write + $fs_perf_item['writes_per_sec'];
+                                    $total_bw_read = $total_bw_read + $fs_perf_item['read_bytes_per_sec'];
+                                    $total_bw_write = $total_bw_write + $fs_perf_item['write_bytes_per_sec'];
+
+                                    $perf_count = $perf_count + 1;
+                                }
+                            }
                         }
                     }
                 }
@@ -677,37 +800,83 @@ class pso
         }
 
         // Remove stale PSO data from Redis
+        Log::debug('    Remove stale data');
         Redis::del(self::VALID_PSO_DATA_KEY);
-        PsoInformation::deleteAll(PsoInformation::PREFIX);
         PsoArray::deleteAll(PsoArray::PREFIX);
-        PsoStorageClass::deleteAll(PsoStorageClass::PREFIX);
-        PsoStatefulSet::DeleteAll(PsoStatefulSet::PREFIX);
-        PsoPersistentVolumeClaim::deleteAll(PsoPersistentVolumeClaim::PREFIX);
+        PsoDeployment::DeleteAll(PsoDeployment::PREFIX);
+        PsoInformation::deleteAll(PsoInformation::PREFIX);
         PsoLabels::deleteAll(PsoLabels::PREFIX);
         PsoNamespace::deleteAll(PsoNamespace::PREFIX);
+        PsoPersistentVolumeClaim::deleteAll(PsoPersistentVolumeClaim::PREFIX);
+        PsoStatefulSet::DeleteAll(PsoStatefulSet::PREFIX);
+        PsoStorageClass::deleteAll(PsoStorageClass::PREFIX);
+        PsoVolumeSnapshotClass::deleteAll(PsoVolumeSnapshotClass::PREFIX);
+        PsoVolumeSnapshot::deleteAll(PsoVolumeSnapshot::PREFIX);
+
 
         // Get PSO namespace and prefix from Kubernetes
-        if (!$this->getPsoDetails()) return false;
+        Log::debug('    Call getPsoDetails()');
+        if (!$this->getPsoDetails()) {
+            Redis::del(self::PSO_UPDATE_KEY, time());
+            return false;
+        }
 
         // Get FlashArrays and FlashBlades
-        if (!$this->getArrayInfo()) return false;
+        Log::debug('    Call getArrayInfo()');
+        if (!$this->getArrayInfo()) {
+            Redis::del(self::PSO_UPDATE_KEY, time());
+            return false;
+        }
 
         // Get the storageclasses that use PSO
-        if (!$this->getStorageClasses()) return false;
+        Log::debug('    Call getStorageClasses()');
+        if (!$this->getStorageClasses()) {
+            Redis::del(self::PSO_UPDATE_KEY, time());
+            return false;
+        }
+
+        // Get the storageclasses that use PSO
+        Log::debug('    Call getStorageClasses()');
+        if (!$this->getStorageClasses()) {
+            Redis::del(self::PSO_UPDATE_KEY, time());
+            return false;
+        }
 
         // Get the statefulsets
-        if (!$this->getStatefulsets()) return false;
+        Log::debug('    Call getStatefulsets()');
+        if (!$this->getStatefulsets()) {
+            Redis::del(self::PSO_UPDATE_KEY, time());
+            return false;
+        }
 
         // Get the persistent volume claims
-        if (!$this->getPersistentVolumeClaims()) return false;
+        Log::debug('    Call getPersistentVolumeClaims()');
+        if (!$this->getPersistentVolumeClaims()) {
+            Redis::del(self::PSO_UPDATE_KEY, time());
+            return false;
+        }
 
         // Get the deployments
-        if (!$this->getDeployments()) return false;
+        Log::debug('    Call getDeployments()');
+        if (!$this->getDeployments()) {
+            Redis::del(self::PSO_UPDATE_KEY, time());
+            return false;
+        }
+
+        // Get the VolumeSnapshotClasses
+        Log::debug('    Call getVolumeSnapshotClasses()');
+        $this->getVolumeSnapshotClasses();
+
+        // Get the VolumeSnapshots
+        Log::debug('    Call getVolumeSnapshots()');
+        $this->getVolumeSnapshots();
 
         // Get Pure Storage array information
+        Log::debug('    Call addArrayVolumeInfo()');
         $this->addArrayVolumeInfo();
 
         // Check for released PV's
+        Log::debug('    Call getPersistentVolumes()');
         if (!$this->getPersistentVolumes()) return false;
 
         Redis::set(self::VALID_PSO_DATA_KEY, time());
@@ -743,14 +912,23 @@ class pso
                 'caCert' => '/Users/rdeenik/LocalFiles/k8s/certs/ca-amslab.crt',
                 'token' => '/Users/rdeenik/LocalFiles/k8s/certs/token-amslab'
             ];
-            /*
-            // Use for FSA lab
-            $this->master = 'https://10.234.0.1';
+
+            // Use for Staines lab prod
+            $this->master = 'https://kubernetes.default.svc';
             $this->authentication = [
-                'caCert' => '/Users/rdeenik/LocalFiles/k8s/certs/ca-fsa.crt',
-                'token' => '/Users/rdeenik/LocalFiles/k8s/certs/token-fsa'
+                'caCert' => '/Users/rdeenik/LocalFiles/k8s/certs/ca-staines-prod.crt',
+                'token' => '/Users/rdeenik/LocalFiles/k8s/certs/token-staines-prod'
+            ];
+
+            /*
+            // Use for Staines lab dev
+            $this->master = 'https://kubernetes.default.svc';
+            $this->authentication = [
+                'caCert' => '/Users/rdeenik/LocalFiles/k8s/certs/ca-staines-dev.crt',
+                'token' => '/Users/rdeenik/LocalFiles/k8s/certs/token-staines-dev'
             ];
             */
+
         }
         $this->refresh_timeout = env('PSO_REFRESH_TIMEOUT', '900');
 
@@ -767,7 +945,7 @@ class pso
         $dashboard['volume_count'] = count(PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX,'uid'));
         $dashboard['orphaned_count'] = count(PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX,'pure_orphaned'));
         $dashboard['storageclass_count'] = count(PsoStorageClass::items(PsoStorageClass::PREFIX, 'name'));
-        $dashboard['statefulset_count'] = count(PsoStatefulSet::items(PsoStatefulSet::PREFIX, 'uid'));
+        $dashboard['snapshot_count'] = count(PsoVolumeSnapshot::items(PsoVolumeSnapshot::PREFIX, 'uid'));
         $dashboard['array_count'] = count(PsoArray::items(PsoArray::PREFIX, 'name'));
         $dashboard['offline_array_count'] = count(PsoArray::items(PsoArray::PREFIX, 'offline'));
 
@@ -775,9 +953,10 @@ class pso
         foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
             $volume = new PsoPersistentVolumeClaim($uid);
 
-            if ($volume->pure_orphaned == null) {
+            if (($volume->pure_orphaned == null) and ($volume->pure_arrayType == 'FA')) {
                 $vol['uid'] = $uid;
                 $vol['name'] = $volume->name;
+                $vol['pure_name'] = $volume->pure_name;
                 $vol['size'] = $volume->pure_size;
                 $vol['sizeFormatted'] = $volume->pure_sizeFormatted;
                 $vol['used'] = $volume->pure_used;
@@ -940,6 +1119,49 @@ class pso
         return $storageclasses;
     }
 
+    public function volumesnapshotclasses()
+    {
+        $volumesnapshotclasses = [];
+
+        foreach (PsoVolumeSnapshotClass::items(PsoVolumeSnapshotClass::PREFIX, 'name') as $volumesnapshotclass)              {
+            $pure_size = 0;
+            $pure_used = 0;
+            $pure_volumes = 0;
+
+            foreach (PsoVolumeSnapshot::items(PsoVolumeSnapshot::PREFIX, 'uid') as $uid) {
+                $mysnap = new PsoVolumeSnapshot($uid);
+
+                if ($mysnap->snapshotClassName == $volumesnapshotclass)
+                {
+                    $pure_size = $pure_size + $mysnap->pure_size;
+                    $pure_used = $pure_used + $mysnap->pure_used;
+                    $pure_volumes = $pure_volumes + 1;
+                }
+            }
+
+            $volumesnapshotclass_info = new PsoVolumeSnapshotClass($volumesnapshotclass);
+            $volumesnapshotclass_info->size = $pure_size;
+            $volumesnapshotclass_info->sizeFormatted = $this->formatBytes($pure_size, 2);
+            $volumesnapshotclass_info->used = $pure_used;
+            $volumesnapshotclass_info->usedFormatted = $this->formatBytes($pure_used, 2);
+            $volumesnapshotclass_info->volumeCount = $pure_volumes;
+
+            array_push($volumesnapshotclasses, $volumesnapshotclass_info->asArray());
+        }
+        return $volumesnapshotclasses;
+    }
+
+    public function volumesnapshots()
+    {
+        $volumesnapshots = [];
+        foreach (PsoVolumeSnapshot::items(PsoVolumeSnapshot::PREFIX, 'uid') as $uid)
+        {
+            $snapshot = new PsoVolumeSnapshot($uid);
+            array_push($volumesnapshots, $snapshot->asArray());
+        }
+        return $volumesnapshots;
+    }
+
     public function labels()
     {
         $labels = [];
@@ -1006,14 +1228,13 @@ class pso
             foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
                 $myvol = new PsoPersistentVolumeClaim($uid);
 
-                if ((in_array($myvol->namespace . ':' . $myvol->name, $deployment->namespace_volnames)))
+                if ((in_array($myvol->namespace . ':' . $myvol->name, $deployment->namespace_names)))
                 {
                     $pure_size = $pure_size + $myvol->pure_size;
                     $pure_used = $pure_used + $myvol->pure_used;
                     $pure_volumes = $pure_volumes + 1;
                     if (!in_array($myvol->storageClass, $storageclasses)) array_push($storageclasses, $myvol->storageClass);
                 }
-
             }
 
             $deployment->size = $pure_size;
@@ -1044,7 +1265,7 @@ class pso
             foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
                 $myvol = new PsoPersistentVolumeClaim($uid);
 
-                if ((in_array($myvol->namespace . ':' . $myvol->name, $myset->namespace_volnames)))
+                if ((in_array($myvol->namespace . ':' . $myvol->name, $myset->namespace_names)))
                 {
                     $pure_size = $pure_size + $myvol->pure_size;
                     $pure_used = $pure_used + $myvol->pure_used;

@@ -22,6 +22,7 @@ class PsoPersistentVolumeClaim extends RedisModel
         'status',
 
         'pv_name',
+        'has_snaps',
 
         'pure_name',
         'pure_size',
@@ -31,6 +32,7 @@ class PsoPersistentVolumeClaim extends RedisModel
         'pure_drr',
         'pure_thinProvisioning',
         'pure_arrayName',
+        'pure_arrayType',
         'pure_arrayMgmtEndPoint',
         'pure_snapshots',
         'pure_volumes',
@@ -65,5 +67,23 @@ class PsoPersistentVolumeClaim extends RedisModel
     {
         parent::__construct(SELF::PREFIX, $uid);
         if ($uid !== '') $this->uid = $uid;
+    }
+
+    public static function getUidByNamespaceName(string $namespace, string $name)
+    {
+        $namespaceName = $namespace . ':' . $name;
+
+        $keys = Redis::keys(self::PREFIX . ':*:namespace_name');
+        foreach ($keys as $key) {
+            if (!strpos($key, '__index')) {
+                $keyname = str_replace(config('database.redis.options.prefix'), '', $key);
+
+                if (Redis::get($keyname) == $namespaceName) {
+                    $keyname = str_replace(':namespace_name', ':uid', $keyname);
+                    $uid = Redis::get($keyname);
+                    return $uid;
+                }
+            }
+        }
     }
 }

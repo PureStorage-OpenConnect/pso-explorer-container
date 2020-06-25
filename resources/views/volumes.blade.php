@@ -17,7 +17,7 @@
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
-                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter2" placeholder="Search in table">
+                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter2" placeholder="Search in table" value="{{ $volume_keyword ?? '' }}">
                             </div>
                             <div class="row with-padding">
                                 <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter2>
@@ -38,13 +38,14 @@
                                         <th data-hide="all">IOPS (read/write)</th>
                                         <th data-hide="all">Bandwidth (read/write)</th>
                                         <th data-hide="all">Latency (read/write)</th>
+                                        <th data-hide="all">Volume snapshots</th>
                                         <th>Status</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     @isset($pso_vols)
                                         @foreach($pso_vols as $vol)
-                                            <tr>
+                                            <tr @if ($vol['pure_name'] == $volume_keyword)class="footable-detail-show"@endif>
                                                 <td>{{ $vol['namespace'] ?? '' }}</td>
                                                 <td>{{ $vol['name'] ?? '' }}</td>
                                                 <td>{{ $vol['size'] ?? '' }}</td>
@@ -56,12 +57,21 @@
                                                 <td>{{ $vol['pv_name'] ?? '' }}</td>
                                                 <td>@isset($vol['labels']){{ implode(', ', $vol['labels']) }}@endisset </td>
                                                 <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}" target="_blank">{{ $vol['pure_arrayName'] }}</a></td>
-                                                <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a></td>
+                                                @if ($vol['pure_arrayType'] == 'FA')
+                                                    <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a></td>
+                                                @else
+                                                    <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a></td>
+                                                @endif
                                                 <td>{{ number_format($vol['pure_drr'] ?? 1 , 1) }}:1</td>
                                                 <td>{{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }}</td>
                                                 <td>{{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }}</td>
-                                                <td>{{ $vol['pure_usec_per_read_op'] }} / {{ $vol['pure_usec_per_write_op'] }}</td>
+                                                <td>{{ $vol['pure_usec_per_read_op'] }} / {{ $vol['pure_usec_per_write_op'] }} ms</td>
 
+                                                @if($vol['has_snaps'])
+                                                    <td><a href="{{ route('Snapshots', ['volume_keyword' => $vol['pure_name']]) }}">View snapshots</a></td>
+                                                @else
+                                                    <td><i>No Volume Snapshots</i></td>
+                                                @endif
                                                 @if($vol['status'] == 'Bound')
                                                     <td><span class="label label-success">{{ $vol['status'] }}</span></td>
                                                 @else
@@ -188,6 +198,9 @@
 
             $('.footable').footable();
 
+            var element = document.getElementById('tablefilter2');
+            var event = new Event('keyup');
+            element.dispatchEvent(event);
         });
     </script>
 @endsection
