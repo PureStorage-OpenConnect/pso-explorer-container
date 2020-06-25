@@ -835,13 +835,6 @@ class pso
             return false;
         }
 
-        // Get the storageclasses that use PSO
-        Log::debug('    Call getStorageClasses()');
-        if (!$this->getStorageClasses()) {
-            Redis::del(self::PSO_UPDATE_KEY, time());
-            return false;
-        }
-
         // Get the statefulsets
         Log::debug('    Call getStatefulsets()');
         if (!$this->getStatefulsets()) {
