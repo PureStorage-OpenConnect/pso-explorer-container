@@ -58,7 +58,7 @@ class FlashArrayAPI
     public function __construct ()
     {
         // Initialize ALSO MarketPlace API class
-        $this->header			= array('accept' => 'application/json', 'Content-Type' => 'application/json', 'User-Agent' => 'pso-analytics-gui' . config('app.version', 'unknown-version'));
+        $this->header			= array('accept' => 'application/json', 'Content-Type' => 'application/json', 'User-Agent' => 'pso-analytics-gui/' . config('app.version', 'unknown-version'));
         $this->apitoken         = null;
         $this->cookieJar        = null;
         $this->username         = null;
@@ -70,10 +70,20 @@ class FlashArrayAPI
     {
         // Set default result to false
         $result = false;
-        $this->url = 'https://' . $mgmtEndPoint . self::FA_API_URI;
+        $api_version = self::FA_API_URI;
         $this->apitoken = $apitoken;
 
         try {
+            $this->url = 'https://' . $mgmtEndPoint . '/api/api_version';
+            $response = Http::withOptions(['connect_timeout' => 20, 'verify' => false])->withHeaders($this->header)->get($this->url);
+
+            foreach (json_decode($response->body())->version as $item) {
+                if (substr($item, 0, 2) == '1.') {
+                    $api_version = $item;
+                }
+            }
+            $this->url = 'https://' . $mgmtEndPoint . '/api/' . $api_version . '/';
+
             // Try to authenticate to API
             $response = Http::withOptions(['connect_timeout' => 20, 'verify' => false])->withHeaders($this->header)->post($this->url . 'auth/session', [
                 'api_token' => $this->apitoken,

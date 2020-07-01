@@ -29,11 +29,11 @@ class HomeController extends Controller
             Session::forget('message');
             Session::forget('source');
             Session::forget('yaml');
-        }
 
-        $dashboard = $pso->dashboard();
-        $portal_info = $pso->portal_info();
-        return view('dashboard', ['dashboard' => $dashboard, 'portal_info' => $portal_info]);
+            $dashboard = $pso->dashboard();
+            $portal_info = $pso->portal_info();
+            return view('dashboard', ['dashboard' => $dashboard, 'portal_info' => $portal_info]);
+        }
     }
 
     public function error(Request $request)
@@ -61,5 +61,29 @@ class HomeController extends Controller
 
             return redirect()->route($redirectTo);
         }
+    }
+
+    public function settings(Request $request)
+    {
+        $pso = new pso();
+
+        if (!$pso->pso_found) {
+            $request->session()->flash('alert-class', 'alert-danger');
+            $request->session()->flash('message', $pso->error_message);
+            $request->session()->flash('source', $pso->error_source);
+            if ($pso->pso_info->namespace !== null) $request->session()->flash('yaml', $pso->pso_info->yaml);
+
+            return view('dashboard');
+        } else {
+            Session::forget('alert-class');
+            Session::forget('message');
+            Session::forget('source');
+            Session::forget('yaml');
+        }
+
+        $settings = $pso->settings();
+        $portal_info = $pso->portal_info();
+
+        return view('settings', ['settings' => $settings, 'portal_info' => $portal_info]);
     }
 }

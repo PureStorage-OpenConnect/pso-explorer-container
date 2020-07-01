@@ -34,6 +34,7 @@ use Kubernetes\Model\Io\K8s\Api\Core\V1\EnvVar;
 use Kubernetes\Model\Io\K8s\Api\Core\V1\PersistentVolumeList;
 use Kubernetes\Model\Io\K8s\Api\Core\V1\Volume;
 use Kubernetes\Model\Io\K8s\Api\Storage\V1\StorageClassList;
+use function GuzzleHttp\Psr7\_caseless_remove;
 
 
 class pso
@@ -139,20 +140,40 @@ class pso
             foreach ($item->spec->containers as $containers) {
                 if (isset($containers->env)) {
                     foreach ($containers->env as $env) {
-                        if ($env->name == 'PURE_K8S_NAMESPACE') {
-                            // If PSO is found, set pso_found to true and store prefix and namespace in Redis
-                            $this->pso_found = true;
-                            $this->pso_info->prefix = $env->value;
-                            $this->pso_info->namespace = $item->metadata->namespace;
-                            break;
+                        switch ($env->name) {
+                            case 'PURE_K8S_NAMESPACE':
+                                // If PSO is found, set pso_found to true and store prefix and namespace in Redis
+                                $this->pso_found = true;
+                                $this->pso_info->prefix = $env->value;
+                                $this->pso_info->namespace = $item->metadata->namespace;
+                                $this->pso_info->image = $containers->image;
+                                break;
+                            case 'PURE_FLASHARRAY_SAN_TYPE':
+                                $this->pso_info->san_type = $env->value;
+                                break;
+                            case 'PURE_DEFAULT_BLOCK_FS_TYPE':
+                                $this->pso_info->block_fs_type = $env->value;
+                                break;
+                            case 'PURE_DEFAULT_BLOCK_FS_OPT':
+                                $this->pso_info->block_fs_opt = $env->value;
+                                break;
+                            case 'PURE_DEFAULT_BLOCK_MNT_OPT':
+                                $this->pso_info->block_mnt_opt = $env->value;
+                                break;
+                            case 'PURE_ISCSI_LOGIN_TIMEOUT':
+                                $this->pso_info->iscsi_login_timeout = $env->value;
+                                break;
+                            case 'PURE_ISCSI_ALLOWED_CIDRS':
+                                $this->pso_info->iscsi_allowed_cidrs = $env->value;
+                                break;
                         }
-                    if ($this->pso_found) break;
                     }
                 }
                 if ($this->pso_found) break;
             }
             if ($this->pso_found) break;
         }
+
         if (!$this->pso_found) {
             // If PSO was not found, return an error
             $this->error_source = 'pso';
@@ -162,6 +183,8 @@ class pso
             return true;
         }
     }
+
+
 
     /**
      * Connect to the Pure Storage arrays (FlashArray and FlashBlade) to retrieve
@@ -487,8 +510,10 @@ class pso
 
                 $uid = PsoPersistentVolumeClaim::getUidByNamespaceName($volumeSnapshot->namespace, $volumeSnapshot->source_name);
                 $volumeSnapshot->pure_volname = $this->pso_info->prefix . '-pvc-' . $uid;
-                $pvc = new PsoPersistentVolumeClaim($uid);
-                $pvc->has_snaps = true;
+                if (isset($uid)) {
+                    $pvc = new PsoPersistentVolumeClaim($uid);
+                    $pvc->has_snaps = true;
+                }
             }
         }
     }
@@ -1301,5 +1326,10 @@ class pso
         $portal_info['high_msec_write'] = round($this->pso_info->high_msec_write, 2);
 
         return $portal_info;
+    }
+
+    public function settings()
+    {
+        return $this->pso_info->asArray();
     }
 }

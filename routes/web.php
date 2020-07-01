@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', 'HomeController@index')->name('Dashboard');
 Route::post('/refreshdata', 'HomeController@refreshdata')->name('RefreshData');
+Route::get('/settings', 'HomeController@settings')->name('Settings');
 
 // GUI routes
 Route::get('/view/storagearrays', 'ViewController@StorageArrays')->name('StorageArrays');

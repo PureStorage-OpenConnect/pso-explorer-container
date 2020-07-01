@@ -156,6 +156,15 @@
                             </li>
                         </ul>
                     </li>
+                    <li @IF(Request::is('settings'))class="sidebar-item dropdown mm-active"
+                        @ELSE()class="sidebar-item dropdown"@ENDIF>
+                        <a class="nav-link" href="{{ route('Settings') }}" aria-expanded="false">
+                            <div class="nav-content">
+                                <img class="nav-icon" src="/images/settings_icon.svg">
+                                <span class="sidebar-expanded-only">Settings</span>
+                            </div>
+                        </a>
+                    </li>
                 </ul>
 
                 <div class="sidebar-nav-divider"></div>
@@ -253,7 +262,7 @@
                                     </div>
 
                                     <div class="empty-relative-container"><span
-                                                class="ps-floating-count-text">1</span></div>
+                                                class="ps-floating-count-text"></span></div>
                                 </ps-count-tooltip>
                             </a></div>
                     </div>
@@ -284,7 +293,7 @@
             </div>
         @ENDISSET
         <div>
-            <strong>Copyright</strong> Remko Deenik / Pure Storage &copy; 2020
+            <strong>Copyright</strong> Remko Deenik &copy; 2020
         </div>
     </div>
 </div>
