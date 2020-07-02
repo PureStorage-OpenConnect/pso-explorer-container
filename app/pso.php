@@ -236,6 +236,16 @@ class pso
 
                     $newArray->name = $array_details['array_name'];
                     $newArray->model = 'Pure Storage FlashArray ' . $model_details[0]['model'];
+
+                    $port_details = $fa_api->GetPort();
+
+                    $protocols = [];
+                    foreach ($port_details as $port_detail) {
+                        if (isset($port_detail['iqn']) and !in_array('iSCSI', $protocols)) array_push($protocols, 'iSCSI');
+                        if (isset($port_detail['wwn']) and !in_array('FC', $protocols)) array_push($protocols, 'FC');
+                        if (isset($port_detail['nqn']) and !in_array('NVMe', $protocols)) array_push($protocols, 'NVMe');
+                    }
+                    $newArray->protocols = $protocols;
                 } catch (Exception $e) {
                     $newArray->name = $flasharray->MgmtEndPoint;
                     $newArray->model = 'Unknown';
@@ -270,6 +280,7 @@ class pso
                     $newArray->name = $array['items'][0]['name'];
                     $newArray->model = 'Pure Storage FlashBlade';
                     $newArray->model = 'Pure Storage FlashBlade';
+                    $newArray->protocols = ['NFS', 'S3'];
                 } catch (Exception $e) {
                     $newArray->name = $flashblade->MgmtEndPoint;
                     $newArray->model = 'Offline';

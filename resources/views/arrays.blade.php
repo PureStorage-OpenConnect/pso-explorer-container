@@ -31,6 +31,7 @@
                                         <th data-hide="all">Model</th>
                                         <th data-hide="all">IP Address</th>
                                         <th data-hide="all">Labels</th>
+                                        <th data-hide="all">Protocols</th>
                                         <th>Status</th>
                                     </tr>
                                     </thead>
@@ -46,6 +47,7 @@
                                                 <td>{{ $pso_array['model'] }}</td>
                                                 <td><a href="https://{{ $pso_array['mgmtEndPoint'] ?? '#' }}" target="_blank">{{ $pso_array['mgmtEndPoint'] }} </a></td>
                                                 <td>@isset($pso_array['labels']){{ implode(', ', $pso_array['labels']) }}@endisset </td>
+                                                <td>@isset($pso_array['protocols']){{ implode(', ', $pso_array['protocols']) }}@endisset </td>
                                                 @if($pso_array['offline'] !== null)
                                                     <td><span class="label label-danger">Offline</span></td>
                                                 @else

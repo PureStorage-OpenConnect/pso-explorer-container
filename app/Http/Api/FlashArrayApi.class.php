@@ -117,4 +117,9 @@ class FlashArrayAPI
     {
         return $this->getRequest('array', $filter);
     }
+
+    public function GetPort($filter = [])
+    {
+        return $this->getRequest('port', $filter);
+    }
 }

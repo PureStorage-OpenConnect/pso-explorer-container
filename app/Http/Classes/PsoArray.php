@@ -26,6 +26,7 @@ class PsoArray extends RedisModel
         'offline',
         'flasharray',
         'flashblade',
+        'protocols',
     ];
 
     protected $indexes = [
