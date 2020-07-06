@@ -137,7 +137,7 @@
                             </li>
                             <li @IF(Request::is('view/pods'))class="mm-active"@ENDIF>
                                 <a href="{{ route('Pods') }}">
-                                    <img class="mm-sub" src="{{ asset('images/k8s/cm-pure.svg') }}">
+                                    <img class="mm-sub" src="{{ asset('images/k8s/pod-pure.svg') }}">
                                     <span class="mm-sub-text">Pods</span>
                                 </a>
                             </li>
