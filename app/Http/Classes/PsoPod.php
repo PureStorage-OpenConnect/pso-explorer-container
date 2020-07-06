@@ -4,18 +4,20 @@
 namespace App\Http\Classes;
 
 
-use Illuminate\Support\Facades\Redis;
-
-class PsoDeployment extends RedisModel
+class PsoPod extends RedisModel
 {
-    public const PREFIX='pso_deployment';
+    public const PREFIX='pso_pod';
 
     protected $fillable = [
         'uid',
         'name',
         'namespace',
-        'namespace_names',
         'creationTimestamp',
+        'pvc_name',
+        'pvc_namespace_name',
+        'pvc_link',
+        'labels',
+        'status',
         'size',
         'sizeFormatted',
         'used',
@@ -26,7 +28,7 @@ class PsoDeployment extends RedisModel
 
     protected $indexes = [
         'uid',
-        'name',
+        'pvc_namespace_name',
     ];
 
 

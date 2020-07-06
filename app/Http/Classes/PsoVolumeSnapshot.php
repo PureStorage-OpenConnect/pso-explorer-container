@@ -12,6 +12,7 @@ class PsoVolumeSnapshot extends RedisModel
         'uid',
         'name',
         'namespace',
+        'creationTimestamp',
 
         'snapshotClassName',
         'snapshotContentName',
@@ -19,6 +20,8 @@ class PsoVolumeSnapshot extends RedisModel
         'source_kind',
         'creationTime',
         'readyToUse',
+        'error_message',
+        'error_time',
 
         'pure_name',
         'pure_volname',

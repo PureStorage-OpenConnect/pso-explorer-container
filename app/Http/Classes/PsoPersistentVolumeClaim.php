@@ -20,6 +20,7 @@ class PsoPersistentVolumeClaim extends RedisModel
         'storageClass',
         'labels',
         'status',
+        'creationTimestamp',
 
         'pv_name',
         'has_snaps',

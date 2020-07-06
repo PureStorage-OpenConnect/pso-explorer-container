@@ -12,6 +12,7 @@ use App\Http\Classes\PsoInformation;
 use App\Http\Classes\PsoLabels;
 use App\Http\Classes\PsoNamespace;
 use App\Http\Classes\PsoPersistentVolumeClaim;
+use App\Http\Classes\PsoPod;
 use App\Http\Classes\PsoVolumeSnapshot;
 use App\Http\Classes\PsoVolumeSnapshotClass;
 use App\Http\Classes\PsoStatefulSet;
@@ -34,6 +35,7 @@ use Kubernetes\Model\Io\K8s\Api\Core\V1\EnvVar;
 use Kubernetes\Model\Io\K8s\Api\Core\V1\PersistentVolumeList;
 use Kubernetes\Model\Io\K8s\Api\Core\V1\Volume;
 use Kubernetes\Model\Io\K8s\Api\Storage\V1\StorageClassList;
+use Monolog\Handler\IFTTTHandler;
 use function GuzzleHttp\Psr7\_caseless_remove;
 
 
@@ -52,6 +54,36 @@ class pso
     public $error_source = '';
     public $error_message = '';
     public $values_yaml = '';
+
+    public function __construct()
+    {
+        // Check if running in a container:
+        // If in container, use in-cluster Kubernetes credentials to connect
+        // with the Kubernetes API. For development, use local hosts file for
+        // cluster IP (kubernetes.default.svc) and locally stored credentials
+        if (file_exists('/var/run/secrets/kubernetes.io')) {
+            // Use for in cluster credentials
+            $this->master = 'https://kubernetes.default.svc';
+            $this->authentication = [
+                'caCert' => '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
+                'token' => '/var/run/secrets/kubernetes.io/serviceaccount/token',
+            ];
+        } else {
+            // Use for Staines lab prod
+            $this->master = 'https://kubernetes.default.svc';
+            $this->authentication = [
+                'caCert' => '/Users/rdeenik/LocalFiles/k8s/certs/ca.crt',
+                'token' => '/Users/rdeenik/LocalFiles/k8s/certs/token'
+            ];
+        }
+
+        // Set the expiration time for the collected data
+        $this->refresh_timeout = env('PSO_REFRESH_TIMEOUT', '900');
+
+        // Initialize the pso_info variable
+        $this->pso_info = new PsoInformation();
+        $this->refreshData();
+    }
 
     /**
      * Convert float in bytes to formatted string
@@ -107,6 +139,9 @@ class pso
      */
     private function getPsoDetails()
     {
+        // Log function call
+        Log::debug('    Call getPsoDetails()');
+
         // Initialize variables
         $this->pso_found = false;
 
@@ -117,6 +152,12 @@ class pso
             $pod = new Pod();
             $pod_list = $pod->list('');
         } catch (Exception $e) {
+            // Log error message
+            Log::debug('xxx Error connecting to Kubernetes API at "' . $this->master . '"');
+            Log::debug('    - Message: "' . $e->getMessage() . '"');
+            Log::debug('    - File: "' . $e->getFile() . '"');
+            Log::debug('    - Line: "' . $e->getLine() . '"');
+
             // If we catch a CURL error, return an error message
             $this->error_source = 'k8s';
             $this->error_message = $e->getMessage();
@@ -128,6 +169,9 @@ class pso
         // This could be an authentication error for example
         if (isset($pod_list->status))   {
             if ($pod_list->status == 'Failure') {
+                // Log error message
+                Log::debug('xxx Error connecting to Kubernetes API at "' . $this->master . '"');
+
                 // If status is set to Failure, we hit an error, so we return an error message
                 $this->error_source = 'k8s';
                 $this->error_message = $pod_list->message;
@@ -135,8 +179,29 @@ class pso
             }
         }
 
-        // Loop through the POD's to find PSO namespace and prefix
+        // Loop through the POD's to find PSO namespace and prefix and store pods with PVC's
         foreach ($pod_list->items as $item) {
+            $my_pod = null;
+
+            foreach ($item->spec->volumes as $volume) {
+                if ($volume->persistentVolumeClaim !== null) {
+                    $my_pod = new PsoPod($item->metadata->uid);
+                    $my_pod->name = $item->metadata->name;
+                    $my_pod->namespace = $item->metadata->namespace;
+                    $my_pod->creationTimestamp = $item->metadata->creationTimestamp;
+                    $my_pod->status = $item->status->phase;
+
+                    if (isset($item->metadata->labels) and $my_pod->labels == null) {
+                        foreach ($item->metadata->labels as $key => $value) {
+                            $my_pod->array_push('labels', $key . '=' . $value);
+                       }
+                    }
+
+                    $my_pod->array_push('pvc_name', $volume->persistentVolumeClaim->claimName);
+                    $my_pod->array_push('pvc_namespace_name', $item->metadata->namespace . ':' . $volume->persistentVolumeClaim->claimName);
+                }
+            }
+
             foreach ($item->spec->containers as $containers) {
                 if (isset($containers->env)) {
                     foreach ($containers->env as $env) {
@@ -171,10 +236,12 @@ class pso
                 }
                 if ($this->pso_found) break;
             }
-            if ($this->pso_found) break;
         }
 
         if (!$this->pso_found) {
+            // Log error message
+            Log::debug('xxx Error unable to find PSO instance "' . $this->master . '"');
+
             // If PSO was not found, return an error
             $this->error_source = 'pso';
             $this->error_message = 'Unable to find PSO namespace';
@@ -184,8 +251,6 @@ class pso
         }
     }
 
-
-
     /**
      * Connect to the Pure Storage arrays (FlashArray and FlashBlade) to retrieve
      * management IP's and API tokens
@@ -194,6 +259,9 @@ class pso
      */
     private function getArrayInfo()
     {
+        // Log function call
+        Log::debug('    Call getArrayInfo()');
+
         // Get the PSO secret from Kubernetes to retrieve the MgmtEndPoint and APIToken
         Client::configure($this->master, $this->authentication);
         $secret = new Secret($this->pso_info->namespace);
@@ -215,16 +283,13 @@ class pso
         // Get FlashArrays information
         if (isset($pso_config->FlashArrays)) {
             foreach ($pso_config->FlashArrays as $flasharray) {
-                // TO DO: Could we possibly add detection of errors in values.yaml / pure.json
 
                 $newArray = new PsoArray($flasharray->MgmtEndPoint);
                 $newArray->apiToken = $flasharray->APIToken;
                 if (isset($flasharray->Labels)) {
-                    $myLabels = [];
                     foreach ($flasharray->Labels as $key => $value) {
-                        array_push($myLabels, $key . '=' . $value);
+                        $newArray->array_push('labels',$key . '=' . $value);
                     }
-                    $newArray->labels = $myLabels;
                 }
 
                 $fa_api = new FlashArrayAPI;
@@ -235,18 +300,23 @@ class pso
                     $model_details = $fa_api->GetArray('controllers=true');
 
                     $newArray->name = $array_details['array_name'];
+                    $newArray->version = 'Purity//FA ' . $array_details['version'];
                     $newArray->model = 'Pure Storage FlashArray ' . $model_details[0]['model'];
 
                     $port_details = $fa_api->GetPort();
 
-                    $protocols = [];
                     foreach ($port_details as $port_detail) {
-                        if (isset($port_detail['iqn']) and !in_array('iSCSI', $protocols)) array_push($protocols, 'iSCSI');
-                        if (isset($port_detail['wwn']) and !in_array('FC', $protocols)) array_push($protocols, 'FC');
-                        if (isset($port_detail['nqn']) and !in_array('NVMe', $protocols)) array_push($protocols, 'NVMe');
+                        if (isset($port_detail['iqn']) and !in_array('iSCSI', ($newArray->protocols ?? []))) $newArray->array_push('protocols', 'iSCSI');
+                        if (isset($port_detail['wwn']) and !in_array('FC', ($newArray->protocols ?? []))) $newArray->array_push('protocols', 'FC');
+                        if (isset($port_detail['nqn']) and !in_array('NVMe', ($newArray->protocols ?? []))) $newArray->array_push('protocols', 'NVMe');
                     }
-                    $newArray->protocols = $protocols;
                 } catch (Exception $e) {
+                    // Log error message
+                    Log::debug('xxx Error connecting to FlashArray "' . $flasharray->MgmtEndPoint . '"');
+                    Log::debug('    - Message: "' . $e->getMessage() . '"');
+                    Log::debug('    - File: "' . $e->getFile() . '"');
+                    Log::debug('    - Line: "' . $e->getLine() . '"');
+
                     $newArray->name = $flasharray->MgmtEndPoint;
                     $newArray->model = 'Unknown';
                     $newArray->offline = $flasharray->MgmtEndPoint;
@@ -258,7 +328,6 @@ class pso
         // Get FlashBlade information
         if (isset($pso_config->FlashBlades)) {
             foreach ($pso_config->FlashBlades as $flashblade) {
-                // TO DO: Here we could add detection of errors in values.yaml / pure.json
 
                 $newArray = new PsoArray($flashblade->MgmtEndPoint);
                 $newArray->apiToken = $flashblade->APIToken;
@@ -279,9 +348,15 @@ class pso
 
                     $newArray->name = $array['items'][0]['name'];
                     $newArray->model = 'Pure Storage FlashBlade';
-                    $newArray->model = 'Pure Storage FlashBlade';
+                    $newArray->version = $array['items'][0]['os'] . ' ' . $array['items'][0]['version'];
                     $newArray->protocols = ['NFS', 'S3'];
                 } catch (Exception $e) {
+                    // Log error message
+                    Log::debug('xxx Error connecting to FlashBlade "' . $flashblade->MgmtEndPoint . '"');
+                    Log::debug('    - Message: "' . $e->getMessage() . '"');
+                    Log::debug('    - File: "' . $e->getFile() . '"');
+                    Log::debug('    - Line: "' . $e->getLine() . '"');
+
                     $newArray->name = $flashblade->MgmtEndPoint;
                     $newArray->model = 'Offline';
                     $newArray->offline = $flashblade->MgmtEndPoint;
@@ -303,6 +378,9 @@ class pso
 
     private function getStorageClasses()
     {
+        // Log function call
+        Log::debug('    Call getStorageClasses()');
+
         // Retrieve all Kubernetes StorageClasses for this cluster
         Client::configure($this->master, $this->authentication);
         $storageclass = new StorageClass();
@@ -349,6 +427,9 @@ class pso
 
     private function getStatefulsets()
     {
+        // Log function call
+        Log::debug('    Call getStatefulsets()');
+
         // Retrieve all Kubernetes StatefulSets for this cluster
         Client::configure($this->master, $this->authentication);
         $statefulset = new StatefulSet();
@@ -379,6 +460,7 @@ class pso
                         $myset->name = $item->metadata->name;
                         $myset->namespace = $item->metadata->namespace;
                         $myset->namespace_names = $vols;
+                        $myset->creationTimestamp = $item->metadata->creationTimestamp;
                     }
                 }
             }
@@ -388,6 +470,9 @@ class pso
 
     private function getPersistentVolumeClaims()
     {
+        // Log function call
+        Log::debug('    Call getPersistentVolumeClaims()');
+
         // Retrieve all Kubernetes PVC's for this cluster
         Client::configure($this->master, $this->authentication);
         $pvc = new PersistentVolumeClaim();
@@ -409,6 +494,7 @@ class pso
                 $myvol->size = $item->spec->resources->requests['storage'];
                 $myvol->storageClass =  $item->spec->storageClassName;
                 $myvol->status = $item->status->phase;
+                $myvol->creationTimestamp = $item->metadata->creationTimestamp;
 
                 if (isset($item->metadata->labels)) {
                     $labels = [];
@@ -429,6 +515,9 @@ class pso
 
     private function getDeployments()
     {
+        // Log function call
+        Log::debug('    Call getDeployments()');
+
         // Retrieve all Kubernetes StatefulSets for this cluster
         Client::configure($this->master, $this->authentication);
         $deployment = new Deployment();
@@ -451,11 +540,16 @@ class pso
                                 $mydeployment = new PsoDeployment($item->metadata->uid);
                                 $mydeployment->name = $item->metadata->name;
                                 $mydeployment->namespace = $item->metadata->namespace;
+                                $mydeployment->creationTimestamp = $item->metadata->creationTimestamp;
+
                                 $mydeployment->volumeCount = $mydeployment->volumeCount + 1;
-                                if ($mydeployment->namespace_names == null) {
+
+                                $namespace_name = $mydeployment->namespace_names;
+                                if ($namespace_name == null) {
                                     $mydeployment->namespace_names = [$namespace_name];
                                 } else {
-                                    array_push($mydeployment->namespace_names, $namespace_name);
+                                    array_push($namespace_name, $namespace_name);
+                                    $mydeployment->namespace_names = $namespace_name;
                                 }
 
                             }
@@ -470,6 +564,9 @@ class pso
 
     public function getVolumeSnapshotClasses()
     {
+        // Log function call
+        Log::debug('    Call getVolumeSnapshotClasses()');
+
         Client::configure($this->master, $this->authentication, ['timeout' => 10]);
         $class = new VolumeSnapshotClass;
         $class_list = $class->listV1alpha1();
@@ -497,6 +594,9 @@ class pso
 
     public function getVolumeSnapshots()
     {
+        // Log function call
+        Log::debug('    Call getVolumeSnapshots()');
+
         Client::configure($this->master, $this->authentication, ['timeout' => 10]);
         $snap = new VolumeSnapshot();
         $snap_list = $snap->listV1alpha1('');
@@ -512,12 +612,26 @@ class pso
 
                 $volumeSnapshot->name = $item['metadata']['name'];
                 $volumeSnapshot->namespace = $item['metadata']['namespace'];
+                $volumeSnapshot->creationTimestamp = $item['metadata']['creationTimestamp'];
                 $volumeSnapshot->snapshotClassName = $item['spec']['snapshotClassName'];
                 $volumeSnapshot->snapshotContentName = $item['spec']['snapshotContentName'];
                 $volumeSnapshot->source_name = $item['spec']['source']['name'];
                 $volumeSnapshot->source_kind = $item['spec']['source']['kind'];
                 $volumeSnapshot->creationTime = $item['status']['creationTime'];
                 $volumeSnapshot->readyToUse = $item['status']['readyToUse'];
+
+                if (isset($item['status']['error'])) {
+                    foreach ($item['status']['error'] as $key => $value) {
+                        switch ($key) {
+                            case 'message':
+                                $volumeSnapshot->error_message = $value;
+                                break;
+                            case 'time':
+                                $volumeSnapshot->error_time = $value;
+                                break;
+                        }
+                    }
+                }
 
                 $uid = PsoPersistentVolumeClaim::getUidByNamespaceName($volumeSnapshot->namespace, $volumeSnapshot->source_name);
                 $volumeSnapshot->pure_volname = $this->pso_info->prefix . '-pvc-' . $uid;
@@ -531,6 +645,9 @@ class pso
 
     private function addArrayVolumeInfo()
     {
+        // Log function call
+        Log::debug('    Call addArrayVolumeInfo()');
+
         $total_size = 0;
         $total_used = 0;
 
@@ -694,6 +811,12 @@ class pso
                         'space' => 'true',
                     ]);
                 } catch (Exception $e) {
+                    // Log error message
+                    Log::debug('xxx Error getting FileSystems for "' . $array->mgmtEndPoint . '"');
+                    Log::debug('    - Message: "' . $e->getMessage() . '"');
+                    Log::debug('    - File: "' . $e->getFile() . '"');
+                    Log::debug('    - Line: "' . $e->getLine() . '"');
+
                     unset($e);
                     $filesystems = null;
                 }
@@ -783,6 +906,9 @@ class pso
 
     private function getPersistentVolumes()
     {
+        // Log function call
+        Log::debug('    Call getPersistentVolumes()');
+
         // Retrieve all Kubernetes PVC's for this cluster
         Client::configure($this->master, $this->authentication);
         $pv = new PersistentVolume();
@@ -813,10 +939,16 @@ class pso
         return true;
     }
 
-    public function RefreshData($force = false)
+    static public function requestRefresh()
+    {
+        Log::debug('--- Data refresh scheduled');
+        Redis::del(self::VALID_PSO_DATA_KEY);
+    }
+
+    private function refreshData()
     {
         // Only refresh data if the redis data is stale
-        if ((Redis::get(self::VALID_PSO_DATA_KEY) !== null) and (!$force)) {
+        if ((Redis::get(self::VALID_PSO_DATA_KEY) !== null)) {
             $this->pso_found = true;
             $this->error_source = '';
             $this->error_message = '';
@@ -844,6 +976,7 @@ class pso
         PsoLabels::deleteAll(PsoLabels::PREFIX);
         PsoNamespace::deleteAll(PsoNamespace::PREFIX);
         PsoPersistentVolumeClaim::deleteAll(PsoPersistentVolumeClaim::PREFIX);
+        PsoPod::deleteAll(PsoPod::PREFIX);
         PsoStatefulSet::DeleteAll(PsoStatefulSet::PREFIX);
         PsoStorageClass::deleteAll(PsoStorageClass::PREFIX);
         PsoVolumeSnapshotClass::deleteAll(PsoVolumeSnapshotClass::PREFIX);
@@ -851,61 +984,51 @@ class pso
 
 
         // Get PSO namespace and prefix from Kubernetes
-        Log::debug('    Call getPsoDetails()');
         if (!$this->getPsoDetails()) {
             Redis::del(self::PSO_UPDATE_KEY, time());
             return false;
         }
 
         // Get FlashArrays and FlashBlades
-        Log::debug('    Call getArrayInfo()');
         if (!$this->getArrayInfo()) {
             Redis::del(self::PSO_UPDATE_KEY, time());
             return false;
         }
 
         // Get the storageclasses that use PSO
-        Log::debug('    Call getStorageClasses()');
         if (!$this->getStorageClasses()) {
             Redis::del(self::PSO_UPDATE_KEY, time());
             return false;
         }
 
         // Get the statefulsets
-        Log::debug('    Call getStatefulsets()');
         if (!$this->getStatefulsets()) {
             Redis::del(self::PSO_UPDATE_KEY, time());
             return false;
         }
 
         // Get the persistent volume claims
-        Log::debug('    Call getPersistentVolumeClaims()');
         if (!$this->getPersistentVolumeClaims()) {
             Redis::del(self::PSO_UPDATE_KEY, time());
             return false;
         }
 
         // Get the deployments
-        Log::debug('    Call getDeployments()');
         if (!$this->getDeployments()) {
             Redis::del(self::PSO_UPDATE_KEY, time());
             return false;
         }
 
         // Get the VolumeSnapshotClasses
-        Log::debug('    Call getVolumeSnapshotClasses()');
         $this->getVolumeSnapshotClasses();
 
         // Get the VolumeSnapshots
-        Log::debug('    Call getVolumeSnapshots()');
         $this->getVolumeSnapshots();
 
         // Get Pure Storage array information
-        Log::debug('    Call addArrayVolumeInfo()');
         $this->addArrayVolumeInfo();
 
         // Check for released PV's
-        Log::debug('    Call getPersistentVolumes()');
         if (!$this->getPersistentVolumes()) return false;
 
         Redis::set(self::VALID_PSO_DATA_KEY, time());
@@ -915,54 +1038,8 @@ class pso
         $this->error_message = '';
         Redis::del(self::PSO_UPDATE_KEY, time());
         Log::debug('    Refresh data completed.');
+        Log::debug('');
         return true;
-    }
-
-    public function __construct()
-    {
-        if (file_exists('/var/run/secrets/kubernetes.io')) {
-            // Use for in cluster credentials
-            $this->master = 'https://kubernetes.default.svc';
-            $this->authentication = [
-                'caCert' => '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
-                'token' => '/var/run/secrets/kubernetes.io/serviceaccount/token',
-            ];
-        } else {
-            // Use for developer cluster access Rosmalen
-            $this->master = 'https://10.233.0.1';
-            $this->authentication = [
-                'caCert' => '/Users/rdeenik/LocalFiles/k8s/certs/ca.crt',
-                'token' => '/Users/rdeenik/LocalFiles/k8s/certs/token',
-            ];
-
-            // Use for test cluster Amsterdam
-            $this->master = 'https://10.233.0.1';
-            $this->authentication = [
-                'caCert' => '/Users/rdeenik/LocalFiles/k8s/certs/ca-amslab.crt',
-                'token' => '/Users/rdeenik/LocalFiles/k8s/certs/token-amslab'
-            ];
-
-            // Use for Staines lab prod
-            $this->master = 'https://kubernetes.default.svc';
-            $this->authentication = [
-                'caCert' => '/Users/rdeenik/LocalFiles/k8s/certs/ca-staines-prod.crt',
-                'token' => '/Users/rdeenik/LocalFiles/k8s/certs/token-staines-prod'
-            ];
-
-            /*
-            // Use for Staines lab dev
-            $this->master = 'https://kubernetes.default.svc';
-            $this->authentication = [
-                'caCert' => '/Users/rdeenik/LocalFiles/k8s/certs/ca-staines-dev.crt',
-                'token' => '/Users/rdeenik/LocalFiles/k8s/certs/token-staines-dev'
-            ];
-            */
-
-        }
-        $this->refresh_timeout = env('PSO_REFRESH_TIMEOUT', '900');
-
-        $this->pso_info = new PsoInformation();
-        $this->RefreshData();
     }
 
     public function dashboard()
@@ -1015,6 +1092,8 @@ class pso
 
     public function volumes()
     {
+        $this->RefreshData();
+
         $volumes = [];
         foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid)
         {
@@ -1028,6 +1107,8 @@ class pso
 
     public function orphaned()
     {
+        $this->RefreshData();
+
         $volumes = [];
         foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'pure_orphaned') as $uid)
         {
@@ -1039,6 +1120,8 @@ class pso
 
     public function arrays()
     {
+        $this->RefreshData();
+
         $pso_arrays = [];
 
         foreach (PsoArray::items(PsoArray::PREFIX, 'mgmtEndPoint') as $item)
@@ -1080,6 +1163,8 @@ class pso
 
     public function namespaces()
     {
+        $this->RefreshData();
+
         $namespaces = [];
         $pure_storageclasses = PsoStorageClass::items(PsoStorageClass::PREFIX, 'name');
 
@@ -1117,6 +1202,8 @@ class pso
 
     public function storageclasses()
     {
+        $this->RefreshData();
+
         $storageclasses = [];
 
         foreach (PsoStorageClass::items(PsoStorageClass::PREFIX, 'name') as $storageclass)
@@ -1150,6 +1237,8 @@ class pso
 
     public function volumesnapshotclasses()
     {
+        $this->RefreshData();
+
         $volumesnapshotclasses = [];
 
         foreach (PsoVolumeSnapshotClass::items(PsoVolumeSnapshotClass::PREFIX, 'name') as $volumesnapshotclass)              {
@@ -1182,6 +1271,8 @@ class pso
 
     public function volumesnapshots()
     {
+        $this->RefreshData();
+
         $volumesnapshots = [];
         foreach (PsoVolumeSnapshot::items(PsoVolumeSnapshot::PREFIX, 'uid') as $uid)
         {
@@ -1193,6 +1284,8 @@ class pso
 
     public function labels()
     {
+        $this->RefreshData();
+
         $labels = [];
         $pure_storageclasses = PsoStorageClass::items(PsoStorageClass::PREFIX, 'name');
 
@@ -1241,8 +1334,61 @@ class pso
         return $labels;
     }
 
+    public function pods()
+    {
+        $this->RefreshData();
+
+        $pods = [];
+        $pvc_list = PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'namespace_name');
+
+        foreach (PsoPod::items(PsoPod::PREFIX, 'uid') as $uid)
+        {
+            $pod = new PsoPod($uid);
+
+            $pvcs = [];
+            $pvc_links = [];
+            $pure_size = 0;
+            $pure_used = 0;
+            $volumeCount = 0;
+            $storageClasses = [];
+            $storageClasses = [];
+
+            foreach ($pod->pvc_namespace_name as $item) {
+                if (in_array($item, $pvc_list)) {
+                    $namespace = explode(':', $item)[0];
+                    $name = explode(':', $item)[1];
+
+                    $uid = PsoPersistentVolumeClaim::getUidByNamespaceName($namespace, $name);
+                    $my_pvc = new PsoPersistentVolumeClaim($uid);
+
+                    array_push($pvcs, $item);
+                    $volumeCount = $volumeCount + 1;
+                    $pure_size = $pure_size + $my_pvc->pure_size;
+                    $pure_used = $pure_used + $my_pvc->pure_used;
+                    if (!in_array($my_pvc->storageClass, $storageClasses)) array_push($storageClasses, $my_pvc->storageClass);
+
+                    array_push($pvc_links, '<a href="' . route('Volumes', ['volume_keyword' => $my_pvc->uid]) . '">' . $my_pvc->name . '</a>');
+                }
+            }
+
+            $pod->size = $pure_size;
+            $pod->sizeFormatted = $this->formatBytes($pure_size, 2);
+            $pod->used = $pure_used;
+            $pod->usedFormatted = $this->formatBytes($pure_used, 2);
+            $pod->volumeCount = $volumeCount;
+            $pod->storageClasses = $storageClasses;
+            $pod->pvc_link = $pvc_links;
+
+            array_push($pods, $pod->asArray());
+        }
+
+        return $pods;
+    }
+
     public function deployments()
     {
+        $this->RefreshData();
+
         $deployments = [];
 
         foreach (PsoDeployment::items(PsoDeployment::PREFIX, 'uid') as $deployment_uid)
@@ -1281,6 +1427,8 @@ class pso
 
     public function statefulsets()
     {
+        $this->RefreshData();
+
         $statefulsets = [];
         foreach (PsoStatefulSet::items(PsoStatefulSet::PREFIX, 'uid') as $statefulset_uid)
         {
@@ -1341,6 +1489,8 @@ class pso
 
     public function settings()
     {
+        $this->RefreshData();
+
         return $this->pso_info->asArray();
     }
 }

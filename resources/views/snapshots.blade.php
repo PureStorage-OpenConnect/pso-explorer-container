@@ -26,17 +26,15 @@
                                         <th data-toggle="true">Namespace</th>
                                         <th>Snapshot source</th>
                                         <th>Snapshot name</th>
-
                                         <th>Provisioned size</th>
                                         <th>Array used space</th>
-
+                                        <th data-hide="all">Creation time</th>
+                                        <th data-hide="all">Status message</th>
                                         <th data-hide="all">Volume Snapshot Class</th>
                                         <th data-hide="all">Snapshot Content</th>
                                         <th data-hide="all">Source kind</th>
-
                                         <th data-hide="all">Storage array</th>
                                         <th data-hide="all">Array snapshot name</th>
-
                                         <th>Status</th>
                                     </tr>
                                     </thead>
@@ -53,6 +51,14 @@
                                                 <td>{{ $volsnap['pure_sizeFormatted'] ?? '' }}</td>
                                                 <td>{{ $volsnap['pure_usedFormatted'] ?? '' }}</td>
 
+                                                <td>{{ $volsnap['creationTimestamp'] ?? '' }}</td>
+                                                <td>
+                                                    @if($volsnap['error_message'] !== null)
+                                                        {{ $volsnap['error_message'] }}
+                                                    @else
+                                                        &nbsp;
+                                                    @endif
+                                                </td>
                                                 <td>{{ $volsnap['snapshotClassName'] ?? '' }}</td>
                                                 <td>{{ $volsnap['snapshotContentName'] ?? '' }}</td>
                                                 <td>{{ $volsnap['source_kind'] ?? '' }}</td>

@@ -16,6 +16,7 @@ class PsoArray extends RedisModel
         'mgmtEndPoint',
         'apiToken',
         'model',
+        'version',
         'labels',
         'size',
         'sizeFormatted',

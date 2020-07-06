@@ -10,6 +10,7 @@
 namespace App\Api;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class FlashArrayAPI
@@ -48,7 +49,11 @@ class FlashArrayAPI
                 $result = null;
             }
         } catch (Exception $e) {
-            // TO DO Should add more error handling...
+            Log::debug('xxx Error in FlashArrayApi connecting to "' . $this->url . '"');
+            Log::debug('    - Message: "' . $e->getMessage() . '"');
+            Log::debug('    - File: "' . $e->getFile() . '"');
+            Log::debug('    - Line: "' . $e->getLine() . '"');
+
             return false;
         }
         return $result;
@@ -95,7 +100,11 @@ class FlashArrayAPI
                 $this->username = json_decode($response->body())->username;
                 $result = true;
             } else {
-                // TO DO Should add more error handling...
+                Log::debug('xxx Error in FlashArrayApi connecting to "' . $this->url . '"');
+                Log::debug('    - Message: "' . $e->getMessage() . '"');
+                Log::debug('    - File: "' . $e->getFile() . '"');
+                Log::debug('    - Line: "' . $e->getLine() . '"');
+
                 echo "Connection error";
             }
         } catch (Exception $e) {

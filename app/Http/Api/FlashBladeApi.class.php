@@ -11,6 +11,7 @@ namespace App\Api;
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class FlashBladeAPI
 {
@@ -42,7 +43,11 @@ class FlashBladeAPI
                 $result = null;
             }
         } catch (Exception $e) {
-            // TO DO Should add more error handling...
+            Log::debug('xxx Error in FlashBladeApi connecting to "' . $this->url . '"');
+            Log::debug('    - Message: "' . $e->getMessage() . '"');
+            Log::debug('    - File: "' . $e->getFile() . '"');
+            Log::debug('    - Line: "' . $e->getLine() . '"');
+
             throw $e;
         }
         return $result;
@@ -85,11 +90,16 @@ class FlashBladeAPI
                 $this->url = $this->url . '/api/' . $this->api_versions . '/';
                 $this->authenticated = true;
             } else {
-                // TO DO Should add more error handling...
+                Log::debug('xxx Unable to authenticate to FlashBlade at "' . $this->url . '"');
+
                 $this->authenticated = false;
             }
         } catch (ConnectionException $e) {
-            // TO DO Should add more error handling...
+            Log::debug('xxx Error in FlashBladeApi connecting to "' . $this->url . '"');
+            Log::debug('    - Message: "' . $e->getMessage() . '"');
+            Log::debug('    - File: "' . $e->getFile() . '"');
+            Log::debug('    - Line: "' . $e->getLine() . '"');
+
             $this->authenticated = false;
         }
 

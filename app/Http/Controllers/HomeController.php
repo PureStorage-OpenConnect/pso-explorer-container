@@ -8,6 +8,28 @@ use Illuminate\Support\Facades\Session;
 
 class HomeController extends Controller
 {
+    private function getPso(Request $request)
+    {
+        $pso = new pso();
+
+        if (!$pso->pso_found) {
+            $request->session()->flash('alert-class', 'alert-danger');
+            $request->session()->flash('message', $pso->error_message);
+            $request->session()->flash('source', $pso->error_source);
+            $request->session()->flash('yaml', $pso->pso_info->yaml);
+            if ($pso->pso_info->namespace !== null) $request->session()->flash('yaml', $pso->pso_info->yaml);
+
+            return false;
+        } else {
+            Session::forget('alert-class');
+            Session::forget('message');
+            Session::forget('source');
+            Session::forget('yaml');
+
+            return $pso;
+        }
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -15,75 +37,56 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
-        $pso = new pso();
+        // Get PSO instance
+        $pso = $this->getPso($request);
 
-        if (!$pso->pso_found) {
-            $request->session()->flash('alert-class', 'alert-danger');
-            $request->session()->flash('message', $pso->error_message);
-            $request->session()->flash('source', $pso->error_source);
-            if ($pso->pso_info->namespace !== null) $request->session()->flash('yaml', $pso->pso_info->yaml);
-
+        // If $pso is false, an error was returned
+        if (!$pso) {
             return view('dashboard');
         } else {
-            Session::forget('alert-class');
-            Session::forget('message');
-            Session::forget('source');
-            Session::forget('yaml');
-
             $dashboard = $pso->dashboard();
             $portal_info = $pso->portal_info();
             return view('dashboard', ['dashboard' => $dashboard, 'portal_info' => $portal_info]);
         }
     }
 
-    public function error(Request $request)
-    {
-        return view('dashboard');
-    }
-
     public function refreshdata(Request $request)
     {
+        // Check if a return route was included in the request
         if ($request->input('route') !== 'RefreshData') {
             $redirectTo = $request->input('route');
         } else {
+            // If not set, return to 'Dashboard' after the refresh
             $redirectTo = 'Dashboard';
         }
 
-        $pso = new pso();
+        // Make sure PSO data is refreshed on next data collection
+        pso::requestRefresh();
 
-        if ($pso->RefreshData(true)) {
-            return redirect()->route($redirectTo);
+        // Get PSO instance
+        $pso = $this->getPso($request);
+
+        // If $pso is false, an error was returned
+        if (!$pso) {
+            return view('dashboard');
         } else {
-            $request->session()->flash('alert-class', 'alert-danger');
-            $request->session()->flash('message', $pso->error_message);
-            $request->session()->flash('source', $pso->error_source);
-            $request->session()->flash('yaml', $pso->pso_info->yaml);
-
             return redirect()->route($redirectTo);
         }
     }
 
     public function settings(Request $request)
     {
-        $pso = new pso();
+        // Get PSO instance
+        $pso = $this->getPso($request);
 
-        if (!$pso->pso_found) {
-            $request->session()->flash('alert-class', 'alert-danger');
-            $request->session()->flash('message', $pso->error_message);
-            $request->session()->flash('source', $pso->error_source);
-            if ($pso->pso_info->namespace !== null) $request->session()->flash('yaml', $pso->pso_info->yaml);
-
+        // If $pso is false, an error was returned
+        if (!$pso) {
             return view('dashboard');
         } else {
-            Session::forget('alert-class');
-            Session::forget('message');
-            Session::forget('source');
-            Session::forget('yaml');
+            $settings = $pso->settings();
+            $portal_info = $pso->portal_info();
+
+            return view('settings', ['settings' => $settings, 'portal_info' => $portal_info]);
         }
-
-        $settings = $pso->settings();
-        $portal_info = $pso->portal_info();
-
-        return view('settings', ['settings' => $settings, 'portal_info' => $portal_info]);
     }
 }

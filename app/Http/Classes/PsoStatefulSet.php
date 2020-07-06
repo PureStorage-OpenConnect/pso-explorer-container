@@ -15,6 +15,7 @@ class PsoStatefulSet extends RedisModel
         'name',
         'namespace',
         'namespace_names',
+        'creationTimestamp',
         'size',
         'sizeFormatted',
         'used',

@@ -61,6 +61,7 @@ COPY . /var/www
 
 RUN cd /var/www && php artisan key:generate
 RUN cd /var/www && php artisan config:cache
+RUN rm /var/www/storage/logs/laravel.log
 RUN touch /var/www/storage/logs/laravel.log
 RUN chown -R www-data:www-data /var/www
 

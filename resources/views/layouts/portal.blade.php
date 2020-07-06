@@ -43,7 +43,8 @@
                             } </style>
                         <path class="pure-logo-bug" d="M37.2,62.6H21.8c-3.2,0-6.1-1.7-7.7-4.5L1.2,35.8c-1.6-2.7-1.6-6.2,0-8.9L14.1,4.5C15.7,1.7,18.7,0,21.8,0h25.9
             c3.2,0,6.1,1.7,7.7,4.5l12.9,22.4c1.6,2.7,1.6,6.2,0,8.9L65,41.1c-1.6,2.7-4.5,4.4-7.7,4.4H41.9l8.4-14.2l-7.8-13.5H27l-7.8,13.5
-            L37.2,62.6L37.2,62.6z"></path><!---->
+            L37.2,62.6L37.2,62.6z"></path>
+                        <!---->
                         <g>
                             <g>
                                 <path class="pure-logo-text" d="M92.5,45.7h-7.2V18h10.2c6.5,0,10.5,3,10.5,8.8c0,6.5-4.7,9.7-11.4,9.7h-2.1V45.7z M94.1,31
@@ -128,6 +129,12 @@
                                 <a href="{{ route('Labels') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/cm-pure.svg') }}">
                                     <span class="mm-sub-text">Labels</span>
+                                </a>
+                            </li>
+                            <li @IF(Request::is('view/pods'))class="mm-active"@ENDIF>
+                                <a href="{{ route('Pods') }}">
+                                    <img class="mm-sub" src="{{ asset('images/k8s/cm-pure.svg') }}">
+                                    <span class="mm-sub-text">Pods</span>
                                 </a>
                             </li>
                             <li @IF(Request::is('view/deployments'))class="mm-active"@ENDIF>

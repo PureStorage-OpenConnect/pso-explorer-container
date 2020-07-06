@@ -29,9 +29,10 @@
                                         <th>Used capacity</th>
                                         <th>Storageclasses</th>
                                         <th data-hide="all">Model</th>
+                                        <th data-hide="all">Purity version</th>
+                                        <th data-hide="all">Protocols</th>
                                         <th data-hide="all">IP Address</th>
                                         <th data-hide="all">Labels</th>
-                                        <th data-hide="all">Protocols</th>
                                         <th>Status</th>
                                     </tr>
                                     </thead>
@@ -44,10 +45,11 @@
                                                 <td>{{ $pso_array['sizeFormatted'] }}</td>
                                                 <td>{{ $pso_array['usedFormatted'] }}</td>
                                                 <td>@isset($pso_array['storageClasses']){{ implode(', ', $pso_array['storageClasses']) }}@endisset</td>
-                                                <td>{{ $pso_array['model'] }}</td>
+                                                <td>{{ $pso_array['model'] ?? 'Unknown' }}</td>
+                                                <td>{{ $pso_array['version'] ?? 'Unknown' }}</td>
+                                                <td>@isset($pso_array['protocols']){{ implode(', ', $pso_array['protocols']) }}@endisset </td>
                                                 <td><a href="https://{{ $pso_array['mgmtEndPoint'] ?? '#' }}" target="_blank">{{ $pso_array['mgmtEndPoint'] }} </a></td>
                                                 <td>@isset($pso_array['labels']){{ implode(', ', $pso_array['labels']) }}@endisset </td>
-                                                <td>@isset($pso_array['protocols']){{ implode(', ', $pso_array['protocols']) }}@endisset </td>
                                                 @if($pso_array['offline'] !== null)
                                                     <td><span class="label label-danger">Offline</span></td>
                                                 @else

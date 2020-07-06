@@ -22,6 +22,7 @@ Route::get('/view/storagearrays', 'ViewController@StorageArrays')->name('Storage
 Route::get('/view/namespaces', 'ViewController@Namespaces')->name('Namespaces');
 Route::get('/view/storageclasses', 'ViewController@StorageClasses')->name('StorageClasses');
 Route::get('/view/labels', 'ViewController@Labels')->name('Labels');
+Route::get('/view/pods', 'ViewController@Pods')->name('Pods');
 Route::get('/view/deployments', 'ViewController@Deployments')->name('Deployments');
 Route::get('/view/statefulsets', 'ViewController@StatefulSets')->name('StatefulSets');
 Route::get('/view/snapshots', 'ViewController@Snapshots')->name('Snapshots');
@@ -33,6 +34,7 @@ Route::get('/api/storagearrays', 'ApiController@StorageArrays')->name('StorageAr
 Route::get('/api/namespaces', 'ApiController@Namespaces')->name('NamespacesApi');
 Route::get('/api/storageclasses', 'ApiController@StorageClasses')->name('StorageClassesApi');
 Route::get('/api/labels', 'ApiController@Labels')->name('LabelsApi');
+Route::get('/api/pods', 'ApiController@Pods')->name('PodsApi');
 Route::get('/api/deployments', 'ApiController@Deployments')->name('DeploymentsApi');
 Route::get('/api/statefulsets', 'ApiController@StatefulSets')->name('StatefulSetsApi');
 Route::get('/api/snapshots', 'ApiController@Snapshots')->name('SnapshotsApi');

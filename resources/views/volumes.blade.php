@@ -29,6 +29,7 @@
                                         <th>Used capacity</th>
                                         <th>IOPS (R/W)</th>
                                         <th>Bandwidth (R/W)</th>
+                                        <th data-hide="all">Creation time</th>
                                         <th data-hide="all">Storageclass</th>
                                         <th data-hide="all">Persistent volume</th>
                                         <th data-hide="all">Labels</th>
@@ -53,6 +54,7 @@
                                                 <td>{{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }}</td>
                                                 <td>{{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }}</td>
 
+                                                <td>{{ $vol['creationTimestamp'] ?? '' }}</td>
                                                 <td>{{ $vol['storageClass'] ?? '' }}</td>
                                                 <td>{{ $vol['pv_name'] ?? '' }}</td>
                                                 <td>@isset($vol['labels']){{ implode(', ', $vol['labels']) }}@endisset </td>
@@ -82,6 +84,7 @@
                                         @if(count($pso_vols) == 0)
                                             <tr>
                                                 <td><i>No Volumes found</i></td>
+                                                <td> </td>
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>
@@ -150,7 +153,11 @@
                                         @foreach($orphaned_vols as $vol)
                                             <tr>
                                                 <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}" target="_blank">{{ $vol['pure_arrayName'] }}</a></td>
-                                                <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a></td>
+                                                @if ($vol['pure_arrayType'] == 'FA')
+                                                    <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a></td>
+                                                @else
+                                                    <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a></td>
+                                                @endif
                                                 <td>{{ $vol['pure_sizeFormatted'] }}</td>
                                                 <td>{{ $vol['pure_usedFormatted'] }}</td>
                                                 <td>{{ number_format($vol['pure_drr'], 1) }}:1</td>

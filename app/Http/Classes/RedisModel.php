@@ -24,6 +24,7 @@ class RedisModel
     {
         if (in_array($name, $this->fillable)) {
             if (is_array($value)) {
+                Redis::del($this->redisPrefix . ':' . $this->redisUid . ':' . $name);
                 foreach ($value as $item) {
                     Redis::rpush($this->redisPrefix . ':' . $this->redisUid . ':' . $name, $item);
                     if (in_array($name, $this->indexes) and ($value !== '') and ($value !== null)) {
@@ -36,8 +37,8 @@ class RedisModel
                     Redis::sadd($this->redisPrefix . ':__index:' . $name, $value);
                 }
             }
+            $this->data[$name] = $value;
         }
-        $this->data[$name] = $value;
     }
 
     public function __get($name)
@@ -65,8 +66,13 @@ class RedisModel
         }
         foreach ($this->indexes as $index)
         {
-            echo $index;
-            Redis::srem($this->redisPrefix . ':__index:' . $index, $this->data[$index]);
+            if (is_array($this->data[$index])) {
+                foreach ( $this->data[$index]as $item) {
+                    Redis::srem($this->redisPrefix . ':__index:' . $index, $item);
+                }
+            } else {
+                Redis::srem($this->redisPrefix . ':__index:' . $index, $this->data[$index]);
+            }
         }
     }
 
@@ -86,6 +92,31 @@ class RedisModel
         {
             $keyname = str_replace(config('database.redis.options.prefix'), '', $key);
             Redis::del($keyname);
+        }
+    }
+
+    public function array_push($name, $value)
+    {
+        if (!isset($this->data[$name])) {
+            $this->data[$name] = [];
+        }
+
+        if (in_array($name, $this->fillable)) {
+            if (is_array($value)) {
+                foreach ($value as $item) {
+                    Redis::rpush($this->redisPrefix . ':' . $this->redisUid . ':' . $name, $item);
+                    array_push($this->data[$name], $item);
+                    if (in_array($name, $this->indexes) and ($value !== '') and ($value !== null)) {
+                        Redis::sadd($this->redisPrefix . ':__index:' . $name, $item);
+                    }
+                }
+            } else {
+                Redis::rpush($this->redisPrefix . ':' . $this->redisUid . ':' . $name, $value);
+                array_push($this->data[$name], $value);
+                if (in_array($name, $this->indexes) and ($value !== '') and ($value !== null)) {
+                    Redis::sadd($this->redisPrefix . ':__index:' . $name, $value);
+                }
+            }
         }
     }
 

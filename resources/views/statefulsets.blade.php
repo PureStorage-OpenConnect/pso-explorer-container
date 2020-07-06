@@ -28,6 +28,7 @@
                                             <th>Number of volumes</th>
                                             <th>Provisioned size</th>
                                             <th>Used capacity</th>
+                                            <th data-hide="all">Creation time</th>
                                             <th>StorageClasses</th>
                                         </tr>
                                     </thead>
@@ -40,6 +41,7 @@
                                                 <td>{{ $item['volumeCount'] ?? '<unknown>' }}</td>
                                                 <td>{{ $item['sizeFormatted'] ?? '<unknown>' }}</td>
                                                 <td>{{ $item['usedFormatted'] ?? '<unknown>' }}</td>
+                                                <td>{{ $item['creationTimestamp'] ?? '<unknown>' }}</td>
                                                 <td>{{ $item['storageClasses'] ?? '<unknown>' }}</td>
                                             </tr>
                                         @endforeach

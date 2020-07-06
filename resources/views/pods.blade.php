@@ -13,7 +13,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Deployments with managed persistent volume claims</span>
+                            <span>Managed persistent volume claims per label</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -24,30 +24,44 @@
                                     <thead>
                                     <tr>
                                         <th data-toggle="true">Namespace</th>
-                                        <th>StatefulSet</th>
-                                        <th>Number of volumes</th>
+                                        <th>Name</th>
+                                        <th>Volumes</th>
                                         <th>Provisioned size</th>
                                         <th>Used capacity</th>
                                         <th data-hide="all">Creation time</th>
+                                        <th data-hide="all">Pod status</th>
+                                        <th data-hide="all">PersistentVolumeClaims</th>
+                                        <th data-hide="all">Labels</th>
                                         <th>StorageClasses</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @isset($pso_deployments)
-                                        @foreach($pso_deployments as $item)
+                                    @isset($pso_pods)
+                                        @foreach($pso_pods as $pso_pod)
                                             <tr>
-                                                <td>{{ $item['namespace'] ?? '<unknown>' }}</td>
-                                                <td>{{ $item['name'] ?? '<unknown>' }}</td>
-                                                <td>{{ $item['volumeCount'] ?? '<unknown>' }}</td>
-                                                <td>{{ $item['sizeFormatted'] ?? '<unknown>' }}</td>
-                                                <td>{{ $item['usedFormatted'] ?? '<unknown>' }}</td>
-                                                <td>{{ $item['creationTimestamp'] ?? '<unknown>' }}</td>
-                                                <td>{{ $item['storageClasses'] ?? '<unknown>' }}</td>
+                                                <td>{{ $pso_pod['namespace'] ?? '<unknown>' }}</td>
+                                                <td>{{ $pso_pod['name'] ?? '<unknown>' }}</td>
+                                                <td>{{ $pso_pod['volumeCount'] ?? '<unknown>' }}</td>
+                                                <td>{{ $pso_pod['sizeFormatted'] ?? '<unknown>' }}</td>
+                                                <td>{{ $pso_pod['usedFormatted'] ?? '<unknown>' }}</td>
+                                                <td>{{ $pso_pod['creationTimestamp'] ?? '<unknown>' }}</td>
+                                                <td>{{ $pso_pod['status'] ?? '<unknown>' }}</td>
+                                                <td>
+                                                    @foreach($pso_pod['pvc_link'] as $pvc_link)
+                                                        {!! $pvc_link !!}<br>
+                                                    @endforeach
+                                                </td>
+                                                <td>{{ implode(', ', $pso_pod['labels'] ?? []) }}</td>
+                                                <td>{{ implode(', ', $pso_pod['storageClasses'] ?? []) }}</td>
                                             </tr>
                                         @endforeach
-                                        @if(count($pso_deployments) == 0)
+                                        @if(count($pso_pods) == 0)
                                             <tr>
-                                                <td><i>No deployments found using PVCs</i></td>
+                                                <td><i>No pods with persistent volume claims managed by PSO were found</i></td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>
@@ -57,14 +71,14 @@
                                         @endif
                                     @endisset
                                     </tbody>
+                                    </tbody>
                                     <tfoot>
                                     <tr>
                                         <td colspan="6">
                                             <ul class="pagination float-right"></ul>
                                         </td>
                                     </tr>
-                                    </tfoot>
-                                </table>
+                                    </tfoot>                                </table>
                             </div>
                         </div>
                     </div>
