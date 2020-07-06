@@ -23,6 +23,10 @@
 
     <!-- Blade specific css -->
     @yield('css')
+
+    @if (session('source') == 'refresh')
+        <meta http-equiv="refresh" content="1">
+    @endif
 </head>
 
 <body onload="settime()">

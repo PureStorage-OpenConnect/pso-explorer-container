@@ -1,25 +1,36 @@
 {{-- Show error message if K8S is not found --}}
-@IF (session('source') !== null)
+@if (session('source') !== null)
     <div class="row">
         <div class="col-xs-12 tab-container">
             <div class="with-padding">
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            @IF (session('source') == 'k8s')
+                            @if (session('source') == 'k8s')
                                 <span>Error while connecting to Kubernetes</span>
-                            @ELSE
+                            @elseif (session('source') == 'refresh')
+                                <span>{{ config('app.name', 'PSO Analytics GUI') }} is currently collecting data</span>
+                            @else
                                 <span>Pure Service Orchestrator not found</span>
-                            @ENDIF
+                            @endif
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding margin-left">
-                                @IF (session('source') == 'k8s')
+                                @if (session('source') == 'k8s')
                                     <div class="alert alert-danger alert-message">We ran into an error while connecting to the Kubernetes API service. To resolve this issue, make sure {{ config('app.name', 'PSO Analytics GUI') }} has access to the Kubernetes API services and that the roles and rolebindings are configured correctly.
 
                                         For more information on how to install and configure {{ config('app.name', 'PSO Analytics GUI') }} correctly, please visit: <br><a href="https://github.com/PureStorage-OpenConnect/pso-analytics-gui" target="_blank">https://github.com/PureStorage-OpenConnect/pso-analytics-gui</a>
                                     </div>
-                                @ELSE
+                                @elseif (session('source') == 'refresh')
+                                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 text-center">
+                                        <h4>Please standby, while we are collecting data...</h4>
+                                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                            <img src="/images/spinner.gif" class="rounded mx-auto d-block" alt="Loading...">
+                                        </div>
+                                        <div>We are collecting data from your environment.</div>
+                                        <div>This should only take a couple of seconds. This page will reload automatically.</div>
+                                    </div>
+                                @else
                                     <div class="alert-message"><strong>The Pure Storage Pure Service Orchestrator was not foundor not correctly configured</strong>
                                     Please make sure you have installed the Pure Service Orchstrator (PSO) in your Kubernetes cluster.
 
@@ -65,7 +76,7 @@
                                         </tr>
                                     </table>
                                     </div>
-                                @ENDIF
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -73,10 +84,10 @@
             </div>
         </div>
     </div>
-@ENDIF
+@endif
 
 {{-- Show error messages if set --}}
-@IF (session('message') or $errors->any())
+@if (session('message') or $errors->any())
     <div class="row">
         <div class="col-xs-12 tab-container">
             <div class="with-padding">
@@ -87,16 +98,16 @@
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding margin-left">
-                                @IF(session('message') !== null)
+                                @if(session('message') !== null)
                                     <div class="alert alert-message {{ Session::get('alert-class', 'alert-info') }}">{{ session('message') }}</div>
-                                @ENDIF
-                                @IF ($errors->any())
+                                @endif
+                                @if ($errors->any())
                                     @foreach ($errors->all() as $error)
                                         <div class="ibox-content" style="">
                                             <div class="alert alert-danger alert-message">{{ $error }}</div>
                                         </div>
                                     @endforeach
-                                @ENDIF
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -104,4 +115,4 @@
             </div>
         </div>
     </div>
-@ENDIF
+@endif

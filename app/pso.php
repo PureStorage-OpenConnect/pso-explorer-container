@@ -958,8 +958,8 @@ class pso
         if (Redis::get(self::PSO_UPDATE_KEY) !== null) {
             Log::debug('--- Already busy with refresh');
             $this->pso_found = false;
-            $this->error_source = 'k8s';
-            $this->error_message = 'Busy refreshing data, please try again in a few seconds.';
+            $this->error_source = 'refresh';
+            $this->error_message = null;
             return true;
         } else {
             Log::debug('--- Start Refresh data');
