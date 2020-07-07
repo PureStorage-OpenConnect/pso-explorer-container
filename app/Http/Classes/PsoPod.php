@@ -18,6 +18,7 @@ class PsoPod extends RedisModel
         'pvc_link',
         'labels',
         'status',
+        'containers',
         'size',
         'sizeFormatted',
         'used',

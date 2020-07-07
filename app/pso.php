@@ -202,6 +202,11 @@ class pso
                             $my_pod->array_push('labels', $key . '=' . $value);
                        }
                     }
+                    $containers = [];
+                    foreach ($item->spec->containers as $container) {
+                        array_push($containers, $container->name . ': ' . $container->image);
+                    }
+                    $my_pod->containers = $containers;
 
                     $my_pod->array_push('pvc_name', $volume->persistentVolumeClaim->claimName);
                     $my_pod->array_push('pvc_namespace_name', $item->metadata->namespace . ':' . $volume->persistentVolumeClaim->claimName);

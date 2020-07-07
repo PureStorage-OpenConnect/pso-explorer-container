@@ -29,6 +29,7 @@
                                         <th>Provisioned size</th>
                                         <th>Used capacity</th>
                                         <th data-hide="all">Creation time</th>
+                                        <th data-hide="all">Containers</th>
                                         <th data-hide="all">Pod status</th>
                                         <th data-hide="all">Volumes</th>
                                         <th data-hide="all">Labels</th>
@@ -45,6 +46,13 @@
                                                 <td>{{ $pso_pod['sizeFormatted'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_pod['usedFormatted'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_pod['creationTimestamp'] ?? '<unknown>' }}</td>
+                                                <td>
+                                                    @isset($pso_pod['containers'])
+                                                        @foreach($pso_pod['containers'] as $item)
+                                                            {{ $item }}<br>
+                                                        @endforeach
+                                                    @endisset
+                                                </td>
                                                 <td>{{ $pso_pod['status'] ?? '<unknown>' }}</td>
                                                 <td>
                                                     @isset($pso_pod['pvc_link'])
