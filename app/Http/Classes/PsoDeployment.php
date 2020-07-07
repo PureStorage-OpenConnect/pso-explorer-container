@@ -16,6 +16,8 @@ class PsoDeployment extends RedisModel
         'namespace',
         'namespace_names',
         'creationTimestamp',
+        'replicas',
+        'labels',
         'size',
         'sizeFormatted',
         'used',

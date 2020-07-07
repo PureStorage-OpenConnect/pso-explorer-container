@@ -13,7 +13,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Managed persistent volume claims per label</span>
+                            <span>Managed persistent volume claims per label ({{ count($pso_labels ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">

@@ -13,7 +13,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Deployments with managed persistent volume claims</span>
+                            <span>Deployments with managed persistent volume claims ({{ count($pso_deployments ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -29,6 +29,9 @@
                                         <th>Provisioned size</th>
                                         <th>Used capacity</th>
                                         <th data-hide="all">Creation time</th>
+                                        <th data-hide="all">Replicas</th>
+                                        <th data-hide="all">Volumes</th>
+                                        <th data-hide="all">Labels</th>
                                         <th>StorageClasses</th>
                                     </tr>
                                     </thead>
@@ -42,6 +45,13 @@
                                                 <td>{{ $item['sizeFormatted'] ?? '<unknown>' }}</td>
                                                 <td>{{ $item['usedFormatted'] ?? '<unknown>' }}</td>
                                                 <td>{{ $item['creationTimestamp'] ?? '<unknown>' }}</td>
+                                                <td>{{ $item['replicas'] ?? '<unknown>' }}</td>
+                                                <td>
+                                                    @foreach($item['namespace_names'] as $vol)
+                                                        <a href="{{ route('Volumes', ['volume_keyword' => str_replace($item['namespace'] . ':', '', $vol)]) . '+' . $item['namespace'] }}">{{ str_replace($item['namespace'] . ':', '', $vol) }}</a><br>
+                                                    @endforeach
+                                                </td>
+                                                <td>{{ implode(', ', $item['labels'] ?? []) }}</td>
                                                 <td>{{ $item['storageClasses'] ?? '<unknown>' }}</td>
                                             </tr>
                                         @endforeach

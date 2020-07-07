@@ -146,3 +146,11 @@
 .alert-heading {
     padding: 10px;
 }
+
+.invisible-row {
+    display: none;
+}
+
+span:after, span:before {
+    content: '';
+}

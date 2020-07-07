@@ -11,7 +11,9 @@ class PsoInformation extends RedisModel
     protected $fillable = [
         'prefix',
         'namespace',
-        'image',
+        'images',
+        'provisioner_pod',
+        'provisioner_container',
         'san_type',
         'block_fs_type',
         'block_fs_opt',

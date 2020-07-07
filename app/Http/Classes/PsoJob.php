@@ -4,20 +4,20 @@
 namespace App\Http\Classes;
 
 
-use Illuminate\Support\Facades\Redis;
-
-class PsoStatefulSet extends RedisModel
+class PsoJob extends RedisModel
 {
-    public const PREFIX='pso_statefulset';
+    public const PREFIX='pso_job';
 
     protected $fillable = [
         'uid',
         'name',
         'namespace',
-        'namespace_names',
         'creationTimestamp',
-        'replicas',
+        'pvc_name',
+        'pvc_namespace_name',
+        'pvc_link',
         'labels',
+        'status',
         'size',
         'sizeFormatted',
         'used',
@@ -28,7 +28,7 @@ class PsoStatefulSet extends RedisModel
 
     protected $indexes = [
         'uid',
-        'name',
+        'pvc_namespace_name',
     ];
 
 

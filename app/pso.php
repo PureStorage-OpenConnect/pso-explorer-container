@@ -4,13 +4,16 @@ namespace App;
 
 use App\Api\FlashArrayAPI;
 use App\Api\FlashBladeAPI;
+use App\Api\k8s\PodLog;
 use App\Api\k8s\VolumeSnapshotClass;
 use App\Api\k8s\VolumeSnapshot;
 use App\Http\Classes\PsoArray;
 use App\Http\Classes\PsoDeployment;
 use App\Http\Classes\PsoInformation;
+use App\Http\Classes\PsoJob;
 use App\Http\Classes\PsoLabels;
 use App\Http\Classes\PsoNamespace;
+use App\Http\Classes\PsoNode;
 use App\Http\Classes\PsoPersistentVolumeClaim;
 use App\Http\Classes\PsoPod;
 use App\Http\Classes\PsoVolumeSnapshot;
@@ -21,6 +24,8 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Kubernetes\API\Deployment;
+use Kubernetes\API\Job;
+use Kubernetes\API\Node;
 use Kubernetes\API\PersistentVolume;
 use Kubernetes\API\PersistentVolumeClaim;
 use Kubernetes\API\Pod;
@@ -180,6 +185,7 @@ class pso
         }
 
         // Loop through the POD's to find PSO namespace and prefix and store pods with PVC's
+        $images = [];
         foreach ($pod_list->items as $item) {
             $my_pod = null;
 
@@ -202,16 +208,15 @@ class pso
                 }
             }
 
-            foreach ($item->spec->containers as $containers) {
-                if (isset($containers->env)) {
-                    foreach ($containers->env as $env) {
+            foreach ($item->spec->containers as $container) {
+                if (isset($container->env)) {
+                    foreach ($container->env as $env) {
                         switch ($env->name) {
                             case 'PURE_K8S_NAMESPACE':
                                 // If PSO is found, set pso_found to true and store prefix and namespace in Redis
                                 $this->pso_found = true;
                                 $this->pso_info->prefix = $env->value;
                                 $this->pso_info->namespace = $item->metadata->namespace;
-                                $this->pso_info->image = $containers->image;
                                 break;
                             case 'PURE_FLASHARRAY_SAN_TYPE':
                                 $this->pso_info->san_type = $env->value;
@@ -234,9 +239,33 @@ class pso
                         }
                     }
                 }
-                if ($this->pso_found) break;
+
+                if (($item->metadata->name == 'pso-csi-controller-0') or ($this->startsWith('pure-provisioner', $item->metadata->name))) {
+                    $this->pso_info->provisioner_pod = $item->metadata->name;
+                    $this->pso_info->provisioner_container = $item->spec->containers[0]->name;
+
+                    if (($container->name == 'pso-csi-container') or ($container->name == 'pure-csi-container')) {
+                        array_push($images, $container->name . ': ' . $container->image);
+                    }
+                    if (($container->name == 'csi-provisioner') or ($container->name == 'pure-provisioner')) {
+                        array_push($images, $container->name . ': ' . $container->image);
+                    }
+                    if ($container->name == 'csi-snapshotter') {
+                        array_push($images, $container->name . ': ' . $container->image);
+                    }
+                    if ($container->name == 'csi-attacher') {
+                        array_push($images, $container->name . ': ' . $container->image);
+                    }
+                    if ($container->name == 'csi-resizer') {
+                        array_push($images, $container->name . ': ' . $container->image);
+                    }
+                    if ($container->name == 'liveness-probe') {
+                        array_push($images, $container->name . ': ' . $container->image);
+                    }
+                }
             }
         }
+        $this->pso_info->images = $images;
 
         if (!$this->pso_found) {
             // Log error message
@@ -425,49 +454,6 @@ class pso
         return true;
     }
 
-    private function getStatefulsets()
-    {
-        // Log function call
-        Log::debug('    Call getStatefulsets()');
-
-        // Retrieve all Kubernetes StatefulSets for this cluster
-        Client::configure($this->master, $this->authentication);
-        $statefulset = new StatefulSet();
-        $statefulset_list = $statefulset->list('');
-
-        if (isset($statefulset_list->code)) {
-            $this->pso_found = false;
-            $this->error_source = 'k8s';
-            $this->error_message = 'Unable to list StatefulSets. Check the ClusterRoles and ClusterRoleBindings.';
-            return false;
-        }
-
-        if (isset($statefulset_list->items)) {
-            foreach ($statefulset_list->items as $item) {
-                if (isset($item->spec->volumeClaimTemplates)) {
-
-                    $vols = [];
-                    foreach ($item->spec->volumeClaimTemplates as $template) {
-                        for ($i = 0; $i < $item->spec->replicas;$i++) {
-                            if (in_array($template->spec->storageClassName, PsoStorageClass::items(PsoStorageClass::PREFIX, 'name')) or $template->spec->storageClassName == null) {
-                                array_push($vols, $item->metadata->namespace . ':' . $template->metadata->name . '-' . $item->metadata->name . '-' . $i);
-                            }
-                        }
-                    }
-
-                    if ($vols !== []) {
-                        $myset = new PsoStatefulSet($item->metadata->uid);
-                        $myset->name = $item->metadata->name;
-                        $myset->namespace = $item->metadata->namespace;
-                        $myset->namespace_names = $vols;
-                        $myset->creationTimestamp = $item->metadata->creationTimestamp;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-
     private function getPersistentVolumeClaims()
     {
         // Log function call
@@ -513,6 +499,59 @@ class pso
         return true;
     }
 
+    private function getStatefulsets()
+    {
+        // Log function call
+        Log::debug('    Call getStatefulsets()');
+
+        // Retrieve all Kubernetes StatefulSets for this cluster
+        Client::configure($this->master, $this->authentication);
+        $statefulset = new StatefulSet();
+        $statefulset_list = $statefulset->list('');
+
+        if (isset($statefulset_list->code)) {
+            $this->pso_found = false;
+            $this->error_source = 'k8s';
+            $this->error_message = 'Unable to list StatefulSets. Check the ClusterRoles and ClusterRoleBindings.';
+            return false;
+        }
+
+        if (isset($statefulset_list->items)) {
+            foreach ($statefulset_list->items as $item) {
+                if (isset($item->spec->volumeClaimTemplates)) {
+
+                    $namespace_names = [];
+                    foreach ($item->spec->volumeClaimTemplates as $template) {
+                        for ($i = 0; $i < $item->spec->replicas;$i++) {
+                            if (in_array($template->spec->storageClassName, PsoStorageClass::items(PsoStorageClass::PREFIX, 'name')) or $template->spec->storageClassName == null) {
+                                array_push($namespace_names, $item->metadata->namespace . ':' . $template->metadata->name . '-' . $item->metadata->name . '-' . $i);
+                            }
+                        }
+                    }
+
+                    if ($namespace_names !== []) {
+                        $myset = new PsoStatefulSet($item->metadata->uid);
+                        $myset->name = $item->metadata->name;
+                        $myset->namespace = $item->metadata->namespace;
+                        $myset->namespace_names = $namespace_names;
+                        $myset->creationTimestamp = $item->metadata->creationTimestamp;
+                        $myset->replicas = $item->spec->replicas;
+
+                        if (isset($item->metadata->labels)) {
+                            $labels = [];
+
+                            foreach ($item->metadata->labels as $key => $value) {
+                                array_push($labels, $key . '=' . $value);
+                            }
+                            $myset->labels = $labels;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
     private function getDeployments()
     {
         // Log function call
@@ -535,8 +574,8 @@ class pso
                 if (isset($item->spec->template->spec->volumes)) {
                     foreach ($item->spec->template->spec->volumes as $vol) {
                         if (isset($vol->persistentVolumeClaim->claimName)) {
-                            $namespace_name = $item->metadata->namespace . ':' .  $vol->persistentVolumeClaim->claimName;
-                            if (in_array($namespace_name, PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'namespace_name'))) {
+                            $mynamespace_name = $item->metadata->namespace . ':' .  $vol->persistentVolumeClaim->claimName;
+                            if (in_array($mynamespace_name, PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'namespace_name'))) {
                                 $mydeployment = new PsoDeployment($item->metadata->uid);
                                 $mydeployment->name = $item->metadata->name;
                                 $mydeployment->namespace = $item->metadata->namespace;
@@ -546,19 +585,153 @@ class pso
 
                                 $namespace_name = $mydeployment->namespace_names;
                                 if ($namespace_name == null) {
-                                    $mydeployment->namespace_names = [$namespace_name];
+                                    $mydeployment->namespace_names = [$mynamespace_name];
                                 } else {
-                                    array_push($namespace_name, $namespace_name);
+                                    array_push($namespace_name, $mynamespace_name);
                                     $mydeployment->namespace_names = $namespace_name;
                                 }
 
+                                $mydeployment->replicas = $item->spec->replicas;
+
+                                if (isset($item->metadata->labels)) {
+                                    $labels = [];
+
+                                    foreach ($item->metadata->labels as $key => $value) {
+                                        array_push($labels, $key . '=' . $value);
+                                    }
+                                    $mydeployment->labels = $labels;
+                                }
                             }
                         }
                     }
                 }
             }
         }
+        return true;
+    }
 
+    private function getJobs()
+    {
+        // Log function call
+        Log::debug('    Call getJobs()');
+
+        // Retrieve all Kubernetes StatefulSets for this cluster
+        Client::configure($this->master, $this->authentication);
+        $job = new Job();
+        $job_list = $job->list('');
+
+        if (isset($job_list->code)) {
+            $this->pso_found = false;
+            $this->error_source = 'k8s';
+            $this->error_message = 'Unable to list Jobs. Check the ClusterRoles and ClusterRoleBindings.';
+            return false;
+        }
+
+        if (isset($job_list->items)) {
+            foreach ($job_list->items as $item) {
+                if (isset($item->spec->template->spec->volumes)) {
+                    foreach ($item->spec->template->spec->volumes as $volume) {
+                        $mynamespace_name = $item->metadata->namespace . ':' .  $volume->persistentVolumeClaim->claimName;
+                        if (in_array($mynamespace_name, PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'namespace_name'))) {
+                            $my_job = new PsoJob($item->metadata->uid);
+                            $my_job->name = $item->metadata->name;
+                            $my_job->namespace = $item->metadata->namespace;
+                            $my_job->creationTimestamp = $item->metadata->creationTimestamp;
+
+                            if ($item->status->active == 1) {
+                                $my_job->status = 'Running';
+                            } elseif ($item->status->succeeded == 1) {
+                                $my_job->status = 'Completed';
+                            } elseif ($item->status->failed == 1) {
+                                $my_job->status = 'Failed';
+                            } else {
+                                $my_job->status = 'Unknown';
+                            }
+
+                            if (isset($item->metadata->labels) and $my_job->labels == null) {
+                                foreach ($item->metadata->labels as $key => $value) {
+                                    $my_job->array_push('labels', $key . '=' . $value);
+                                }
+                            }
+
+                            $my_job->array_push('pvc_name', $volume->persistentVolumeClaim->claimName);
+                            $my_job->array_push('pvc_namespace_name', $item->metadata->namespace . ':' . $volume->persistentVolumeClaim->claimName);
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    private function getNodes()
+    {
+        // Log function call
+        Log::debug('    Call getNodes()');
+
+        // Retrieve all Kubernetes StatefulSets for this cluster
+        Client::configure($this->master, $this->authentication);
+        $node = new Node();
+        $node_list = $node->list();
+
+        if (isset($node_list->code)) {
+            $this->pso_found = false;
+            $this->error_source = 'k8s';
+            $this->error_message = 'Unable to list Nodes. Check the ClusterRoles and ClusterRoleBindings.';
+            return false;
+        }
+
+        if (isset($node_list->items)) {
+            foreach ($node_list->items as $item) {
+                $mynode = new PsoNode($item->metadata->uid);
+
+                $mynode->name = $item->metadata->name;
+                $labels = [];
+                if (isset($item->metadata->labels)) {
+                    foreach ($item->metadata->labels as $key => $value) {
+                        array_push($labels, $key . '=' . $value);
+                    }
+                }
+                $mynode->labels = $labels;
+                $mynode->creationTimestamp = $item->metadata->creationTimestamp;
+                $mynode->podCIDR = $item->spec->podCIDR;
+                $mynode->podCIDRs = $item->spec->podCIDRs;
+                $taints = [];
+                if (isset($item->spec->taints)) {
+                    foreach ($item->spec->taints as $taint) {
+                        array_push($taints, $taint->key . '=' . $taint->value . ':' . $taint->effect);
+                    }
+                }
+                $mynode->taints = $taints;
+                $mynode->unschedulable = $item->spec->unschedulable;
+                $mynode->architecture = $item->status->nodeInfo->architecture;
+                $mynode->containerRuntimeVersion = $item->status->nodeInfo->containerRuntimeVersion;
+                $mynode->kernelVersion = $item->status->nodeInfo->kernelVersion;
+                $mynode->kubeletVersion = $item->status->nodeInfo->kubeletVersion;
+                $mynode->osImage = $item->status->nodeInfo->osImage;
+                $mynode->operatingSystem = $item->status->nodeInfo->operatingSystem;
+                if (isset($item->status->addresses)) {
+                    foreach ($item->status->addresses as $address) {
+                        switch ($address->type) {
+                            case 'Hostname':
+                                $mynode->hostname = $address->address;
+                                break;
+                            case 'InternalIP':
+                                $mynode->InternalIP = $address->address;
+                                break;
+                        }
+                    }
+                }
+
+                $conditions = [];
+                foreach ($item->status->conditions as $condition) {
+                    if ($condition->status == 'True') {
+                        array_push($conditions, $condition->type);
+                    }
+                }
+                $mynode->condition = $conditions;
+            }
+        }
         return true;
     }
 
@@ -617,7 +790,7 @@ class pso
                 $volumeSnapshot->snapshotContentName = $item['spec']['snapshotContentName'];
                 $volumeSnapshot->source_name = $item['spec']['source']['name'];
                 $volumeSnapshot->source_kind = $item['spec']['source']['kind'];
-                $volumeSnapshot->creationTime = $item['status']['creationTime'];
+                $volumeSnapshot->creationTime = $item['status']['creationTime'] ?? '';
                 $volumeSnapshot->readyToUse = $item['status']['readyToUse'];
 
                 if (isset($item['status']['error'])) {
@@ -977,6 +1150,8 @@ class pso
         PsoNamespace::deleteAll(PsoNamespace::PREFIX);
         PsoPersistentVolumeClaim::deleteAll(PsoPersistentVolumeClaim::PREFIX);
         PsoPod::deleteAll(PsoPod::PREFIX);
+        PsoJob::deleteAll(PsoJob::PREFIX);
+        PsoNode::deleteAll(PsoNode::PREFIX);
         PsoStatefulSet::DeleteAll(PsoStatefulSet::PREFIX);
         PsoStorageClass::deleteAll(PsoStorageClass::PREFIX);
         PsoVolumeSnapshotClass::deleteAll(PsoVolumeSnapshotClass::PREFIX);
@@ -985,37 +1160,49 @@ class pso
 
         // Get PSO namespace and prefix from Kubernetes
         if (!$this->getPsoDetails()) {
-            Redis::del(self::PSO_UPDATE_KEY, time());
+            Redis::del(self::PSO_UPDATE_KEY);
             return false;
         }
 
         // Get FlashArrays and FlashBlades
         if (!$this->getArrayInfo()) {
-            Redis::del(self::PSO_UPDATE_KEY, time());
+            Redis::del(self::PSO_UPDATE_KEY);
             return false;
         }
 
         // Get the storageclasses that use PSO
         if (!$this->getStorageClasses()) {
-            Redis::del(self::PSO_UPDATE_KEY, time());
-            return false;
-        }
-
-        // Get the statefulsets
-        if (!$this->getStatefulsets()) {
-            Redis::del(self::PSO_UPDATE_KEY, time());
+            Redis::del(self::PSO_UPDATE_KEY);
             return false;
         }
 
         // Get the persistent volume claims
         if (!$this->getPersistentVolumeClaims()) {
-            Redis::del(self::PSO_UPDATE_KEY, time());
+            Redis::del(self::PSO_UPDATE_KEY);
+            return false;
+        }
+
+        // Get the statefulsets
+        if (!$this->getStatefulsets()) {
+            Redis::del(self::PSO_UPDATE_KEY);
             return false;
         }
 
         // Get the deployments
         if (!$this->getDeployments()) {
-            Redis::del(self::PSO_UPDATE_KEY, time());
+            Redis::del(self::PSO_UPDATE_KEY);
+            return false;
+        }
+
+        // Get the jobs
+        if (!$this->getJobs()) {
+            Redis::del(self::PSO_UPDATE_KEY);
+            return false;
+        }
+
+        // Get the nodes
+        if (!$this->getNodes()) {
+            Redis::del(self::PSO_UPDATE_KEY);
             return false;
         }
 
@@ -1385,7 +1572,67 @@ class pso
         return $pods;
     }
 
-    public function deployments()
+    public function jobs()
+    {
+        $this->RefreshData();
+
+        $jobs = [];
+
+        foreach (PsoJob::items(PsoJob::PREFIX, 'uid') as $uid)
+        {
+            $job = new PsoJob($uid);
+            $pvcs = [];
+            $pvc_links = [];
+            $pure_size = 0;
+            $pure_used = 0;
+            $volumeCount = 0;
+            $storageClasses = [];
+            $storageClasses = [];
+
+            foreach ($job->pvc_namespace_name as $item) {
+                $namespace = explode(':', $item)[0];
+                $name = explode(':', $item)[1];
+
+                $uid = PsoPersistentVolumeClaim::getUidByNamespaceName($namespace, $name);
+                $my_pvc = new PsoPersistentVolumeClaim($uid);
+
+                array_push($pvcs, $item);
+                $volumeCount = $volumeCount + 1;
+                $pure_size = $pure_size + $my_pvc->pure_size;
+                $pure_used = $pure_used + $my_pvc->pure_used;
+                if (!in_array($my_pvc->storageClass, $storageClasses)) array_push($storageClasses, $my_pvc->storageClass);
+
+                array_push($pvc_links, '<a href="' . route('Volumes', ['volume_keyword' => $my_pvc->uid]) . '">' . $my_pvc->name . '</a>');
+            }
+
+            $job->size = $pure_size;
+            $job->sizeFormatted = $this->formatBytes($pure_size, 2);
+            $job->used = $pure_used;
+            $job->usedFormatted = $this->formatBytes($pure_used, 2);
+            $job->volumeCount = $volumeCount;
+            $job->storageClasses = $storageClasses;
+            $job->pvc_link = $pvc_links;
+
+            array_push($jobs, $job->asArray());
+        }
+
+        return $jobs;
+    }
+
+    public function nodes()
+    {
+        $nodes = [];
+        foreach (PsoNode::items(PsoNode::PREFIX, 'uid') as $uid)
+        {
+            $node = new PsoNode($uid);
+
+            array_push($nodes, $node->asArray());
+        }
+
+        return $nodes;
+    }
+
+        public function deployments()
     {
         $this->RefreshData();
 
@@ -1492,5 +1739,13 @@ class pso
         $this->RefreshData();
 
         return $this->pso_info->asArray();
+    }
+
+    public function log()
+    {
+        Client::configure($this->master, $this->authentication, ['timeout' => 10]);
+        $podLog = new PodLog();
+
+        return $podLog->readLog($this->pso_info->namespace, $this->pso_info->provisioner_pod, ['container' => $this->pso_info->provisioner_container, 'tailLines' => '1000']);
     }
 }

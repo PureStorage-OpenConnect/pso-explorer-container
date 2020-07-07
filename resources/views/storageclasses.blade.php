@@ -14,7 +14,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>PSO StorageClasses</span>
+                            <span>PSO StorageClasses ({{ count($pso_storageclasses ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -91,7 +91,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>PSO VolumeSnapshotClasses</span>
+                            <span>PSO VolumeSnapshotClasses ({{ count($pso_volumesnapshotclasses ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">

@@ -13,7 +13,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Managed persistent volume claims per label</span>
+                            <span>Pods with managed persistent volume claims ({{ count($pso_pods ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -30,7 +30,7 @@
                                         <th>Used capacity</th>
                                         <th data-hide="all">Creation time</th>
                                         <th data-hide="all">Pod status</th>
-                                        <th data-hide="all">PersistentVolumeClaims</th>
+                                        <th data-hide="all">Volumes</th>
                                         <th data-hide="all">Labels</th>
                                         <th>StorageClasses</th>
                                     </tr>
@@ -47,9 +47,11 @@
                                                 <td>{{ $pso_pod['creationTimestamp'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_pod['status'] ?? '<unknown>' }}</td>
                                                 <td>
+                                                    @isset($pso_pod['pvc_link'])
                                                     @foreach($pso_pod['pvc_link'] as $pvc_link)
                                                         {!! $pvc_link !!}<br>
                                                     @endforeach
+                                                    @endisset
                                                 </td>
                                                 <td>{{ implode(', ', $pso_pod['labels'] ?? []) }}</td>
                                                 <td>{{ implode(', ', $pso_pod['storageClasses'] ?? []) }}</td>
@@ -57,7 +59,7 @@
                                         @endforeach
                                         @if(count($pso_pods) == 0)
                                             <tr>
-                                                <td><i>No pods with persistent volume claims managed by PSO were found</i></td>
+                                                <td><i>No pods with PVC's managed by PSO were found</i></td>
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>

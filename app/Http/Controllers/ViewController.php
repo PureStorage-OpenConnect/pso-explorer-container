@@ -30,22 +30,6 @@ class ViewController extends Controller
         }
     }
 
-    public function StorageArrays (Request $request)
-    {
-        // Get PSO instance
-        $pso = $this->getPso($request);
-
-        // If $pso is false, an error was returned
-        if (!$pso) {
-            return view('dashboard');
-        } else {
-            $pso_arrays = $pso->arrays();
-            $portal_info = $pso->portal_info();
-
-            return view('arrays', ['pso_arrays' => $pso_arrays, 'portal_info' => $portal_info]);
-        }
-    }
-
     public function Namespaces (Request $request)
     {
         // Get PSO instance
@@ -107,7 +91,23 @@ class ViewController extends Controller
             $pso_pods = $pso->pods();
             $portal_info = $pso->portal_info();
 
-            return view('pods', ['pso_pods' => $pso_pods, '$pods' => $portal_info]);
+            return view('pods', ['pso_pods' => $pso_pods, 'portal_info' => $portal_info]);
+        }
+    }
+
+    public function Jobs (Request $request)
+    {
+        // Get PSO instance
+        $pso = $this->getPso($request);
+
+        // If $pso is false, an error was returned
+        if (!$pso) {
+            return view('dashboard');
+        } else {
+            $pso_jobs = $pso->jobs();
+            $portal_info = $pso->portal_info();
+
+            return view('jobs', ['pso_jobs' => $pso_jobs, 'portal_info' => $portal_info]);
         }
     }
 
@@ -173,6 +173,22 @@ class ViewController extends Controller
             $portal_info = $pso->portal_info();
 
             return view('volumes', ['pso_vols' => $pso_vols, 'orphaned_vols' => $orphaned_vols, 'portal_info' => $portal_info, 'volume_keyword' => $request->input('volume_keyword') ?? '']);
+        }
+    }
+
+    public function StorageArrays (Request $request)
+    {
+        // Get PSO instance
+        $pso = $this->getPso($request);
+
+        // If $pso is false, an error was returned
+        if (!$pso) {
+            return view('dashboard');
+        } else {
+            $pso_arrays = $pso->arrays();
+            $portal_info = $pso->portal_info();
+
+            return view('arrays', ['pso_arrays' => $pso_arrays, 'portal_info' => $portal_info]);
         }
     }
 }

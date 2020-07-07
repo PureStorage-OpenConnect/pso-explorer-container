@@ -80,6 +80,18 @@ class ApiController extends Controller
         }
     }
 
+    public function Jobs (Request $request)
+    {
+        $pso = new pso();
+
+        if ($pso->pso_found) {
+            return $pso->jobs();
+        } else {
+            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            return $response;
+        }
+    }
+
     public function Deployments (Request $request)
     {
         $pso = new pso();

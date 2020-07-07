@@ -6,7 +6,7 @@ use App\pso;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
-class HomeController extends Controller
+class SettingsController extends Controller
 {
     private function getPso(Request $request)
     {
@@ -30,12 +30,7 @@ class HomeController extends Controller
         }
     }
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(Request $request)
+    public function Pso(Request $request)
     {
         // Get PSO instance
         $pso = $this->getPso($request);
@@ -44,25 +39,16 @@ class HomeController extends Controller
         if (!$pso) {
             return view('dashboard');
         } else {
-            $dashboard = $pso->dashboard();
+            $settings = $pso->settings();
+            $log = $pso->log();
             $portal_info = $pso->portal_info();
-            return view('dashboard', ['dashboard' => $dashboard, 'portal_info' => $portal_info]);
+
+            return view('settings', ['settings' => $settings, 'log' => $log, 'portal_info' => $portal_info]);
         }
     }
 
-    public function refreshdata(Request $request)
+    public function Nodes(Request $request)
     {
-        // Check if a return route was included in the request
-        if ($request->input('route') !== 'RefreshData') {
-            $redirectTo = $request->input('route');
-        } else {
-            // If not set, return to 'Dashboard' after the refresh
-            $redirectTo = 'Dashboard';
-        }
-
-        // Make sure PSO data is refreshed on next data collection
-        pso::requestRefresh();
-
         // Get PSO instance
         $pso = $this->getPso($request);
 
@@ -70,7 +56,10 @@ class HomeController extends Controller
         if (!$pso) {
             return view('dashboard');
         } else {
-            //return redirect()->route($redirectTo);
+            $nodes = $pso->nodes();
+            $portal_info = $pso->portal_info();
+
+            return view('nodes', ['nodes' => $nodes, 'portal_info' => $portal_info]);
         }
     }
 }

@@ -92,89 +92,124 @@
             <!-- Navivation side bar -->
             <nav class="sidebar-nav">
                 <ul id="sidebar-menu">
-                    <li @IF(Request::is('/'))class="sidebar-item dropdown mm-active"
-                        @ELSE()class="sidebar-item dropdown"@ENDIF>
+                    {{-- Dashboard --}}
+                    <li @if(Request::is('/'))class="sidebar-item dropdown mm-active"
+                        @else()class="sidebar-item dropdown"@endif>
                         <a class="nav-link" href="{{ route('Dashboard') }}">
                             <!-- Dashboard -->
                             <div class="nav-content">
-                                <img class="nav-icon" src="/images/dashboard_icon.svg">
+                                <img class="nav-icon" src="{{ asset('images/dashboard_icon.svg') }}">
                                 <span class="sidebar-expanded-only">Dashboard</span>
                             </div>
                         </a>
                     </li>
 
+                    {{-- Analysis --}}
                     <li class="sidebar-item dropdown">
                         <a class="nav-link" href="#" aria-expanded="false">
                             <div class="nav-content">
-                                <img class="nav-icon" src="/images/analysis_icon.svg">
+                                <img class="nav-icon" src="{{ asset('images/analysis_icon.svg') }}">
                                 <span class="sidebar-expanded-only">Analysis</span>
                             </div>
                         </a>
                         <ul class="mm-collapse">
-                            <li @IF(Request::is('view/storagearrays'))class="mm-active"@ENDIF>
-                                <a href="{{ route('StorageArrays') }}">
-                                    <img class="mm-sub" src="{{ asset('images/k8s/storage.svg') }}">
-                                    <span class="mm-sub-text">Storage arrays</span>
-                                </a>
-                            </li>
-                            <li @IF(Request::is('view/namespaces'))class="mm-active"@ENDIF>
-                                <a href="{{ route('Namespaces') }}">
-                                    <img class="mm-sub" src="{{ asset('images/k8s/ns-pure.svg') }}">
-                                    <span class="mm-sub-text">Namespaces</span>
-                                </a>
-                            </li>
-                            <li @IF(Request::is('view/storageclasses'))class="mm-active"@ENDIF>
-                                <a href="{{ route('StorageClasses') }}">
-                                    <img class="mm-sub" src="{{ asset('images/k8s/sc-pure.svg') }}">
-                                    <span class="mm-sub-text">StorageClasses</span>
-                                </a>
-                            </li>
-                            <li @IF(Request::is('view/labels'))class="mm-active"@ENDIF>
-                                <a href="{{ route('Labels') }}">
-                                    <img class="mm-sub" src="{{ asset('images/k8s/cm-pure.svg') }}">
-                                    <span class="mm-sub-text">Labels</span>
-                                </a>
-                            </li>
-                            <li @IF(Request::is('view/pods'))class="mm-active"@ENDIF>
+                            <li @if(Request::is('view/pods'))class="mm-active"@endif>
                                 <a href="{{ route('Pods') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/pod-pure.svg') }}">
                                     <span class="mm-sub-text">Pods</span>
                                 </a>
                             </li>
-                            <li @IF(Request::is('view/deployments'))class="mm-active"@ENDIF>
+                            <li @if(Request::is('view/jobs'))class="mm-active"@endif>
+                                <a href="{{ route('Jobs') }}">
+                                    <img class="mm-sub" src="{{ asset('images/k8s/job-pure.svg') }}">
+                                    <span class="mm-sub-text">Jobs</span>
+                                </a>
+                            </li>
+                            <li @if(Request::is('view/deployments'))class="mm-active"@endif>
                                 <a href="{{ route('Deployments') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/deploy-pure.svg') }}">
                                     <span class="mm-sub-text">Deployments</span>
                                 </a>
                             </li>
-                            <li @IF(Request::is('view/statefulsets'))class="mm-active"@ENDIF>
+                            <li @if(Request::is('view/statefulsets'))class="mm-active"@endif>
                                 <a href="{{ route('StatefulSets') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/sts-pure.svg') }}">
                                     <span class="mm-sub-text">StatefulSets</span>
                                 </a>
                             </li>
-                            <li @IF(Request::is('view/snapshots'))class="mm-active"@ENDIF>
+                            <li @if(Request::is('view/labels'))class="mm-active"@endif>
+                                <a href="{{ route('Labels') }}">
+                                    <img class="mm-sub" src="{{ asset('images/k8s/cm-pure.svg') }}">
+                                    <span class="mm-sub-text">Labels</span>
+                                </a>
+                            </li>
+                            <li @if(Request::is('view/namespaces'))class="mm-active"@endif>
+                                <a href="{{ route('Namespaces') }}">
+                                    <img class="mm-sub" src="{{ asset('images/k8s/ns-pure.svg') }}">
+                                    <span class="mm-sub-text">Namespaces</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {{-- Storage --}}
+                    <li class="sidebar-item dropdown">
+                        <a class="nav-link" href="#" aria-expanded="false">
+                            <div class="nav-content">
+                                <img class="nav-icon" src="{{ asset('images/k8s/storage.svg') }}">
+                                <span class="sidebar-expanded-only">Storage</span>
+                            </div>
+                        </a>
+                        <ul class="mm-collapse">
+                            <li @if(Request::is('view/storagearrays'))class="mm-active"@endif>
+                                <a href="{{ route('StorageArrays') }}">
+                                    <img class="mm-sub" src="{{ asset('images/k8s/storage.svg') }}">
+                                    <span class="mm-sub-text">Arrays</span>
+                                </a>
+                            </li>
+                            <li @if(Request::is('view/storageclasses'))class="mm-active"@endif>
+                                <a href="{{ route('StorageClasses') }}">
+                                    <img class="mm-sub" src="{{ asset('images/k8s/sc-pure.svg') }}">
+                                    <span class="mm-sub-text">StorageClasses</span>
+                                </a>
+                            </li>
+                            <li @if(Request::is('view/volumes'))class="mm-active"@endif>
+                                <a href="{{ route('Volumes') }}">
+                                    <img class="mm-sub" src="{{ asset('images/k8s/vol-pure.svg') }}">
+                                    <span class="mm-sub-text">Volumes</span>
+                                </a>
+                            </li>
+                            <li @if(Request::is('view/snapshots'))class="mm-active"@endif>
                                 <a href="{{ route('Snapshots') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/snap-pure.svg') }}">
                                     <span class="mm-sub-text">Snapshots</span>
                                 </a>
                             </li>
-                            <li @IF(Request::is('view/volumes'))class="mm-active"@ENDIF>
-                                <a href="{{ route('Volumes') }}">
-                                    <img class="mm-sub" src="{{ asset('images/k8s/vol-pure.svg') }}">
-                                    <span class="mm-sub-text">All volumes</span>
-                                </a>
-                            </li>
                         </ul>
                     </li>
-                    <li @IF(Request::is('settings'))class="sidebar-item dropdown mm-active"
-                        @ELSE()class="sidebar-item dropdown"@ENDIF>
-                        <a class="nav-link" href="{{ route('Settings') }}" aria-expanded="false">
+
+                    {{-- Settings --}}
+                    <li class="sidebar-item dropdown">
+                        <a class="nav-link" href="#" aria-expanded="false">
                             <div class="nav-content">
-                                <img class="nav-icon" src="/images/settings_icon.svg">
+                                <img class="nav-icon" src="{{ asset('images/settings_icon.svg') }}">
                                 <span class="sidebar-expanded-only">Settings</span>
                             </div>
                         </a>
+                        <ul class="mm-collapse">
+                            <li @if(Request::is('settings/pso'))class="mm-active"@endif>
+                                <a href="{{ route('SettingsPso') }}">
+                                    <img class="mm-sub" src="{{ asset('images/settings_icon.svg') }}">
+                                    <span class="mm-sub-text">PSO</span>
+                                </a>
+                            </li>
+                            <li @if(Request::is('settings/nodes'))class="mm-active"@endif>
+                                <a href="{{ route('SettingsNodes') }}">
+                                    <img class="mm-sub" src="{{ asset('images/k8s/node-pure.svg') }}">
+                                    <span class="mm-sub-text">Nodes</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                 </ul>
 
@@ -280,12 +315,12 @@
                 </alert-counts>
             </div>
             <div class="topbar-item with-padding">
-                @IF (Route::has(Route::currentRouteName() . 'Api'))
+                @if (Route::has(Route::currentRouteName() . 'Api'))
                     <form action="{{ Route(Route::currentRouteName() . 'Api') }}" method="get">
                         <input type="submit" class="btn btn-w-m btn-pure" value="View as JSON"
                                name="Submit" id="frm2_submit"/>
                     </form>
-                @ENDIF
+                @endif
             </div>
         </div>
 
