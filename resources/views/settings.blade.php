@@ -162,7 +162,7 @@
             </div>
         </div>
 
-        {{-- iSCSI protocol settings --}}
+        {{-- PSO provisioner log --}}
         <div class="row">
             <div class="col-xs-12 tab-container">
                 <div class="with-padding">
@@ -179,7 +179,7 @@
                                     </form>
                                 </div>
                                 <div class="col-xs-12">
-                                    <pre class="pre-scrollable filter-log-lines">{{ $log }}</pre>
+                                    <pre class="pre-scrollable filter-log-lines">{{ $log ?? 'no logs found' }}</pre>
                                 </div>
                                 <br><br>&nbsp;
                             </div>
