@@ -32,6 +32,7 @@
                                         <th data-hide="all">Allow Volume Expansion</th>
                                         <th data-hide="all">Volume Binding Mode</th>
                                         <th data-hide="all">Reclaim Policy</th>
+                                        <th data-hide="all">Is default class</th>
                                         <th>Used capacity</th>
                                     </tr>
                                     </thead>
@@ -39,7 +40,7 @@
                                     @isset($pso_storageclasses)
                                         @foreach($pso_storageclasses as $pso_storageclass)
                                             <tr>
-                                                <td>{{ $pso_storageclass['name'] ?? '<unknown>' }}</td>
+                                                <td>{{ $pso_storageclass['name'] ?? '<unknown>' }} @if($pso_storageclass['isDefaultClass'] == 1)(default)@endif</td>
                                                 <td>{{ $pso_storageclass['volumeCount'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_storageclass['sizeFormatted'] ?? '<unknown>' }}</td>
                                                 <td>@isset($pso_storageclass['parameters']){{ implode(', ', $pso_storageclass['parameters']) }}@endisset </td>
@@ -47,6 +48,7 @@
                                                 <td>@if($pso_storageclass['allowVolumeExpansion'] == 1)True @else False @endif</td>
                                                 <td>{{ $pso_storageclass['volumeBindingMode'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_storageclass['reclaimPolicy'] ?? '<unknown>' }}</td>
+                                                <td>@if($pso_storageclass['isDefaultClass'] == 1)True @else False @endif</td>
                                                 <td>{{ $pso_storageclass['usedFormatted'] ?? '<unknown>' }}</td>
                                             </tr>
                                         @endforeach
@@ -114,12 +116,12 @@
                                     @isset($pso_volumesnapshotclasses)
                                         @foreach($pso_volumesnapshotclasses as $pso_volumesnapshotclass)
                                             <tr>
-                                                <td>{{ $pso_volumesnapshotclass['name'] ?? '<unknown>' }}</td>
+                                                <td>{{ $pso_volumesnapshotclass['name'] ?? '<unknown>' }} @if($pso_volumesnapshotclass['isDefaultClass'] == 1)(default)@endif</td>
                                                 <td>{{ $pso_volumesnapshotclass['volumeCount'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_volumesnapshotclass['sizeFormatted'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_volumesnapshotclass['snapshotter'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_volumesnapshotclass['reclaimPolicy'] ?? '<unknown>' }}</td>
-                                                <td>@if($pso_volumesnapshotclass['is_default_class'] == 1)True @else False @endif</td>
+                                                <td>@if($pso_volumesnapshotclass['isDefaultClass'] == 1)True @else False @endif</td>
                                                 <td>{{ $pso_volumesnapshotclass['usedFormatted'] ?? '<unknown>' }}</td>
                                             </tr>
                                         @endforeach

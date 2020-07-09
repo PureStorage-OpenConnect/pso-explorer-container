@@ -453,6 +453,13 @@ class pso
                     $mystorageclass->allowVolumeExpansion = $item->allowVolumeExpansion;
                     $mystorageclass->volumeBindingMode = $item->volumeBindingMode;
                     $mystorageclass->reclaimPolicy = $item->reclaimPolicy;
+
+                    $mystorageclass->isDefaultClass = false;
+                    foreach (($item->metadata->annotations ?? []) as $key => $value) {
+                        if (('storageclass.kubernetes.io/is-default-class' == $key) and ($value == 'true')) {
+                            $mystorageclass->isDefaultClass = true;
+                        }
+                    }
                 }
             }
         }
@@ -761,10 +768,11 @@ class pso
                 $snapshotclass->snapshotter = $item['snapshotter'];
                 $snapshotclass->reclaimPolicy = $item['reclaimPolicy'];
 
+                $snapshotclass->isDefaultClass = false;
                 if (isset($item['metadata']['annotations']['snapshot.storage.kubernetes.io/is-default-class'])) {
-                    $snapshotclass->is_default_class = $item['metadata']['annotations']['snapshot.storage.kubernetes.io/is-default-class'];
-                } else {
-                    $snapshotclass->is_default_class = 'false';
+                    if ($item['metadata']['annotations']['snapshot.storage.kubernetes.io/is-default-class'] == 'true') {
+                        $snapshotclass->isDefaultClass = true;
+                    }
                 }
             }
         }

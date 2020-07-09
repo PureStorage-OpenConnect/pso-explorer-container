@@ -18,7 +18,7 @@ class PsoVolumeSnapshotClass extends RedisModel
 
         'snapshotter',
         'reclaimPolicy',
-        'is_default_class',
+        'isDefaultClass',
     ];
 
     protected $indexes = [
