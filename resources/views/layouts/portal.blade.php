@@ -98,7 +98,7 @@
                         <a class="nav-link" href="{{ route('Dashboard') }}">
                             <!-- Dashboard -->
                             <div class="nav-content">
-                                <img class="nav-icon" src="{{ asset('images/dashboard_icon.svg') }}">
+                                <img class="mm-main" src="{{ asset('images/dashboard_icon.svg') }}">
                                 <span class="sidebar-expanded-only">Dashboard</span>
                             </div>
                         </a>
@@ -108,7 +108,7 @@
                     <li class="sidebar-item dropdown">
                         <a class="nav-link" href="#" aria-expanded="false">
                             <div class="nav-content">
-                                <img class="nav-icon" src="{{ asset('images/analysis_icon.svg') }}">
+                                <img class="mm-main" src="{{ asset('images/analysis_icon.svg') }}">
                                 <span class="sidebar-expanded-only">Analysis</span>
                             </div>
                         </a>
@@ -156,7 +156,7 @@
                     <li class="sidebar-item dropdown">
                         <a class="nav-link" href="#" aria-expanded="false">
                             <div class="nav-content">
-                                <img class="nav-icon" src="{{ asset('images/k8s/storage.svg') }}">
+                                <img class="mm-main" src="{{ asset('images/k8s/storage.svg') }}">
                                 <span class="sidebar-expanded-only">Storage</span>
                             </div>
                         </a>
@@ -192,7 +192,7 @@
                     <li class="sidebar-item dropdown">
                         <a class="nav-link" href="#" aria-expanded="false">
                             <div class="nav-content">
-                                <img class="nav-icon" src="{{ asset('images/settings_icon.svg') }}">
+                                <img class="mm-main" src="{{ asset('images/settings_icon.svg') }}">
                                 <span class="sidebar-expanded-only">Settings</span>
                             </div>
                         </a>

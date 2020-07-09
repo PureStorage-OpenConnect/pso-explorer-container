@@ -64,14 +64,16 @@
     margin-bottom: 0px;
 }
 
-.mm-sub {
-    height: 20px;
-    vertical-align: middle;
+.mm-main {
+    height: 44px;
+    width: 44px;
+    padding: 0 10px;
 }
 
-.mm-sub img {
-    width: 20px;
+.mm-sub {
     height: 20px;
+    width: 40px;
+    padding: 0 10px;
 }
 
 .mm-sub-text {
