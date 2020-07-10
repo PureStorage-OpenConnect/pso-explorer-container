@@ -19,7 +19,7 @@
                                 @if (session('source') == 'k8s')
                                     <div class="alert alert-danger alert-message">We ran into an error while connecting to the Kubernetes API service. To resolve this issue, make sure {{ config('app.name', 'Pure Container Explorer') }} has access to the Kubernetes API services and that the roles and rolebindings are configured correctly.
 
-                                        For more information on how to install and configure {{ config('app.name', 'Pure Container Explorer') }} correctly, please visit: <br><a href="https://github.com/PureStorage-OpenConnect/pso-analytics-gui" target="_blank">https://github.com/PureStorage-OpenConnect/pso-analytics-gui</a>
+                                        For more information on how to install and configure {{ config('app.name', 'Pure Container Explorer') }} correctly, please visit: <br><a href="https://github.com/PureStorage-OpenConnect/pure-container-explorer" target="_blank">https://github.com/PureStorage-OpenConnect/pure-container-explorer</a>
                                     </div>
                                 @elseif (session('source') == 'refresh')
                                     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 text-center">
