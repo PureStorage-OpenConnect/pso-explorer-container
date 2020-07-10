@@ -644,7 +644,7 @@ class pso
             foreach ($job_list->items as $item) {
                 if (isset($item->spec->template->spec->volumes)) {
                     foreach ($item->spec->template->spec->volumes as $volume) {
-                        $mynamespace_name = $item->metadata->namespace . ':' .  $volume->persistentVolumeClaim->claimName;
+                        $mynamespace_name = $item->metadata->namespace . ':' .  ($volume->persistentVolumeClaim->claimName ?? 'Unknown');
                         if (in_array($mynamespace_name, PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'namespace_name'))) {
                             $my_job = new PsoJob($item->metadata->uid);
                             $my_job->name = $item->metadata->name;
@@ -877,6 +877,8 @@ class pso
 
         $total_size = 0;
         $total_used = 0;
+        $total_orphaned_used = 0;
+        $total_snapshot_used = 0;
 
         $total_iops_read = 0;
         $total_iops_write = 0;
@@ -926,10 +928,13 @@ class pso
                                 $myvol->pure_orphaned_state = 'Unmanaged by PSO';
                                 $myvol->pure_orphaned_pvc_name = 'Not available for unmanaged PV\'s';
                                 $myvol->pure_orphaned_pvc_namespace = 'Not available for unmanaged PV\'s';
-                            }
 
-                            $total_used = $total_used + $vol['size']  * (1 - $vol['thin_provisioning'] ?? 0);
-                            $total_size = $total_size + $vol['size'] ?? 0;
+                                $total_orphaned_used = $total_orphaned_used + ($vol['size'] ?? 0) * (1 - ($vol['thin_provisioning'] ?? 0));
+                            } else {
+                                $total_used = $total_used + ($vol['size'] ?? 0)  * (1 - ($vol['thin_provisioning'] ?? 0));
+                                $total_size = $total_size + ($vol['size'] ?? 0);
+                            }
+                            $total_snapshot_used = $total_snapshot_used + ($vol['snapshots'] ?? 0);
                         }
                     }
                 }
@@ -1074,10 +1079,13 @@ class pso
                                 $myvol->pure_orphaned_state = 'Unmanaged by PSO';
                                 $myvol->pure_orphaned_pvc_name = 'Unknown';
                                 $myvol->pure_orphaned_pvc_namespace = 'Unknown';
-                            }
 
-                            $total_used = $total_used + $filesystem['space']['virtual'];
-                            $total_size = $total_size + $filesystem['provisioned'];
+                                $total_orphaned_used = $total_orphaned_used + ($filesystem['space']['virtual'] ?? 0);
+                            } else {
+                                $total_used = $total_used + ($filesystem['space']['virtual'] ?? 0);
+                                $total_size = $total_size + ($filesystem['provisioned'] ?? 0);
+                            }
+                            $total_snapshot_used = $total_snapshot_used + ($filesystem['space']['snapshots'] ?? 0);
 
                             $fs_perf = $fb_api->GetFileSystemsPerformance([
                                 'names' => $filesystem['name'],
@@ -1110,6 +1118,8 @@ class pso
         }
         $this->pso_info->totalsize = $total_size;
         $this->pso_info->totalused = $total_used;
+        $this->pso_info->total_orphaned_used = $total_orphaned_used;
+        $this->pso_info->total_snapshot_used = $total_snapshot_used;
 
         $this->pso_info->total_iops_read = $total_iops_read;
         $this->pso_info->total_iops_write = $total_iops_write;
@@ -1772,6 +1782,8 @@ class pso
         $portal_info['total_used'] = $this->formatBytes($this->pso_info->totalused);
         $portal_info['total_size'] = $this->formatBytes($this->pso_info->totalsize);
         $portal_info['total_used_raw'] = $this->pso_info->totalused;
+        $portal_info['total_orphaned_raw'] = $this->pso_info->total_orphaned_used;
+        $portal_info['total_snapshot_raw'] = $this->pso_info->total_snapshot_used;
         $portal_info['total_size_raw'] = $this->pso_info->totalsize;
         $portal_info['last_refesh'] = Redis::get(self::VALID_PSO_DATA_KEY);
 

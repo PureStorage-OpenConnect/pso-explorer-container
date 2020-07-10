@@ -21,6 +21,8 @@ class PsoInformation extends RedisModel
         'iscsi_login_timeout',
         'iscsi_allowed_cidrs',
         'totalused',
+        'total_orphaned_used',
+        'total_snapshot_used',
         'totalsize',
         'yaml',
         'snapshot_api_version',

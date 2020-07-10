@@ -47,37 +47,37 @@
                                     @isset($pso_vols)
                                         @foreach($pso_vols as $vol)
                                             <tr @if ($vol['pure_name'] == $volume_keyword)class="footable-detail-show"@endif>
-                                                <td>{{ $vol['namespace'] ?? '' }}</td>
-                                                <td>{{ $vol['name'] ?? '' }}</td>
-                                                <td>{{ $vol['size'] ?? '' }}</td>
-                                                <td>{{ $vol['pure_usedFormatted'] ?? ''}}</td>
-                                                <td>{{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }}</td>
-                                                <td>{{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }}</td>
+                                                <td>{{ $vol['namespace'] ?? '' }} </td>
+                                                <td>{{ $vol['name'] ?? '' }} </td>
+                                                <td>{{ $vol['size'] ?? '' }} </td>
+                                                <td>{{ $vol['pure_usedFormatted'] ?? ''}} </td>
+                                                <td>{{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }} </td>
+                                                <td>{{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }} </td>
 
-                                                <td>{{ $vol['creationTimestamp'] ?? '' }}</td>
-                                                <td>{{ $vol['storageClass'] ?? '' }}</td>
-                                                <td>{{ $vol['pv_name'] ?? '' }}</td>
+                                                <td>{{ $vol['creationTimestamp'] ?? '' }} </td>
+                                                <td>{{ $vol['storageClass'] ?? '' }} </td>
+                                                <td>{{ $vol['pv_name'] ?? '' }} </td>
                                                 <td>@isset($vol['labels']){{ implode(', ', $vol['labels']) }}@endisset </td>
-                                                <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}" target="_blank">{{ $vol['pure_arrayName'] }}</a></td>
+                                                <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}" target="_blank">{{ $vol['pure_arrayName'] }}</a> </td>
                                                 @if ($vol['pure_arrayType'] == 'FA')
-                                                    <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a></td>
+                                                    <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a> </td>
                                                 @else
-                                                    <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a></td>
+                                                    <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a> </td>
                                                 @endif
-                                                <td>{{ number_format($vol['pure_drr'] ?? 1 , 1) }}:1</td>
-                                                <td>{{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }}</td>
-                                                <td>{{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }}</td>
-                                                <td>{{ $vol['pure_usec_per_read_op'] }} / {{ $vol['pure_usec_per_write_op'] }} ms</td>
+                                                <td>{{ number_format($vol['pure_drr'] ?? 1 , 1) }}:1 </td>
+                                                <td>{{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }} </td>
+                                                <td>{{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }} </td>
+                                                <td>{{ $vol['pure_usec_per_read_op'] }} / {{ $vol['pure_usec_per_write_op'] }} ms </td>
 
                                                 @if($vol['has_snaps'])
-                                                    <td><a href="{{ route('Snapshots', ['volume_keyword' => $vol['pure_name']]) }}">View snapshots</a></td>
+                                                    <td><a href="{{ route('Snapshots', ['volume_keyword' => $vol['pure_name']]) }}">View snapshots</a> </td>
                                                 @else
-                                                    <td><i>No Volume Snapshots</i></td>
+                                                    <td><i>No Volume Snapshots</i> </td>
                                                 @endif
                                                 @if($vol['status'] == 'Bound')
-                                                    <td><span class="label label-success">{{ $vol['status'] }}</span></td>
+                                                    <td><span class="label label-success">{{ $vol['status'] }}</span> </td>
                                                 @else
-                                                    <td><span class="label label-warning">{{ $vol['status'] }}</span></td>
+                                                    <td><span class="label label-warning">{{ $vol['status'] }}</span> </td>
                                                 @endif
                                             </tr>
                                         @endforeach

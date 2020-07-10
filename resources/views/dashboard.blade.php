@@ -226,10 +226,10 @@
     <script>
         $(function() {
             var doughnutData = {
-                labels: ["Used (Gi)","Provisioned (Gi)" ],
+                labels: ["Used (Gi)", "Snapshots (Gi)", "Provisioned (Gi)", "Unclaimed (Gi)" ],
                 datasets: [{
-                    data: [{{ $portal_info['total_used_raw']/1024/1024/1024 }}, {{ $portal_info['total_size_raw']/1024/1024/1024 }}],
-                    backgroundColor: ["#52c8fd","#f4f2f3"]
+                    data: [{{ $portal_info['total_used_raw']/1024/1024/1024 }}, {{ $portal_info['total_snapshot_raw']/1024/1024/1024 }}, {{ ($portal_info['total_size_raw'] - $portal_info['total_used_raw'])/1024/1024/1024 }}, {{ $portal_info['total_orphaned_raw']/1024/1024/1024 }}],
+                    backgroundColor: ["#52c8fd", "#b5a1dd", "#f4f2f3","#b8bebe"]
                 }]
             } ;
 
