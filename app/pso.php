@@ -23,6 +23,7 @@ use App\Http\Classes\PsoStorageClass;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Kubernetes\API\APIService;
 use Kubernetes\API\Deployment;
 use Kubernetes\API\Job;
 use Kubernetes\API\Node;
@@ -32,6 +33,7 @@ use Kubernetes\API\Pod;
 use Kubernetes\API\Secret;
 use Kubernetes\API\StatefulSet;
 use Kubernetes\API\StorageClass;
+use Kubernetes\Model\Io\K8s\Apimachinery\Pkg\Apis\Meta\V1\APIResource;
 use KubernetesRuntime\Client;
 use Kubernetes\Model\Io\K8s\Api\Apps\V1\StatefulSetList;
 use Kubernetes\Model\Io\K8s\Api\Apps\V1\DeploymentList;
@@ -41,7 +43,6 @@ use Kubernetes\Model\Io\K8s\Api\Core\V1\PersistentVolumeList;
 use Kubernetes\Model\Io\K8s\Api\Core\V1\Volume;
 use Kubernetes\Model\Io\K8s\Api\Storage\V1\StorageClassList;
 use Monolog\Handler\IFTTTHandler;
-use function GuzzleHttp\Psr7\_caseless_remove;
 
 
 class pso
@@ -752,21 +753,44 @@ class pso
         // Log function call
         Log::debug('    Call getVolumeSnapshotClasses()');
 
+        // Get API version for snapshot.storage.k8s.io
+        $this->pso_info->snapshot_api_version = '';
+        Client::configure($this->master, $this->authentication, ['timeout' => 10]);
+        $api = new APIService();
+        $api_list = $api->list();
+
+        foreach (($api_list->items ?? []) as $api_resource) {
+            if ($api_resource->spec->group  == 'snapshot.storage.k8s.io') {
+                // Get API version (v1alpha1 or v1beta1) for the `snapshot.storage.k8s.io` API
+                $this->pso_info->snapshot_api_version = $api_resource->spec->version;
+            }
+        }
         Client::configure($this->master, $this->authentication, ['timeout' => 10]);
         $class = new VolumeSnapshotClass;
-        $class_list = $class->listV1alpha1();
 
-        if (isset($class_list->code)) {
-            // Do not return an error if not found, since this is a feature gate that might not be enabled.
+        if ($this->pso_info->snapshot_api_version == 'v1alpha1') {
+            $snapshotter_name = 'snapshotter';
+            $reclaim_name = 'reclaimPolicy';
+            $class_list = $class->listV1alpha1();
+        } else {
+            // Default to v1beta1
+            $snapshotter_name = 'driver';
+            $reclaim_name = 'deletionPolicy';
+            $class_list = $class->listV1beta1();
+        }
+
+        if (isset($class_list->code) or $this->pso_info->snapshot_api_version == '') {
+            // If we cannot select the API version or an error is returned, we will abort
+            // However we will not return an error, since snapshots suppport is optional
             return false;
         }
 
-        foreach ($class_list['items'] as $item) {
-            if (in_array($item['snapshotter'], self::PURE_PROVISIONERS)) {
+        foreach (($class_list['items'] ?? []) as $item) {
+            if (in_array($item[$snapshotter_name], self::PURE_PROVISIONERS)) {
                 $snapshotclass = new PsoVolumeSnapshotClass($item['metadata']['name']);
 
-                $snapshotclass->snapshotter = $item['snapshotter'];
-                $snapshotclass->reclaimPolicy = $item['reclaimPolicy'];
+                $snapshotclass->snapshotter = $item[$snapshotter_name];
+                $snapshotclass->reclaimPolicy = $item[$reclaim_name];
 
                 $snapshotclass->isDefaultClass = false;
                 if (isset($item['metadata']['annotations']['snapshot.storage.kubernetes.io/is-default-class'])) {
@@ -792,7 +816,7 @@ class pso
             return false;
         }
 
-        foreach ($snap_list['items'] as $item) {
+        foreach (($snap_list['items'] ?? []) as $item) {
             if (in_array($item['spec']['snapshotClassName'], PsoVolumeSnapshotClass::items(PsoVolumeSnapshotClass::PREFIX, 'name'))) {
                 $volumeSnapshot = new PsoVolumeSnapshot($item['metadata']['uid']);
 
@@ -995,6 +1019,7 @@ class pso
                     $filesystems = $fb_api->GetFileSystems([
                         'names' => $this->pso_info->prefix . '-pvc-*',
                         'space' => 'true',
+                        'destroyed' => false,
                     ]);
                 } catch (Exception $e) {
                     // Log error message

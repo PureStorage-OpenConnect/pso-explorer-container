@@ -9,7 +9,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Title -->
-    <title>{{ config('app.name', 'PSO Analytics GUI') . ' - ' . config('app.version', '0.1')}}</title>
+    <title>{{ config('app.name', 'Pure Container Explorer') . ' - ' . config('app.version', '0.1')}}</title>
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}">
@@ -237,7 +237,7 @@
                     <div class="sidebar-nav-divider"></div>
                     <div class="sidebar-text">
                         <div class="sidebar-info">
-                            <span><strong> PSO Analytics GUI </strong></span><br>
+                            <span><strong> Pure Container Explorer </strong></span><br>
                         </div>
                         <div class="sidebar-info">
                             Version
@@ -266,7 +266,7 @@
                     <div id="toggle-btn">
                         <img id="toggle-icon" src="/images/menu.svg">
                     </div>
-                    <h4 class="inline-header page-title">PSO Analytics GUI</h4>
+                    <h4 class="inline-header page-title">Pure Container Explorer</h4>
                 </div>
             </div>
         </topbar>
@@ -350,19 +350,19 @@
         <div class="modal-content">
             <modal-header>
                 <div class="modal-header">
-                    <h4 class="modal-title">PSO Analytics GUI license statement</h4>
+                    <h4 class="modal-title">Pure Container Explorer license statement</h4>
                 </div>
             </modal-header>
             <modal-body class="tab-container">
                 <div class="modal-body">
                     <div>
                         <h4>License statement</h4>
-                        PSO Analytics GUI licensed under the <a href="{{ asset('docs/license.pdf') }}" target="_blank">Apache License version 2.0</a>.<br><br>
+                        Pure Container Explorer licensed under the <a href="{{ asset('docs/license.pdf') }}" target="_blank">Apache License version 2.0</a>.<br><br>
                     </div>
                     <div class="dropdown-divider"></div>
                     <div>
                         <h4>3rd Party/Open-Source Code</h4>
-                        PSO Analytics GUI uses best of breed open source technologies as part of the solution. The following <a href="{{ asset('docs/PSO_Analytics_GUI_Third_Party_Code.pdf') }}" target="_blank">document</a> provides 3rd Party/Open-Source Code attribution.<br><br>
+                        Pure Container Explorer uses best of breed open source technologies as part of the solution. The following <a href="{{ asset('docs/PSO_Analytics_GUI_Third_Party_Code.pdf') }}" target="_blank">document</a> provides 3rd Party/Open-Source Code attribution.<br><br>
                     </div>
 
                 </div>

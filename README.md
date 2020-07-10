@@ -1,1 +1,1 @@
-# PSO Analytics GUI application
+# Pure Container Explorer application

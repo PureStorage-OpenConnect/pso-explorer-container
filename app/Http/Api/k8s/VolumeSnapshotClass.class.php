@@ -39,4 +39,17 @@ class VolumeSnapshotClass extends \KubernetesRuntime\AbstractAPI
             , 'listStorageV1alpha1VolumeSnapshotClass'
         );
     }
+
+    public function listV1beta1(array $queries = [])
+    {
+        return $this->parseResponse(
+            $this->client->request('get',
+                "/apis/snapshot.storage.k8s.io/v1beta1/volumesnapshotclasses"
+                ,[
+                    'query' => $queries,
+                ]
+            )
+            , 'listStorageV1beta1VolumeSnapshotClass'
+        );
+    }
 }
