@@ -809,7 +809,12 @@ class pso
 
         Client::configure($this->master, $this->authentication, ['timeout' => 10]);
         $snap = new VolumeSnapshot();
-        $snap_list = $snap->listV1alpha1('');
+
+        if ($this->pso_info->snapshot_api_version == 'v1alpha1') {
+            $snap_list = $snap->listV1alpha1('');
+        } else {
+            $snap_list = $snap->listV1beta1('');
+        }
 
         if (isset($snap_list->code)) {
             // Do not return an error if not found, since this is a feature gate that might not be enabled.
@@ -817,18 +822,30 @@ class pso
         }
 
         foreach (($snap_list['items'] ?? []) as $item) {
-            if (in_array($item['spec']['snapshotClassName'], PsoVolumeSnapshotClass::items(PsoVolumeSnapshotClass::PREFIX, 'name'))) {
+            if ($this->pso_info->snapshot_api_version == 'v1alpha1') {
+                $volumeSnapshotClassName = $item['spec']['snapshotClassName'];
+            } else {
+                $volumeSnapshotClassName = $item['spec']['volumeSnapshotClassName'];
+            }
+            if (in_array($volumeSnapshotClassName, PsoVolumeSnapshotClass::items(PsoVolumeSnapshotClass::PREFIX, 'name'))) {
                 $volumeSnapshot = new PsoVolumeSnapshot($item['metadata']['uid']);
 
                 $volumeSnapshot->name = $item['metadata']['name'];
                 $volumeSnapshot->namespace = $item['metadata']['namespace'];
                 $volumeSnapshot->creationTimestamp = $item['metadata']['creationTimestamp'];
-                $volumeSnapshot->snapshotClassName = $item['spec']['snapshotClassName'];
-                $volumeSnapshot->snapshotContentName = $item['spec']['snapshotContentName'];
-                $volumeSnapshot->source_name = $item['spec']['source']['name'];
-                $volumeSnapshot->source_kind = $item['spec']['source']['kind'];
+                $volumeSnapshot->snapshotClassName = $volumeSnapshotClassName;
                 $volumeSnapshot->creationTime = $item['status']['creationTime'] ?? '';
                 $volumeSnapshot->readyToUse = $item['status']['readyToUse'];
+
+                if ($this->pso_info->snapshot_api_version == 'v1alpha1') {
+                    $volumeSnapshot->snapshotContentName = $item['spec']['snapshotContentName'] ?? 'Unknown';
+                    $volumeSnapshot->source_name = $item['spec']['source']['name'] ?? 'Unknown';
+                    $volumeSnapshot->source_kind = $item['spec']['source']['kind'] ?? 'Persistent Volume Claim';
+                } else {
+                    $volumeSnapshot->snapshotContentName = $item['status']['boundVolumeSnapshotContentName'] ?? 'Unknown';
+                    $volumeSnapshot->source_name = $item['spec']['source']['persistentVolumeClaimName'] ?? 'Unknown';
+                    $volumeSnapshot->source_kind = 'Persistent Volume Claim';
+                }
 
                 if (isset($item['status']['error'])) {
                     foreach ($item['status']['error'] as $key => $value) {

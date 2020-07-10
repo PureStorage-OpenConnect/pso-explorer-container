@@ -25,7 +25,7 @@
     @yield('css')
 
     @if (session('source') == 'refresh')
-        <meta http-equiv="refresh" content="1">
+        <meta http-equiv="refresh" content="3">
     @endif
 </head>
 

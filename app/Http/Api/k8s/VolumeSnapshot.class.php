@@ -40,5 +40,18 @@ class VolumeSnapshot extends \KubernetesRuntime\AbstractAPI
         	, 'listCoreV1NamespacedVolumeSnapshot'
         );
     }
+
+    public function listV1beta1($namespace = 'default', array $queries = [])
+    {
+        return $this->parseResponse(
+            $this->client->request('get',
+                "/apis/snapshot.storage.k8s.io/v1beta1/namespaces/{$namespace}/volumesnapshots"
+                ,[
+                    'query' => $queries,
+                ]
+            )
+            , 'listCoreV1NamespacedVolumeSnapshot'
+        );
+    }
 }
 
