@@ -17,7 +17,7 @@
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
-                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter2" placeholder="Search in table" value="{{ $volume_keyword ?? '' }}">
+                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter2" placeholder="Search in table" value="{{ $volume_keyword ?? ' ' }}">
                             </div>
                             <div class="row with-padding">
                                 <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter2>
@@ -47,16 +47,16 @@
                                     @isset($pso_vols)
                                         @foreach($pso_vols as $vol)
                                             <tr @if ($vol['pure_name'] == $volume_keyword)class="footable-detail-show"@endif>
-                                                <td>{{ $vol['namespace'] ?? '' }} </td>
-                                                <td>{{ $vol['name'] ?? '' }} </td>
-                                                <td>{{ $vol['size'] ?? '' }} </td>
-                                                <td>{{ $vol['pure_usedFormatted'] ?? ''}} </td>
-                                                <td>{{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }} </td>
-                                                <td>{{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }} </td>
+                                                <td>{{ $vol['namespace'] ?? ' ' }}</td>
+                                                <td>{{ $vol['name'] ?? ' ' }}</td>
+                                                <td>{{ $vol['size'] ?? ' ' }}</td>
+                                                <td>{{ $vol['pure_usedFormatted'] ?? ' '}}</td>
+                                                <td>{{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }}</td>
+                                                <td>{{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }}</td>
 
-                                                <td>{{ $vol['creationTimestamp'] ?? '' }} </td>
-                                                <td>{{ $vol['storageClass'] ?? '' }} </td>
-                                                <td>{{ $vol['pv_name'] ?? '' }} </td>
+                                                <td>{{ $vol['creationTimestamp'] ?? ' ' }}</td>
+                                                <td>{{ $vol['storageClass'] ?? ' ' }}</td>
+                                                <td>{{ $vol['pv_name'] ?? ' ' }}</td>
                                                 <td>@isset($vol['labels']){{ implode(', ', $vol['labels']) }}@endisset </td>
                                                 <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}" target="_blank">{{ $vol['pure_arrayName'] }}</a> </td>
                                                 @if ($vol['pure_arrayType'] == 'FA')
@@ -65,8 +65,8 @@
                                                     <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a> </td>
                                                 @endif
                                                 <td>{{ number_format($vol['pure_drr'] ?? 1 , 1) }}:1 </td>
-                                                <td>{{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }} </td>
-                                                <td>{{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }} </td>
+                                                <td>{{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }}</td>
+                                                <td>{{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }}</td>
                                                 <td>{{ $vol['pure_usec_per_read_op'] }} / {{ $vol['pure_usec_per_write_op'] }} ms </td>
 
                                                 @if($vol['has_snaps'])
@@ -161,8 +161,8 @@
                                                 <td>{{ $vol['pure_sizeFormatted'] }}</td>
                                                 <td>{{ $vol['pure_usedFormatted'] }}</td>
                                                 <td>{{ number_format($vol['pure_drr'], 1) }}:1</td>
-                                                <td>{{ $vol['pure_orphaned_pvc_name'] ?? '' }}</td>
-                                                <td>{{ $vol['pure_orphaned_pvc_namespace'] ?? '' }}</td>
+                                                <td>{{ $vol['pure_orphaned_pvc_name'] ?? ' ' }}</td>
+                                                <td>{{ $vol['pure_orphaned_pvc_namespace'] ?? ' ' }}</td>
 
                                                 @if($vol['pure_orphaned_state'] == 'Released PV')
                                                     <td><span class="label label-success">{{ $vol['pure_orphaned_state'] }}</span></td>

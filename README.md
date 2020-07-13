@@ -1,1 +1,1 @@
-# Pure Container Explorer application
+# Pure Service Orchestrator Explorer

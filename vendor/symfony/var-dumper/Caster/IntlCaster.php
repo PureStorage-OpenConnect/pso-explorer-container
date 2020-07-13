@@ -163,7 +163,7 @@ class IntlCaster
         if ($errorCode = $c->getErrorCode()) {
             $a += [
                 Caster::PREFIX_VIRTUAL.'error_code' => $errorCode,
-                Caster::PREFIX_VIRTUAL.'error_message' => $c->getErrorMessage(),
+                Caster::PREFIX_VIRTUAL.'errorMessage' => $c->getErrorMessage(),
             ];
         }
 

@@ -88,8 +88,8 @@ class SqlServerConnector extends Connector implements ConnectorInterface
      */
     protected function getOdbcDsn(array $config)
     {
-        return isset($config['odbc_datasource_name'])
-                    ? 'odbc:'.$config['odbc_datasource_name'] : '';
+        return isset($config['odbc_datasourceName'])
+                    ? 'odbc:'.$config['odbc_datasourceName'] : '';
     }
 
     /**

@@ -63,7 +63,7 @@ class FlashArrayAPI
     public function __construct ()
     {
         // Initialize ALSO MarketPlace API class
-        $this->header			= array('accept' => 'application/json', 'Content-Type' => 'application/json', 'User-Agent' => 'pso-analytics-gui/' . config('app.version', 'unknown-version'));
+        $this->header			= array('accept' => 'application/json', 'Content-Type' => 'application/json', 'User-Agent' => 'pso-explorer/' . config('app.version', 'unknown-version'));
         $this->apitoken         = null;
         $this->cookieJar        = null;
         $this->username         = null;

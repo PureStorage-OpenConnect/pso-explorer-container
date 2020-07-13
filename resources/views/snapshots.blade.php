@@ -44,7 +44,7 @@
                                             <tr>
                                                 <td>{{ $volsnap['namespace'] ?? '' }}</td>
 
-                                                <td><a href="{{ route('Volumes', ['volume_keyword' => $volsnap['pure_volname']]) }}">{{ $volsnap['source_name'] ?? '' }}</a></td>
+                                                <td><a href="{{ route('Volumes', ['volume_keyword' => $volsnap['pure_volname']]) }}">{{ $volsnap['sourceName'] ?? '' }}</a></td>
 
                                                 <td>{{ $volsnap['name'] ?? '' }}</td>
 
@@ -53,15 +53,15 @@
 
                                                 <td>{{ $volsnap['creationTimestamp'] ?? '' }}</td>
                                                 <td>
-                                                    @if($volsnap['error_message'] !== null)
-                                                        {{ $volsnap['error_message'] }}
+                                                    @if($volsnap['errorMessage'] !== null)
+                                                        {{ $volsnap['errorMessage'] }}
                                                     @else
                                                         &nbsp;
                                                     @endif
                                                 </td>
                                                 <td>{{ $volsnap['snapshotClassName'] ?? '' }}</td>
                                                 <td>{{ $volsnap['snapshotContentName'] ?? '' }}</td>
-                                                <td>{{ $volsnap['source_kind'] ?? '' }}</td>
+                                                <td>{{ $volsnap['sourceKind'] ?? '' }}</td>
 
                                                 <td><a href="https://{{ $volsnap['pure_arrayMgmtEndPoint'] }}" target="_blank">{{ $volsnap['pure_arrayName'] }}</a></td>
                                                 @if ($volsnap['pure_arrayType'] == 'FA')
@@ -70,10 +70,12 @@
                                                     <td><a href="https://{{ $volsnap['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $volsnap['pure_volname'] }}" target="_blank">{{ $volsnap['pure_name'] }}</a></td>
                                                 @endif
 
-                                                @if($volsnap['readyToUse'])
+                                                @if($volsnap['readyToUse'] == 1)
                                                     <td><span class="label label-success">Ready to use</span></td>
+                                                @elseif($volsnap['readyToUse'] !== '')
+                                                    <td><span class="label label-success">{{ $volsnap['readyToUse'] }}</span></td>
                                                 @else
-                                                    <td><span class="label label-warning">In progress</span></td>
+                                                    <td><span class="label label-warning">Pending</span></td>
                                                 @endif
                                             </tr>
                                         @endforeach

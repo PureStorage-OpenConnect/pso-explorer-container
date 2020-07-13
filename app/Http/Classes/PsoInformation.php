@@ -6,7 +6,7 @@ namespace App\Http\Classes;
 
 class PsoInformation extends RedisModel
 {
-    public const PREFIX='pso_information';
+    public const PREFIX='psoInformation';
 
     protected $fillable = [
         'prefix',

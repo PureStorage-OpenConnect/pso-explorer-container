@@ -18,6 +18,7 @@ class PsoArray extends RedisModel
         'model',
         'version',
         'labels',
+        'message',
         'size',
         'sizeFormatted',
         'used',

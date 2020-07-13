@@ -5,7 +5,7 @@
 @endsection
 
 @section('content')
-    @isset($portal_info)
+    @isset($portalInfo)
         <div class="row">
             <div class="col-xs-12 tab-container">
                 <div class="with-padding">
@@ -110,7 +110,7 @@
                                     <table class="table table-hover">
                                         <thead>
                                         <tr>
-                                            <th>Block volumes</th>
+                                            <th>Top 10 block volumes</th>
                                             <th>Size</th>
                                             <th>Usage</th>
                                             <th>24h growth</th>
@@ -167,15 +167,15 @@
                                         </div>
                                         <div class="col-4">
                                             <small class="stats-label">Total</small>
-                                            <h4>{{ number_format($portal_info['total_iops_read'] + $portal_info['total_iops_write'], 0) }}</h4>
+                                            <h4>{{ number_format($portalInfo['total_iops_read'] + $portalInfo['total_iops_write'], 0) }}</h4>
                                         </div>
                                         <div class="col-4">
                                             <small class="stats-label">Read</small>
-                                            <h4>{{ number_format($portal_info['total_iops_read'], 0) }}</h4>
+                                            <h4>{{ number_format($portalInfo['total_iops_read'], 0) }}</h4>
                                         </div>
                                         <div class="col-4">
                                             <small class="stats-label">Write</small>
-                                            <h4>{{ number_format($portal_info['total_iops_write'], 0) }}</h4>
+                                            <h4>{{ number_format($portalInfo['total_iops_write'], 0) }}</h4>
                                         </div>
                                     </div>
                                     <div class="row border-bottom">
@@ -184,16 +184,16 @@
                                         </div>
                                         <div class="col-4">
                                             <small class="stats-label">Total</small>
-                                            <h4>{{ $portal_info['total_bw'] }}/s</h4>
+                                            <h4>{{ $portalInfo['total_bw'] }}/s</h4>
                                         </div>
 
                                         <div class="col-4">
                                             <small class="stats-label">Read</small>
-                                            <h4>{{ $portal_info['total_bw_read'] }}/s</h4>
+                                            <h4>{{ $portalInfo['total_bw_read'] }}/s</h4>
                                         </div>
                                         <div class="col-4">
                                             <small class="stats-label">Write</small>
-                                            <h4>{{ $portal_info['total_bw_write'] }}/s</h4>
+                                            <h4>{{ $portalInfo['total_bw_write'] }}/s</h4>
                                         </div>
                                     </div>
                                     <div class="row">
@@ -202,11 +202,11 @@
                                         </div>
                                         <div class="col-6">
                                             <small class="stats-label">Range for reads</small>
-                                            <h4>{{ $portal_info['low_msec_read'] }} ms - {{ $portal_info['high_msec_read'] }} ms</h4>
+                                            <h4>{{ $portalInfo['low_msec_read'] }} ms - {{ $portalInfo['high_msec_read'] }} ms</h4>
                                         </div>
                                         <div class="col-6">
                                             <small class="stats-label">Range for writes</small>
-                                            <h4>{{ $portal_info['low_msec_write'] }} ms - {{ $portal_info['high_msec_write'] }} ms</h4>
+                                            <h4>{{ $portalInfo['low_msec_write'] }} ms - {{ $portalInfo['high_msec_write'] }} ms</h4>
                                         </div>
                                     </div>
                                 </div>
@@ -220,7 +220,7 @@
 @endsection
 
 @section('script')
-    @isset($portal_info)
+    @isset($portalInfo)
     <script src="{{ asset('js/plugins/chartJs/Chart.min.js') }}"></script>
 
     <script>
@@ -228,7 +228,7 @@
             var doughnutData = {
                 labels: ["Used (Gi)", "Snapshots (Gi)", "Provisioned (Gi)", "Unclaimed (Gi)" ],
                 datasets: [{
-                    data: [{{ $portal_info['total_used_raw']/1024/1024/1024 }}, {{ $portal_info['total_snapshot_raw']/1024/1024/1024 }}, {{ ($portal_info['total_size_raw'] - $portal_info['total_used_raw'])/1024/1024/1024 }}, {{ $portal_info['total_orphaned_raw']/1024/1024/1024 }}],
+                    data: [{{ $portalInfo['total_used_raw']/1024/1024/1024 }}, {{ $portalInfo['total_snapshot_raw']/1024/1024/1024 }}, {{ ($portalInfo['total_size_raw'] - $portalInfo['total_used_raw'])/1024/1024/1024 }}, {{ $portalInfo['total_orphaned_raw']/1024/1024/1024 }}],
                     backgroundColor: ["#52c8fd", "#b5a1dd", "#f4f2f3","#b8bebe"]
                 }]
             } ;

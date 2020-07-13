@@ -4,7 +4,7 @@
 @endsection
 
 @section('content')
-    @isset($portal_info)
+    @isset($portalInfo)
         {{-- Version information --}}
         <div class="row">
             <div class="col-xs-12 tab-container">
@@ -192,7 +192,7 @@
 @endsection
 
 @section('script')
-    @isset($portal_info)
+    @isset($portalInfo)
         <script src="{{ asset('js/plugins/chartJs/Chart.min.js') }}"></script>
 
         <script>
@@ -200,7 +200,7 @@
                 var doughnutData = {
                     labels: ["Used (Gi)", "Provisioned (Gi)"],
                     datasets: [{
-                        data: [{{ $portal_info['total_used_raw']/1024/1024/1024 }}, {{ $portal_info['total_size_raw']/1024/1024/1024 }}],
+                        data: [{{ $portalInfo['total_used_raw']/1024/1024/1024 }}, {{ $portalInfo['total_size_raw']/1024/1024/1024 }}],
                         backgroundColor: ["#52c8fd", "#f4f2f3"]
                     }]
                 };

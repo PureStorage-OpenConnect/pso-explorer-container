@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\pso;
+use App\Pso;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
@@ -10,14 +10,14 @@ class HomeController extends Controller
 {
     private function getPso(Request $request)
     {
-        $pso = new pso();
+        $pso = new Pso();
 
-        if (!$pso->pso_found) {
+        if (!$pso->psoFound) {
             $request->session()->flash('alert-class', 'alert-danger');
-            $request->session()->flash('message', $pso->error_message);
-            $request->session()->flash('source', $pso->error_source);
-            $request->session()->flash('yaml', $pso->pso_info->yaml);
-            if ($pso->pso_info->namespace !== null) $request->session()->flash('yaml', $pso->pso_info->yaml);
+            $request->session()->flash('message', $pso->errorMessage);
+            $request->session()->flash('source', $pso->errorSource);
+            $request->session()->flash('yaml', $pso->psoInfo->yaml);
+            if ($pso->psoInfo->namespace !== null) $request->session()->flash('yaml', $pso->psoInfo->yaml);
 
             return false;
         } else {
@@ -45,8 +45,8 @@ class HomeController extends Controller
             return view('dashboard');
         } else {
             $dashboard = $pso->dashboard();
-            $portal_info = $pso->portal_info();
-            return view('dashboard', ['dashboard' => $dashboard, 'portal_info' => $portal_info]);
+            $portalInfo = $pso->portalInfo();
+            return view('dashboard', ['dashboard' => $dashboard, 'portalInfo' => $portalInfo]);
         }
     }
 

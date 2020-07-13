@@ -28,8 +28,8 @@
                                         <th>IP address</th>
                                         <th>OS image</th>
                                         <th>Container runtime</th>
+                                        <th>Contition(s)</th>
                                         <th data-hide="all">Creation time</th>
-                                        <th data-hide="all">Contition(s)</th>
                                         <th data-hide="all">Roles</th>
                                         <th data-hide="all">Hostname</th>
                                         <th data-hide="all">OS</th>
@@ -51,8 +51,6 @@
                                                 <td>{{ $node['InternalIP'] ?? 'Unknown' }}</td>
                                                 <td>{{ $node['osImage'] ?? 'Unknown' }}</td>
                                                 <td>{{ $node['containerRuntimeVersion'] ?? 'Unknown' }}</td>
-
-                                                <td>{{ $node['creationTimestamp'] ?? 'Unknown' }}</td>
                                                 <td>
                                                     @isset($node['condition'])
                                                         @foreach($node['condition'] as $item)
@@ -64,6 +62,8 @@
                                                         @endforeach
                                                     @endisset
                                                 </td>
+
+                                                <td>{{ $node['creationTimestamp'] ?? 'Unknown' }}</td>
                                                 <td>
                                                     @isset($node['labels'])
                                                         @foreach($node['labels'] as $item)
