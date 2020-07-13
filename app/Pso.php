@@ -734,7 +734,7 @@ class Pso
 
                     $my_job->array_push('pvc_name', $volume->persistentVolumeClaim->claimName ?? 'not set');
                     $my_job->array_push('pvc_namespace_name', ($item->metadata->namespace ?? 'Unknown') . ':' .
-                        ($volume->persistentVolumeClaim->claimName ?? 'Unknown');
+                        ($volume->persistentVolumeClaim->claimName ?? 'Unknown'));
                 }
             }
         }
@@ -801,7 +801,7 @@ class Pso
             $conditions = [];
             foreach (($item->status->conditions ?? []) as $condition) {
                 if ($condition->status == 'True') {
-                    array_push($conditions, ($condition->type ?? '');
+                    array_push($conditions, ($condition->type ?? ''));
                 }
             }
             $mynode->condition = $conditions;
@@ -1134,7 +1134,7 @@ class Pso
                     }
                 } catch (Exception $e) {
                     // Log error message
-                    Log::debug('xxx Error retrieving historical space usage for volumes.';
+                    Log::debug('xxx Error retrieving historical space usage for volumes.');
                     Log::debug('    - Message: "' . $e->getMessage() . '"');
                     Log::debug('    - File: "' . $e->getFile() . '"');
                     Log::debug('    - Line: "' . $e->getLine() . '"');
@@ -1967,9 +1967,9 @@ class Pso
         $portalInfo['total_used'] = $this->formatBytes($this->psoInfo->totalused);
         $portalInfo['total_size'] = $this->formatBytes($this->psoInfo->totalsize);
         $portalInfo['total_used_raw'] = $this->psoInfo->totalused;
+        $portalInfo['total_size_raw'] = $this->psoInfo->totalsize;
         $portalInfo['total_orphaned_raw'] = $this->psoInfo->total_orphaned_used;
         $portalInfo['total_snapshot_raw'] = $this->psoInfo->total_snapshot_used;
-        $portalInfo['total_size_raw'] = $this->psoInfo->totalsize;
         $portalInfo['last_refesh'] = Redis::get(self::VALID_PSO_DATA_KEY);
 
         $portalInfo['total_iops_read'] = $this->psoInfo->total_iops_read;

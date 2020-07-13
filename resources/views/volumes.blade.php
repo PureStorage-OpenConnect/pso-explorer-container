@@ -46,13 +46,13 @@
                                     <tbody>
                                     @isset($pso_vols)
                                         @foreach($pso_vols as $vol)
-                                            <tr @if ($vol['pure_name'] == $volume_keyword)class="footable-detail-show"@endif>
+                                            <tr @if (($vol['pure_name'] == $volume_keyword) and ($volume_keyword !== '')) class="footable-detail-show"@endif>
                                                 <td>{{ $vol['namespace'] ?? ' ' }}</td>
                                                 <td>{{ $vol['name'] ?? ' ' }}</td>
                                                 <td>{{ $vol['size'] ?? ' ' }}</td>
                                                 <td>{{ $vol['pure_usedFormatted'] ?? ' '}}</td>
-                                                <td>{{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }}</td>
-                                                <td>{{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }}</td>
+                                                <td>@if($vol['pure_reads_per_sec'] !== null){{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }}}@endif </td>
+                                                <td>@if($vol['pure_output_per_sec_formatted'] !== null){{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }}@endif </td>
 
                                                 <td>{{ $vol['creationTimestamp'] ?? ' ' }}</td>
                                                 <td>{{ $vol['storageClass'] ?? ' ' }}</td>
@@ -65,9 +65,9 @@
                                                     <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a> </td>
                                                 @endif
                                                 <td>{{ number_format($vol['pure_drr'] ?? 1 , 1) }}:1 </td>
-                                                <td>{{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }}</td>
-                                                <td>{{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }}</td>
-                                                <td>{{ $vol['pure_usec_per_read_op'] }} / {{ $vol['pure_usec_per_write_op'] }} ms </td>
+                                                <td>{{ number_format($vol['pure_reads_per_sec' ?? 0], 0) }} / {{ number_format($vol['pure_writes_per_sec'] ?? 0, 0) }}</td>
+                                                <td>{{ $vol['pure_output_per_sec_formatted'] ?? 0 }} / {{ $vol['pure_input_per_sec_formatted'] ?? 0 }}</td>
+                                                <td>{{ $vol['pure_usec_per_read_op'] ?? 0 }} / {{ $vol['pure_usec_per_write_op'] ?? 0 }} ms </td>
 
                                                 @if($vol['has_snaps'])
                                                     <td><a href="{{ route('Snapshots', ['volume_keyword' => $vol['pure_name']]) }}">View snapshots</a> </td>
