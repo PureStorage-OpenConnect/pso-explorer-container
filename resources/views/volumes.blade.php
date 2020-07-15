@@ -128,7 +128,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12" id="orphaned">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Unclaimed or orphaned volumes ({{ count($orphaned_vols ?? []) }})</span>
+                            <span>Unclaimed or Orphaned Volumes ({{ count($orphaned_vols ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">

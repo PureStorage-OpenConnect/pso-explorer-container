@@ -25,6 +25,7 @@ class PsoInformation extends RedisModel
         'total_snapshot_used',
         'totalsize',
         'yaml',
+        'pso_args',
         'snapshot_api_version',
         'total_iops_read',
         'total_iops_write',

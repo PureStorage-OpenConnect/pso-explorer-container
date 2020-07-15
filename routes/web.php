@@ -53,3 +53,7 @@ Route::get('/api/storagearrays', 'ApiController@StorageArrays')->name('StorageAr
 Route::get('/api/storageclasses', 'ApiController@StorageClasses')->name('StorageClassesApi');
 Route::get('/api/volumes', 'ApiController@Volumes')->name('VolumesApi');
 Route::get('/api/snapshots', 'ApiController@Snapshots')->name('SnapshotsApi');
+
+// *** Settings routes
+Route::get('/api/settings/pso', 'ApiController@SettingsPso')->name('SettingsPsoApi');
+Route::get('/api/settings/nodes', 'ApiController@SettingsNodes')->name('SettingsNodesApi');

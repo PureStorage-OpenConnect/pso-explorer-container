@@ -12,7 +12,7 @@
                     <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                         <div class="panel panel-default">
                             <div class="panel-heading">
-                                <span>PSO version information</span>
+                                <span>PSO information</span>
                             </div>
                             <div class="panel-body table-no-filter">
                                 <table class="table pure-table ps-table">
@@ -45,6 +45,11 @@
                                         <td class="col-xs-4 left"><span>PSO ClusterID</span></td>
                                         <td class="col-xs-8 left">
                                             <span>{{ $settings['prefix'] ?? '' }}</span>
+                                        </td>
+                                    </tr><tr>
+                                        <td class="col-xs-4 left"><span>PSO Arguments</span></td>
+                                        <td class="col-xs-8 left">
+                                            <span>{!! implode('<br>', ($settings['pso_args'] ?? []))  !!} </span>
                                         </td>
                                     </tr>
                                     </tbody>

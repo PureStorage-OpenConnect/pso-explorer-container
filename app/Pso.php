@@ -262,6 +262,12 @@ class Pso
                     }
                     if (($myContainerName == 'csi-provisioner') or ($myContainerName == 'pure-provisioner')) {
                         array_push($images, $container->name . ': ' . $container->image);
+                        foreach ($container->args as $arg) {
+                            if (strpos($arg, '--feature-gates=') !== false) {
+                                $this->psoInfo->array_push('pso_args', str_replace('--feature-gates=', '', $arg));
+                            }
+                        }
+
                     }
                     if ($myContainerName == 'csi-snapshotter') {
                         array_push($images, $container->name . ': ' . $container->image);
@@ -1005,6 +1011,7 @@ class Pso
                 $fa_api = new FlashArrayAPI();
                 $fa_api->authenticate($array->mgmtEndPoint, $array->apiToken);
 
+                // TODO: Can we also add Cockraoch DB volumes prefix . '-pso-db_' . <number>
                 $vols = $fa_api->GetVolumes([
                     'names' => $this->psoInfo->prefix . '-pvc-*',
                     'space' => 'true',
@@ -1154,6 +1161,15 @@ class Pso
                         $uid = substr($snap['name'], strpos($snap['name'], $snap_prefix) + strlen($snap_prefix));
 
                         $mysnap = new PsoVolumeSnapshot($uid);
+                        if (($mysnap->name == '') and ($mysnap->namespace == '') and ($mysnap->sourceName == '')) {
+                            $mysnap->name = '';
+                            $mysnap->namespace = 'Unknown';
+                            $mysnap->sourceName = $pure_volname;
+                            $mysnap->readyToUse = 'Ready';
+                            $mysnap->errorMessage = 'This snapahot ia (no longer) managed by Kubernetes';
+                            $mysnap->orphaned = $pure_volname;
+                        }
+
                         $mysnap->pure_name = $snap['name'];
                         $mysnap->pure_volname = $pure_volname;
                         $mysnap->pure_size = $snap['size'] ?? 0;

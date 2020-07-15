@@ -139,4 +139,31 @@ class ApiController extends Controller
             return $response;
         }
     }
+
+    public function SettingsPso (Request $request)
+    {
+        $pso = new Pso();
+
+        if ($pso->psoFound) {
+            $settings = $pso->settings();
+            // Remove yaml element to keep API Token private
+            unset($settings['yaml']);
+            return ['settings' => $settings, 'log' => $pso->log()];
+        } else {
+            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            return $response;
+        }
+    }
+
+    public function SettingsNodes (Request $request)
+    {
+        $pso = new Pso();
+
+        if ($pso->psoFound) {
+            return ['nodes' => $pso->nodes()];
+        } else {
+            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            return $response;
+        }
+    }
 }

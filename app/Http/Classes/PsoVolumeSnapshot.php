@@ -22,6 +22,7 @@ class PsoVolumeSnapshot extends RedisModel
         'readyToUse',
         'errorMessage',
         'errorTime',
+        'orphaned',
 
         'pure_name',
         'pure_volname',
@@ -37,6 +38,7 @@ class PsoVolumeSnapshot extends RedisModel
     protected $indexes = [
         'uid',
         'name',
+        'orphaned',
     ];
 
 
