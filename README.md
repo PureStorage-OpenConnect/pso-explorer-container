@@ -24,4 +24,4 @@ The application is:
 
 ## Build the application container
 
-The repository contains the [Dockerfile](/Dockerfile) which can be used to build the application.
+The repository contains the [Dockerfile](/Dockerfile) which can be used to build the container image.
