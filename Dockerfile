@@ -49,8 +49,8 @@ RUN { \
         echo 'opcache.enable_cli=1'; \
     } > /usr/local/etc/php/conf.d/php-opocache-cfg.ini
 
-COPY nginx-site.conf /etc/nginx/sites-enabled/default
-COPY entrypoint.sh /etc/entrypoint.sh
+COPY docker/nginx-site.conf /etc/nginx/sites-enabled/default
+COPY docker/entrypoint.sh /etc/entrypoint.sh
 RUN chmod +x /etc/entrypoint.sh
 
 # Install composer
@@ -59,6 +59,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy existing application directory permissions
 COPY . /var/www
 
+RUN cd /var/www && composer update
 RUN cd /var/www && php artisan key:generate
 RUN cd /var/www && php artisan config:cache
 RUN touch /var/www/storage/logs/laravel.log
