@@ -33,7 +33,7 @@ To get started on you development, run the following steps on your Mac or Linux 
 ```
 git clone https://github.com/PureStorage-OpenConnect/pso-explorer-container
 
-cd pso-explorer-comntainer
+cd pso-explorer-container
 composer update
 ```
 
