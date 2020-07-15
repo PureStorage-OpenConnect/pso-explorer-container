@@ -1,5 +1,6 @@
 /storage/logs/laravel.log
 /psr-12
+/vendor/
 .idea
 .editorconfig
 *.example
