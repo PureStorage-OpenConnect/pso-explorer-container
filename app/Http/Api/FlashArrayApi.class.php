@@ -1,7 +1,7 @@
 <?php
 
 /*
- *   Pure Storage FlashArray API class
+ *   Pure Storage® FlashArray™ API class
  *
  *  Run `composer dump-autoload` to enable the class
  *

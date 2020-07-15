@@ -43,7 +43,7 @@ class SettingsController extends Controller
             $log = $pso->log();
             $portalInfo = $pso->portalInfo();
 
-            return view('settings', ['settings' => $settings, 'log' => $log, 'portalInfo' => $portalInfo]);
+            return view('settings/pso', ['settings' => $settings, 'log' => $log, 'portalInfo' => $portalInfo]);
         }
     }
 
@@ -59,7 +59,7 @@ class SettingsController extends Controller
             $nodes = $pso->nodes();
             $portalInfo = $pso->portalInfo();
 
-            return view('nodes', ['nodes' => $nodes, 'portalInfo' => $portalInfo]);
+            return view('settings/nodes', ['nodes' => $nodes, 'portalInfo' => $portalInfo]);
         }
     }
 }

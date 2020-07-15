@@ -1,7 +1,7 @@
 <?php
 
 /*
- *   Pure Storage FlashArray API class
+ *   Pure Storage® FlashBlade® API class
  *
  *  Run `composer dump-autoload` to enable the class
  *
@@ -79,7 +79,7 @@ class FlashBladeAPI
             $result = json_decode($response->body(), true);
 
             if (isset($response->headers()['x-auth-token']) and empty($result['error'])) {
-                // If a x-auth-token is returned and there are no 'error's, we're logged in to FlashBlade and we're good to continue
+                // If a x-auth-token is returned and there are no 'error's, we're logged in to FlashBlade® and we're good to continue
                 $this->username = json_decode($response->body())->username;
                 $this->header = array_merge($this->header, array('x-auth-token' => $response->headers()['x-auth-token'][0]));
 
@@ -90,7 +90,7 @@ class FlashBladeAPI
                 $this->url = $this->url . '/api/' . $this->api_versions . '/';
                 $this->authenticated = true;
             } else {
-                Log::debug('xxx Unable to authenticate to FlashBlade at "' . $this->url . '"');
+                Log::debug('xxx Unable to authenticate to FlashBlade® at "' . $this->url . '"');
 
                 $this->authenticated = false;
             }

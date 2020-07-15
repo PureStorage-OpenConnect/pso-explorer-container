@@ -45,7 +45,7 @@
                                             <tr>
                                                 <td>{{ $volsnap['namespace'] ?? '' }}</td>
 
-                                                <td><a href="{{ route('Volumes', ['volume_keyword' => $volsnap['pure_volname']]) }}">{{ $volsnap['sourceName'] ?? '' }}</a></td>
+                                                <td><a href="{{ route('Storage-Volumes', ['volume_keyword' => $volsnap['pure_volname']]) }}">{{ $volsnap['sourceName'] ?? '' }}</a></td>
 
                                                 <td>{{ $volsnap['name'] ?? '' }}</td>
 
@@ -145,7 +145,7 @@
                                         @foreach($pso_volsnaps as $volsnap)
                                             @if($volsnap['orphaned'] !== null)
                                                 <tr>
-                                                    <td><a href="{{ route('Volumes', ['volume_keyword' => $volsnap['pure_volname']]) }}">{{ $volsnap['sourceName'] ?? '' }}</a></td>
+                                                    <td><a href="{{ route('Storage-Volumes', ['volume_keyword' => $volsnap['pure_volname']]) }}">{{ $volsnap['sourceName'] ?? '' }}</a></td>
 
                                                     <td>{{ $volsnap['pure_sizeFormatted'] ?? '' }}</td>
                                                     <td>{{ $volsnap['pure_usedFormatted'] ?? '' }}</td>

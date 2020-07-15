@@ -16,7 +16,7 @@
                             <div class="panel-heading">
                                 <span>Volumes</span>
                                 @if($dashboard['orphaned_count'] > 0)
-                                <a href="{{ route('Volumes') . '#orphaned'}}" >
+                                <a href="{{ route('Storage-Volumes') . '#orphaned'}}" >
                                     <span class="label label-warning float-right">{{ $dashboard['orphaned_count'] }} unclaimed</span>
                                 </a>
                                 @endif
@@ -24,7 +24,7 @@
                             <div class="panel-body list-container">
                                 <div class="list-section">
                                     <div class="no-padding align-middle">
-                                        <h1 class="no-margin"><a href="{{ route('Volumes') }}">{{ ($dashboard['volume_count'] - $dashboard['orphaned_count']) ?? 0 }}</a></h1>
+                                        <h1 class="no-margin"><a href="{{ route('Storage-Volumes') }}">{{ ($dashboard['volume_count'] - $dashboard['orphaned_count']) ?? 0 }}</a></h1>
                                         <small>Persistent Volume Claims</small>
                                     </div>
                                 </div>
@@ -41,7 +41,7 @@
                             <div class="panel-body list-container">
                                 <div class="list-section">
                                     <div class="no-padding">
-                                        <h1 class="no-margin"><a href="{{ route('StorageClasses') }}">{{ $dashboard['storageclass_count'] ?? 0 }}</a></h1>
+                                        <h1 class="no-margin"><a href="{{ route('Storage-StorageClasses') }}">{{ $dashboard['storageclass_count'] ?? 0 }}</a></h1>
                                         <small>Used for provisioning</small>
                                     </div>
                                 </div>
@@ -58,7 +58,7 @@
                             <div class="panel-body list-container">
                                 <div class="list-section">
                                     <div class="no-padding">
-                                        <h1 class="no-margin"><a href="{{ route('Snapshots') }}">{{ $dashboard['snapshot_count'] ?? 0 }}</a></h1>
+                                        <h1 class="no-margin"><a href="{{ route('Storage-Snapshots') }}">{{ $dashboard['snapshot_count'] ?? 0 }}</a></h1>
                                         <small>Volume Snapshots</small>
                                     </div>
                                 </div>
@@ -72,7 +72,7 @@
                             <div class="panel-heading">
                                 <span>Arrays</span>
                                 @if ($dashboard['offline_array_count'] > 0)
-                                <a href="{{ route('StorageArrays')}}" >
+                                <a href="{{ route('Storage-StorageArrays')}}" >
                                     <span class="label label-warning float-right">{{ $dashboard['offline_array_count'] }} offline</span>
                                 </a>
                                 @endif
@@ -80,7 +80,7 @@
                             <div class="panel-body list-container">
                                 <div class="list-section">
                                     <div class="no-padding">
-                                        <h1 class="no-margin"><a href="{{ route('StorageArrays') }}">{{ $dashboard['array_count'] ?? 0 }}</a></h1>
+                                        <h1 class="no-margin"><a href="{{ route('Storage-StorageArrays') }}">{{ $dashboard['array_count'] ?? 0 }}</a></h1>
                                         <small>Configured in cluster</small>
                                     </div>
                                 </div>
@@ -120,7 +120,7 @@
                                         @ISSET($dashboard['top10_growth_vols'])
                                         @FOREACH($dashboard['top10_growth_vols'] as $vol)
                                             <tr>
-                                                <td><a href="{{ route('Volumes', ['volume_keyword' => $vol['pure_name']]) }}">{{ $vol['name'] }}</a></td>
+                                                <td><a href="{{ route('Storage-Volumes', ['volume_keyword' => $vol['pure_name']]) }}">{{ $vol['name'] }}</a></td>
                                                 @IF($vol['status'] == 'Bound')
                                                 <td>{{ $vol['sizeFormatted']}}</td>
                                                 @ELSE
@@ -132,15 +132,21 @@
                                                 @else
                                                     <td> </td>
                                                 @endif
-                                                <td class="text-navy">
-                                                    @if ($vol['growthPercentage'] > 0)
+                                                @if ($vol['growthPercentage'] > 0)
+                                                    <td class="text-navy text-danger">
                                                         ↑
-                                                    @elseif (($vol['growthPercentage'] < 0))
+                                                        @IF($vol['status'] == 'Bound')
+                                                            {{ number_format($vol['growthPercentage'], 2) }}%
+                                                        @ENDIF
+                                                    </td>
+                                                @elseif (($vol['growthPercentage'] < 0))
+                                                    <td class="text-navy text-success">
                                                         ↓
+                                                        @IF($vol['status'] == 'Bound')
+                                                            {{ number_format($vol['growthPercentage'], 2) }}%
+                                                        @ENDIF
+                                                    </td>
                                                     @endif
-                                                    @IF($vol['status'] == 'Bound')
-                                                    {{ number_format($vol['growthPercentage'], 2) }}%
-                                                    @ENDIF
                                                 </td>
                                             </tr>
                                         @ENDFOREACH

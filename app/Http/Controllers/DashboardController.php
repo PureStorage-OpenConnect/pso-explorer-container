@@ -6,7 +6,7 @@ use App\Pso;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
-class HomeController extends Controller
+class DashboardController extends Controller
 {
     private function getPso(Request $request)
     {

@@ -48,7 +48,7 @@
                                                 <td>{{ $item['replicas'] ?? '<unknown>' }}</td>
                                                 <td>
                                                     @foreach($item['namespace_names'] as $vol)
-                                                        <a href="{{ route('Volumes', ['volume_keyword' => str_replace($item['namespace'] . ':', '', $vol)]) . '+' . $item['namespace'] }}">{{ str_replace($item['namespace'] . ':', '', $vol) }}</a><br>
+                                                        <a href="{{ route('Storage-Volumes', ['volume_keyword' => str_replace($item['namespace'] . ':', '', $vol)]) . '+' . $item['namespace'] }}">{{ str_replace($item['namespace'] . ':', '', $vol) }}</a><br>
                                                     @endforeach
                                                 </td>
                                                 <td>{{ implode(', ', $item['labels'] ?? []) }}</td>

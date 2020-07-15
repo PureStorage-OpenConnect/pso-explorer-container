@@ -8,14 +8,16 @@ use Illuminate\Support\Facades\Session;
 
 class ApiController extends Controller
 {
+    public const PSO_NOTFOUND='The Pure Storage® - Pure Service Orchestrator™ (PSO) was not found';
+
     public function Dashboard (Request $request)
     {
         $pso = new Pso();
 
-        if ($pso->psoFound) {
+        if (!$pso->psoFound) {
             return $pso->dashboard();
         } else {
-            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            $response = array('Error' => SELF::PSO_NOTFOUND);
             return $response;
         }
     }
@@ -27,7 +29,7 @@ class ApiController extends Controller
         if ($pso->psoFound) {
             return $pso->arrays();
         } else {
-            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            $response = array('Error' => SELF::PSO_NOTFOUND);
             return $response;
         }
     }
@@ -39,7 +41,7 @@ class ApiController extends Controller
         if ($pso->psoFound) {
             return $pso->namespaces();
         } else {
-            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            $response = array('Error' => SELF::PSO_NOTFOUND);
             return $response;
         }
     }
@@ -51,7 +53,7 @@ class ApiController extends Controller
         if ($pso->psoFound) {
             return $pso->storageclasses();
         } else {
-            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            $response = array('Error' => SELF::PSO_NOTFOUND);
             return $response;
         }
     }
@@ -63,7 +65,7 @@ class ApiController extends Controller
         if ($pso->psoFound) {
             return $pso->labels();
         } else {
-            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            $response = array('Error' => SELF::PSO_NOTFOUND);
             return $response;
         }
     }
@@ -75,7 +77,7 @@ class ApiController extends Controller
         if ($pso->psoFound) {
             return $pso->pods();
         } else {
-            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            $response = array('Error' => SELF::PSO_NOTFOUND);
             return $response;
         }
     }
@@ -87,7 +89,7 @@ class ApiController extends Controller
         if ($pso->psoFound) {
             return $pso->jobs();
         } else {
-            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            $response = array('Error' => SELF::PSO_NOTFOUND);
             return $response;
         }
     }
@@ -99,7 +101,7 @@ class ApiController extends Controller
         if ($pso->psoFound) {
             return $pso->deployments();
         } else {
-            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            $response = array('Error' => SELF::PSO_NOTFOUND);
             return $response;
         }
     }
@@ -111,7 +113,7 @@ class ApiController extends Controller
         if ($pso->psoFound) {
             return $pso->statefulsets();
         } else {
-            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            $response = array('Error' => SELF::PSO_NOTFOUND);
             return $response;
         }
     }
@@ -123,7 +125,7 @@ class ApiController extends Controller
         if ($pso->psoFound) {
             return ['volumes' => $pso->volumesnapshots()];
         } else {
-            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            $response = array('Error' => SELF::PSO_NOTFOUND);
             return $response;
         }
     }
@@ -135,7 +137,7 @@ class ApiController extends Controller
         if ($pso->psoFound) {
             return ['volumes' => $pso->volumes(), 'orphaned' => $pso->orphaned()];
         } else {
-            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            $response = array('Error' => SELF::PSO_NOTFOUND);
             return $response;
         }
     }
@@ -150,7 +152,7 @@ class ApiController extends Controller
             unset($settings['yaml']);
             return ['settings' => $settings, 'log' => $pso->log()];
         } else {
-            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            $response = array('Error' => SELF::PSO_NOTFOUND);
             return $response;
         }
     }
@@ -162,7 +164,7 @@ class ApiController extends Controller
         if ($pso->psoFound) {
             return ['nodes' => $pso->nodes()];
         } else {
-            $response = array('Error' => 'The Pure Storage - Pure Service Orchestrator (PSO) was not found');
+            $response = array('Error' => SELF::PSO_NOTFOUND);
             return $response;
         }
     }

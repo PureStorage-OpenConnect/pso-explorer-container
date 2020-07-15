@@ -70,7 +70,7 @@
                                                 <td>{{ $vol['pure_usec_per_read_op'] ?? 0 }} / {{ $vol['pure_usec_per_write_op'] ?? 0 }} ms </td>
 
                                                 @if($vol['has_snaps'])
-                                                    <td><a href="{{ route('Snapshots', ['volume_keyword' => $vol['pure_name']]) }}">View snapshots</a> </td>
+                                                    <td><a href="{{ route('Storage-Snapshots', ['volume_keyword' => $vol['pure_name']]) }}">View snapshots</a> </td>
                                                 @else
                                                     <td><i>No Volume Snapshots</i> </td>
                                                 @endif

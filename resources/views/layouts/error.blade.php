@@ -11,7 +11,7 @@
                             @elseif (session('source') == 'refresh')
                                 <span>{{ config('app.name', 'PSO Explorer') }} is currently collecting data</span>
                             @else
-                                <span>Pure Service Orchestrator not found</span>
+                                <span>Pure Service Orchestrator™ not found</span>
                             @endif
                         </div>
                         <div class="panel-body list-container">
@@ -31,8 +31,8 @@
                                         <div>This should only take a couple of seconds. This page will reload automatically.</div>
                                     </div>
                                 @else
-                                    <div class="alert-message"><strong>The Pure Storage Pure Service Orchestrator was not foundor not correctly configured</strong>
-                                    Please make sure you have installed the Pure Service Orchstrator (PSO) in your Kubernetes cluster.
+                                    <div class="alert-message"><strong>The Pure Storage® Pure Service Orchestrator™ was not found or not correctly configured</strong>
+                                    Please make sure you have installed the Pure Service Orchstrator™ (PSO) in your Kubernetes cluster.
 
                                     For installation instruction of PSO, please visit<br>
                                     <a href="https://github.com/purestorage/helm-charts" target="_blank">https://github.com/purestorage/helm-charts</a>

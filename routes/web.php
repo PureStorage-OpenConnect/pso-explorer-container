@@ -13,47 +13,46 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/refreshdata', function () { return redirect('/'); });
-Route::post('/refreshdata', 'HomeController@refreshdata')->name('RefreshData');
-
 // *** GUI routes ***
 // --- Dashboard
-Route::get('/', 'HomeController@index')->name('Dashboard');
+Route::get('/', 'DashboardController@index')->name('Dashboard');
+Route::get('/refreshdata', function () { return redirect('/'); });
+Route::post('/refreshdata', 'DashboardController@refreshdata')->name('RefreshData');
 // --- Analysis
-Route::get('/view/pods', 'ViewController@Pods')->name('Pods');
-Route::get('/view/jobs', 'ViewController@Jobs')->name('Jobs');
-Route::get('/view/deployments', 'ViewController@Deployments')->name('Deployments');
-Route::get('/view/statefulsets', 'ViewController@StatefulSets')->name('StatefulSets');
-Route::get('/view/labels', 'ViewController@Labels')->name('Labels');
-Route::get('/view/namespaces', 'ViewController@Namespaces')->name('Namespaces');
+Route::get('/analysis/pods', 'AnalysisController@Pods')->name('Analysis-Pods');
+Route::get('/analysis/jobs', 'AnalysisController@Jobs')->name('Analysis-Jobs');
+Route::get('/analysis/deployments', 'AnalysisController@Deployments')->name('Analysis-Deployments');
+Route::get('/analysis/statefulsets', 'AnalysisController@StatefulSets')->name('Analysis-StatefulSets');
+Route::get('/analysis/labels', 'AnalysisController@Labels')->name('Analysis-Labels');
+Route::get('/analysis/namespaces', 'AnalysisController@Namespaces')->name('Analysis-Namespaces');
 // --- Storage
-Route::get('/view/storagearrays', 'ViewController@StorageArrays')->name('StorageArrays');
-Route::get('/view/storageclasses', 'ViewController@StorageClasses')->name('StorageClasses');
-Route::get('/view/volumes', 'ViewController@Volumes')->name('Volumes');
-Route::get('/view/snapshots', 'ViewController@Snapshots')->name('Snapshots');
+Route::get('/storage/storagearrays', 'StorageController@StorageArrays')->name('Storage-StorageArrays');
+Route::get('/storage/storageclasses', 'StorageController@StorageClasses')->name('Storage-StorageClasses');
+Route::get('/storage/volumes', 'StorageController@Volumes')->name('Storage-Volumes');
+Route::get('/storage/snapshots', 'StorageController@Snapshots')->name('Storage-Snapshots');
 
 // *** Settings routes
-Route::get('/settings/pso', 'SettingsController@Pso')->name('SettingsPso');
-Route::get('/settings/nodes', 'SettingsController@Nodes')->name('SettingsNodes');
+Route::get('/settings/pso', 'SettingsController@Pso')->name('Settings-Pso');
+Route::get('/settings/nodes', 'SettingsController@Nodes')->name('Settings-Nodes');
 
 // *** API routes
 // --- Dashboard
-Route::get('/api/dashboard', 'ApiController@Dashboard')->name('DashboardApi');
+Route::get('/api/dashboard', 'ApiController@Dashboard')->name('Dashboard-Api');
 
 // --- Analysis
-Route::get('/api/pods', 'ApiController@Pods')->name('PodsApi');
-Route::get('/api/jobs', 'ApiController@Jobs')->name('JobsApi');
-Route::get('/api/deployments', 'ApiController@Deployments')->name('DeploymentsApi');
-Route::get('/api/statefulsets', 'ApiController@StatefulSets')->name('StatefulSetsApi');
-Route::get('/api/labels', 'ApiController@Labels')->name('LabelsApi');
-Route::get('/api/namespaces', 'ApiController@Namespaces')->name('NamespacesApi');
+Route::get('/api/analysis/pods', 'ApiController@Pods')->name('Analysis-Pods-Api');
+Route::get('/api/analysis/jobs', 'ApiController@Jobs')->name('Analysis-Jobs-Api');
+Route::get('/api/analysis/deployments', 'ApiController@Deployments')->name('Analysis-Deployments-Api');
+Route::get('/api/analysis/statefulsets', 'ApiController@StatefulSets')->name('Analysis-StatefulSets-Api');
+Route::get('/api/analysis/labels', 'ApiController@Labels')->name('Analysis-Labels-Api');
+Route::get('/api/analysis/namespaces', 'ApiController@Namespaces')->name('Analysis-Namespaces-Api');
 
 // --- Storage
-Route::get('/api/storagearrays', 'ApiController@StorageArrays')->name('StorageArraysApi');
-Route::get('/api/storageclasses', 'ApiController@StorageClasses')->name('StorageClassesApi');
-Route::get('/api/volumes', 'ApiController@Volumes')->name('VolumesApi');
-Route::get('/api/snapshots', 'ApiController@Snapshots')->name('SnapshotsApi');
+Route::get('/api/storage/storagearrays', 'ApiController@StorageArrays')->name('Storage-StorageArrays-Api');
+Route::get('/api/storage/storageclasses', 'ApiController@StorageClasses')->name('Storage-StorageClasses-Api');
+Route::get('/api/storage/volumes', 'ApiController@Volumes')->name('Storage-Volumes-Api');
+Route::get('/api/storage/snapshots', 'ApiController@Snapshots')->name('Storage-Snapshots-Api');
 
 // *** Settings routes
-Route::get('/api/settings/pso', 'ApiController@SettingsPso')->name('SettingsPsoApi');
-Route::get('/api/settings/nodes', 'ApiController@SettingsNodes')->name('SettingsNodesApi');
+Route::get('/api/settings/pso', 'ApiController@SettingsPso')->name('Settings-Pso-Api');
+Route::get('/api/settings/nodes', 'ApiController@SettingsNodes')->name('Settings-Nodes-Api');

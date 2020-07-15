@@ -1,1 +1,1 @@
-# Pure Service Orchestrator Explorer
+# Pure Service Orchestrator™ Explorer

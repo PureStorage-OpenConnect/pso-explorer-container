@@ -13,8 +13,9 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
-    'version' => env('APP_VERSION', '0.0.1'),
+    'name' => env('APP_NAME', 'PSO Explorer'),
+    'fullname' => env('APP_FULLNAME', 'Pure Service Orchestrator™ Explorer'),
+    'version' => env('APP_VERSION', 'v0.0.1'),
 
     /*
     |--------------------------------------------------------------------------

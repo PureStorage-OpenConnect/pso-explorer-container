@@ -9,7 +9,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Title -->
-    <title>{{ config('app.name', 'PSO Explorer') . ' - ' . config('app.version', '0.1')}}</title>
+    <title>{{ config('app.name', 'PSO Explorer') . ' - ' . config('app.version', 'v0.0.1')}}</title>
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}">
@@ -34,7 +34,7 @@
     <!-- Navigation sidebar -->
     <sidebar>
         <div id="sidebar-wrapper">
-            <!-- Pure Storage logo -->
+            <!-- Pure Storage® logo -->
             <div id="sidebar-branding">
                 <pure-logo>
                     <svg viewBox="0 0 356.9 62.6" x="0px" y="0px">
@@ -113,38 +113,38 @@
                             </div>
                         </a>
                         <ul class="mm-collapse">
-                            <li @if(Request::is('view/pods'))class="mm-active"@endif>
-                                <a href="{{ route('Pods') }}">
+                            <li @if(Request::is('analysis/pods'))class="mm-active"@endif>
+                                <a href="{{ route('Analysis-Pods') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/pod-pure.svg') }}">
                                     <span class="mm-sub-text">Pods</span>
                                 </a>
                             </li>
-                            <li @if(Request::is('view/jobs'))class="mm-active"@endif>
-                                <a href="{{ route('Jobs') }}">
+                            <li @if(Request::is('analysis/jobs'))class="mm-active"@endif>
+                                <a href="{{ route('Analysis-Jobs') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/job-pure.svg') }}">
                                     <span class="mm-sub-text">Jobs</span>
                                 </a>
                             </li>
-                            <li @if(Request::is('view/deployments'))class="mm-active"@endif>
-                                <a href="{{ route('Deployments') }}">
+                            <li @if(Request::is('analysis/deployments'))class="mm-active"@endif>
+                                <a href="{{ route('Analysis-Deployments') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/deploy-pure.svg') }}">
                                     <span class="mm-sub-text">Deployments</span>
                                 </a>
                             </li>
-                            <li @if(Request::is('view/statefulsets'))class="mm-active"@endif>
-                                <a href="{{ route('StatefulSets') }}">
+                            <li @if(Request::is('analysis/statefulsets'))class="mm-active"@endif>
+                                <a href="{{ route('Analysis-StatefulSets') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/sts-pure.svg') }}">
                                     <span class="mm-sub-text">StatefulSets</span>
                                 </a>
                             </li>
-                            <li @if(Request::is('view/labels'))class="mm-active"@endif>
-                                <a href="{{ route('Labels') }}">
+                            <li @if(Request::is('analysis/labels'))class="mm-active"@endif>
+                                <a href="{{ route('Analysis-Labels') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/cm-pure.svg') }}">
                                     <span class="mm-sub-text">Labels</span>
                                 </a>
                             </li>
-                            <li @if(Request::is('view/namespaces'))class="mm-active"@endif>
-                                <a href="{{ route('Namespaces') }}">
+                            <li @if(Request::is('analysis/namespaces'))class="mm-active"@endif>
+                                <a href="{{ route('Analysis-Namespaces') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/ns-pure.svg') }}">
                                     <span class="mm-sub-text">Namespaces</span>
                                 </a>
@@ -161,26 +161,26 @@
                             </div>
                         </a>
                         <ul class="mm-collapse">
-                            <li @if(Request::is('view/storagearrays'))class="mm-active"@endif>
-                                <a href="{{ route('StorageArrays') }}">
+                            <li @if(Request::is('storage/storagearrays'))class="mm-active"@endif>
+                                <a href="{{ route('Storage-StorageArrays') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/storage.svg') }}">
                                     <span class="mm-sub-text">Arrays</span>
                                 </a>
                             </li>
-                            <li @if(Request::is('view/storageclasses'))class="mm-active"@endif>
-                                <a href="{{ route('StorageClasses') }}">
+                            <li @if(Request::is('storage/storageclasses'))class="mm-active"@endif>
+                                <a href="{{ route('Storage-StorageClasses') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/sc-pure.svg') }}">
                                     <span class="mm-sub-text">StorageClasses</span>
                                 </a>
                             </li>
-                            <li @if(Request::is('view/volumes'))class="mm-active"@endif>
-                                <a href="{{ route('Volumes') }}">
+                            <li @if(Request::is('storage/volumes'))class="mm-active"@endif>
+                                <a href="{{ route('Storage-Volumes') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/vol-pure.svg') }}">
                                     <span class="mm-sub-text">Volumes</span>
                                 </a>
                             </li>
-                            <li @if(Request::is('view/snapshots'))class="mm-active"@endif>
-                                <a href="{{ route('Snapshots') }}">
+                            <li @if(Request::is('storage/snapshots'))class="mm-active"@endif>
+                                <a href="{{ route('Storage-Snapshots') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/snap-pure.svg') }}">
                                     <span class="mm-sub-text">Snapshots</span>
                                 </a>
@@ -198,13 +198,13 @@
                         </a>
                         <ul class="mm-collapse">
                             <li @if(Request::is('settings/pso'))class="mm-active"@endif>
-                                <a href="{{ route('SettingsPso') }}">
+                                <a href="{{ route('Settings-Pso') }}">
                                     <img class="mm-sub" src="{{ asset('images/settings_icon.svg') }}">
                                     <span class="mm-sub-text">PSO</span>
                                 </a>
                             </li>
                             <li @if(Request::is('settings/nodes'))class="mm-active"@endif>
-                                <a href="{{ route('SettingsNodes') }}">
+                                <a href="{{ route('Settings-Nodes') }}">
                                     <img class="mm-sub" src="{{ asset('images/k8s/node-pure.svg') }}">
                                     <span class="mm-sub-text">Nodes</span>
                                 </a>
@@ -266,7 +266,7 @@
                     <div id="toggle-btn">
                         <img id="toggle-icon" src="/images/menu.svg">
                     </div>
-                    <h4 class="inline-header page-title">{{ config('app.name', 'PSO Explorer') }}</h4>
+                    <h4 class="inline-header page-title">{{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }}</h4>
                 </div>
             </div>
         </topbar>
@@ -315,8 +315,8 @@
                 </alert-counts>
             </div>
             <div class="topbar-item with-padding">
-                @if (Route::has(Route::currentRouteName() . 'Api'))
-                    <form action="{{ Route(Route::currentRouteName() . 'Api') }}" method="get">
+                @if (Route::has(Route::currentRouteName() . '-Api'))
+                    <form action="{{ Route(Route::currentRouteName() . '-Api') }}" method="get">
                         <input type="submit" class="btn btn-w-m btn-pure" value="View as JSON"
                                name="Submit" id="frm2_submit"/>
                     </form>
@@ -350,19 +350,25 @@
         <div class="modal-content">
             <modal-header>
                 <div class="modal-header">
-                    <h4 class="modal-title">{{ config('app.name', 'PSO Explorer') }} license statement</h4>
+                    <h4 class="modal-title">{{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} license statement</h4>
                 </div>
             </modal-header>
             <modal-body class="tab-container">
                 <div class="modal-body">
                     <div>
+                        <h4>About {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }}</h4>
+                        <span class="pager">Pure Service Orchestrator™ Explorer (or PSO Explorer) provides a web based user interface for Pure Service Orchestrator™ PSO. It shows details of the persistent volumes and snapshots that have been provisioned using PSO, showing provisioned space, actual used space, performance and growth characteristics.</span><br>
+                        <span class="pager">{{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} is maintainced at:<br><a href="{{ env('PSO_EXPLORER_REPO', 'https://code.purestorage.com/') }}" target="_blank">{{ env('PSO_EXPLORER_REPO', 'https://code.purestorage.com/') }}</a></span><br>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div>
                         <h4>License statement</h4>
-                        {{ config('app.name', 'PSO Explorer') }} licensed under the <a href="{{ asset('docs/license.pdf') }}" target="_blank">Apache License version 2.0</a>.<br><br>
+                        {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} licensed under the <a href="{{ asset('docs/license.pdf') }}" target="_blank">Apache License version 2.0</a>.<br><br>
                     </div>
                     <div class="dropdown-divider"></div>
                     <div>
                         <h4>3rd Party/Open-Source Code</h4>
-                        {{ config('app.name', 'PSO Explorer') }} uses best of breed open source technologies as part of the solution. The following <a href="{{ asset('docs/PSO_Analytics_GUI_Third_Party_Code.pdf') }}" target="_blank">document</a> provides 3rd Party/Open-Source Code attribution.<br><br>
+                        {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} uses best of breed open source technologies as part of the solution. The following <a href="{{ asset('docs/PSO_Explorer_Third_Party_Code.pdf') }}" target="_blank">document</a> provides 3rd Party/Open-Source Code attribution.<br><br>
                     </div>
 
                 </div>

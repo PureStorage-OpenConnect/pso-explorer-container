@@ -300,7 +300,7 @@ class Pso
     }
 
     /**
-     * Connect to the Pure Storage arrays (FlashArray and FlashBlade) to retrieve
+     * Connect to the Pure Storage® arrays (FlashArray™ and FlashBlade®) to retrieve
      * management IP's and API tokens
      *
      * @return boolean
@@ -343,7 +343,7 @@ class Pso
             $this->psoInfo->yaml = yaml_emit(["arrays" => $myYaml]);
         }
 
-        // Get FlashArrays information
+        // Get FlashArray™ information
         foreach (($pso_config->FlashArrays ?? []) as $flasharray) {
             $mgmtEndPoint = $flasharray->MgmtEndPoint ?? 'not set';
             $apiToken = $flasharray->APIToken ?? 'not set';
@@ -364,7 +364,7 @@ class Pso
 
                     $newArray->name = $array_details['array_name'];
                     $newArray->version = 'Purity//FA ' . $array_details['version'];
-                    $newArray->model = 'Pure Storage FlashArray ' . $model_details[0]['model'];
+                    $newArray->model = 'Pure Storage® FlashArray™ ' . $model_details[0]['model'];
 
                     $port_details = $fa_api->GetPort();
 
@@ -382,7 +382,7 @@ class Pso
                     $newArray->message = '';
                 } catch (Exception $e) {
                     // Log error message
-                    Log::debug('xxx Error connecting to FlashArray "' . $mgmtEndPoint . '"');
+                    Log::debug('xxx Error connecting to FlashArray™ "' . $mgmtEndPoint . '"');
                     Log::debug('    - Message: "' . $e->getMessage() . '"');
                     Log::debug('    - File: "' . $e->getFile() . '"');
                     Log::debug('    - Line: "' . $e->getLine() . '"');
@@ -390,7 +390,7 @@ class Pso
                     $newArray->name = $mgmtEndPoint;
                     $newArray->model = 'Unknown';
                     $newArray->offline = $mgmtEndPoint;
-                    $newArray->message = 'Unable to connect to FlashArray (' . $e->getMessage() . ')';
+                    $newArray->message = 'Unable to connect to FlashArray™ (' . $e->getMessage() . ')';
                     unset($e);
                 }
             } else {
@@ -399,13 +399,13 @@ class Pso
                     $newArray->name = $mgmtEndPoint;
                     $newArray->model = 'Unknown';
                     $newArray->offline = $mgmtEndPoint;
-                    $newArray->message = 'No API token was set for this FlashArray. ' .
+                    $newArray->message = 'No API token was set for this FlashArray™. ' .
                         'Please check the PSO configurations (values.yaml).';
                 }
             }
         }
 
-        // Get FlashBlade information
+        // Get FlashBlade® information
         foreach (($pso_config->FlashBlades ?? []) as $flashblade) {
             $mgmtEndPoint = $flashblade->MgmtEndPoint ?? 'not set';
             $apiToken = $flashblade->APIToken ?? 'not set';
@@ -427,12 +427,12 @@ class Pso
                     $array = $fb_api->GetArray();
 
                     $newArray->name = $array['items'][0]['name'];
-                    $newArray->model = 'Pure Storage FlashBlade';
+                    $newArray->model = 'Pure Storage® FlashBlade®';
                     $newArray->version = $array['items'][0]['os'] . ' ' . $array['items'][0]['version'];
                     $newArray->protocols = ['NFS', 'S3'];
                 } catch (Exception $e) {
                     // Log error message
-                    Log::debug('xxx Error connecting to FlashBlade "' . $mgmtEndPoint . '"');
+                    Log::debug('xxx Error connecting to FlashBlade® "' . $mgmtEndPoint . '"');
                     Log::debug('    - Message: "' . $e->getMessage() . '"');
                     Log::debug('    - File: "' . $e->getFile() . '"');
                     Log::debug('    - Line: "' . $e->getLine() . '"');
@@ -440,7 +440,7 @@ class Pso
                     $newArray->name = $mgmtEndPoint;
                     $newArray->model = 'Offline';
                     $newArray->offline = $mgmtEndPoint;
-                    $newArray->message = 'Unable to connect to FlashBlade (' . $e->getMessage() . ')';
+                    $newArray->message = 'Unable to connect to FlashBlade® (' . $e->getMessage() . ')';
                     unset($e);
                 }
             } else {
@@ -450,10 +450,10 @@ class Pso
                     $newArray->model = 'Unknown';
                     $newArray->offline = $mgmtEndPoint;
                     if ($apiToken == 'not set') {
-                        $newArray->message = 'No API token was set for this FlashBlade. ' .
+                        $newArray->message = 'No API token was set for this FlashBlade®. ' .
                             'Please check the PSO configurations (values.yaml).';
                     } else {
-                        $newArray->message = 'No NFSEndPoint was set for this FlashBlade. ' .
+                        $newArray->message = 'No NFSEndPoint was set for this FlashBlade®. ' .
                             'Please check the PSO configurations (values.yaml).';
                     }
                 }
@@ -979,7 +979,7 @@ class Pso
     }
 
     /**
-     * Connect to the Pure Storage arrays to retrieve volume information
+     * Connect to the Pure Storage® arrays to retrieve volume information
      *
      * @return boolean
      */
@@ -1416,7 +1416,7 @@ class Pso
             return false;
         }
 
-        // Get FlashArrays and FlashBlades
+        // Get FlashArray™ and FlashBlade®
         if (!$this->getArrayInfo()) {
             Redis::del(self::PSO_UPDATE_KEY);
             return false;
@@ -1464,7 +1464,7 @@ class Pso
         // Get the VolumeSnapshots
         $this->getVolumeSnapshots();
 
-        // Get Pure Storage array information
+        // Get Pure Storage® array information
         $this->addArrayVolumeInfo();
 
         // Check for released PV's
@@ -1812,7 +1812,7 @@ class Pso
                     array_push(
                         $pvc_links,
                         '<a href="' . route(
-                            'Volumes',
+                            'Storage-Volumes',
                             ['volume_keyword' => $my_pvc->uid]
                         ) . '">' . $my_pvc->name . '</a>'
                     );
@@ -1867,7 +1867,7 @@ class Pso
                 array_push(
                     $pvc_links,
                     '<a href="' . route(
-                        'Volumes',
+                        'Storage-Volumes',
                         ['volume_keyword' => $my_pvc->uid]
                     ) . '">' . $my_pvc->name . '</a>'
                 );
