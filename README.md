@@ -16,4 +16,12 @@ For instructions on how to deploy and use Pure Service Orchestrator™ Explorer,
 
 # About this repo
 
-This repository contains the PHP web application for PSO Explorer. PSO Explorer is build using the [Laravel](https://laravel.com/) Framework. The application is distributed as a Docker container hosted on the [Pure Storage® Quay.io repo](https://quay.io/repository/purestorage/pso-explorer) and can be installed using a Helm chart as described [here](https://github.com/PureStorage-OpenConnect/pso-explorer/README.md).
+This repository contains the PHP web application for PSO Explorer. 
+The application is: 
+- developed using the [Laravel](https://laravel.com/) Framework. 
+- distributed as a Docker container hosted on the [Pure Storage® Quay.io repo](https://quay.io/repository/purestorage/pso-explorer).
+- installed using a Helm chart as described [here](https://github.com/PureStorage-OpenConnect/pso-explorer/blob/master/README.md).
+
+## Build the application container
+
+The repository contains the [Dockerfile](/Dockerfile) which can be used to build the application.
