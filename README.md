@@ -14,7 +14,7 @@ Pure Service Orchestrator™ Explorer (or PSO Explorer) provides a web based use
 
 For instructions on how to deploy and use Pure Service Orchestrator™ Explorer, please visit [https://github.com/PureStorage-OpenConnect/pso-explorer](https://github.com/PureStorage-OpenConnect/pso-explorer).
 
-# About this repo
+## About this repo
 
 This repository contains the PHP web application for PSO Explorer. 
 The application is: 
