@@ -22,7 +22,7 @@ The application is:
 - distributed as a Docker container hosted on the [Pure Storage® Quay.io repo](https://quay.io/repository/purestorage/pso-explorer).
 - installed using a Helm chart as described [here](https://github.com/PureStorage-OpenConnect/pso-explorer/blob/master/README.md).
 
-# Do you want to contribute?
+# How to get started?
 
 We are welcoming pull request (PR's) for further development of PSO Explorer. 
 
@@ -90,6 +90,6 @@ docker build -t pso-explorer:devel .
 docker tag pso-explorer:devel quay.io/[your repo]/pso-explorer:devel
 docker push quay.io/[your repo]/pso-explorer:devel
 ```
-# We hope to hear from you
+# Feel free to contribute
 
 We encourage you to get started on this project and make your suggestions for Pull Requests via this GitHub repo. If you run into issues, feel free to open an issue on this repo.
