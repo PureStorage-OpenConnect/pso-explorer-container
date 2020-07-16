@@ -33,7 +33,7 @@
                                         <th data-hide="all">Protocols</th>
                                         <th data-hide="all">IP Address</th>
                                         <th data-hide="all">Labels</th>
-                                        <th data-hide="all">Messages</th>
+                                        <th data-hide="all">Notices</th>
                                         <th>Status</th>
                                     </tr>
                                     </thead>
