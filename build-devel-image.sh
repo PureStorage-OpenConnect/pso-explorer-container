@@ -6,7 +6,7 @@ if [ -z "$1" ] ; then
 fi
  
 # Change application version and debugging mode in .env
-sed -i '' 's/APP_VERSION=.*/APP_VERSION="'"$1"'"/' .env
+sed -i '.bak' 's/APP_VERSION=.*/APP_VERSION="'"$1"'"/' .env
 sed -i '' 's/APP_DEBUG=.*/APP_DEBUG=false/' .env
 
 # Clear Laravel cache
@@ -59,3 +59,6 @@ then
 else
   echo -e "\033[0;32mImage successfully pushed to the repo.\033[0m"
 fi
+
+# Restore .env file to retain original APP_VERSION
+mv .env.bak .env
