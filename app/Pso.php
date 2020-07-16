@@ -94,9 +94,18 @@ class Pso
      *
      * @return string
      */
-    private function formatBytes($bytes, $precision = 2)
+    private function formatBytes($bytes, $precision = 2, $format = 1)
     {
-        $units = array('Bi', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei');
+        if ($format == 1) {
+            // Format == 1: Storage capacity
+            $units = array('Bi', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei');
+        } elseif ($format == 2) {
+            // Format == 1: Bandwidth
+            $units = array('b', 'Kb', 'Mb', 'Gb', 'Tb', 'Pb', 'Eb');
+        } else {
+            // Format == 3: Regular number
+            $units = array('', 'K', 'M', 'G', 'T', 'P', 'E');
+        }
 
         $bytes = max($bytes, 0);
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
@@ -1069,20 +1078,22 @@ class Pso
                         $myvol->pure_input_per_sec = $vol_perf['input_per_sec'] ?? 0;
                         $myvol->pure_input_per_sec_formatted = $this->formatBytes(
                             $vol_perf['input_per_sec'],
-                            1
-                        );
+                            1,
+                            2
+                        ) . '/s';
                         $myvol->pure_output_per_sec = $vol_perf['output_per_sec'] ?? 0;
                         $myvol->pure_output_per_sec_formatted = $this->formatBytes(
                             $vol_perf['output_per_sec'],
-                            1
-                        );
+                            1,
+                            2
+                        ) . '/s';
                         $myvol->pure_usec_per_read_op = round(
                             $vol_perf['usec_per_read_op'] / 1000,
-                            2
+                            2,
                         );
                         $myvol->pure_usec_per_write_op = round(
                             $vol_perf['usec_per_write_op'] / 1000,
-                            2
+                            2,
                         );
 
                         $total_iops_read = $total_iops_read + $vol_perf['reads_per_sec'] ?? 0;
@@ -1249,13 +1260,15 @@ class Pso
                             $myvol->pure_input_per_sec = $fs_perf_item['write_bytes_per_sec'] ?? 0;
                             $myvol->pure_input_per_sec_formatted = $this->formatBytes(
                                 $myvol->pure_input_per_sec,
-                                1
-                            );
+                                1,
+                                2
+                            ) . '/s';
                             $myvol->pure_output_per_sec = $fs_perf_item['read_bytes_per_sec'];
                             $myvol->pure_output_per_sec_formatted = $this->formatBytes(
                                 $myvol->pure_output_per_sec,
-                                1
-                            );
+                                1,
+                                2
+                            ) . '/s';
                             $myvol->pure_usec_per_read_op = round(
                                 $myvol->pure_usec_per_read_op / 1000,
                                 2
@@ -1990,9 +2003,12 @@ class Pso
 
         $portalInfo['total_iops_read'] = $this->psoInfo->total_iops_read;
         $portalInfo['total_iops_write'] = $this->psoInfo->total_iops_write;
-        $portalInfo['total_bw'] = $this->formatBytes($this->psoInfo->total_bw_read + $this->psoInfo->total_bw_write);
-        $portalInfo['total_bw_read'] = $this->formatBytes($this->psoInfo->total_bw_read);
-        $portalInfo['total_bw_write'] = $this->formatBytes($this->psoInfo->total_bw_write);
+        $portalInfo['total_bw'] = $this->formatBytes(
+            $this->psoInfo->total_bw_read + $this->psoInfo->total_bw_write,
+            1,
+            2);
+        $portalInfo['total_bw_read'] = $this->formatBytes($this->psoInfo->total_bw_read, 1, 2);
+        $portalInfo['total_bw_write'] = $this->formatBytes($this->psoInfo->total_bw_write, 1, 2);
 
         $portalInfo['low_msec_read'] = round($this->psoInfo->low_msec_read, 2);
         $portalInfo['low_msec_write'] = round($this->psoInfo->low_msec_write, 2);

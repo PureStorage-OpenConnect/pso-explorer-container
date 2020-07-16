@@ -68,7 +68,7 @@
                     <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                         <div class="panel panel-default">
                             <div class="panel-heading">
-                                <span>Block storage settings</span>
+                                <span>Default block storage settings</span>
                             </div>
                             <div class="panel-body table-no-filter">
                                 <table class="table pure-table ps-table">
@@ -156,6 +156,53 @@
                                         <td class="col-xs-4 left"><span>iSCSI allowed CIDRs</span></td>
                                         <td class="col-xs-8 left">
                                             <span>{{ $settings['iscsi_allowed_cidrs'] ?? '' }}</span><br>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- File storage settings --}}
+        <div class="row">
+            <div class="col-xs-12 tab-container">
+                <div class="with-padding">
+                    <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <span>Default file storage settings</span>
+                            </div>
+                            <div class="panel-body table-no-filter">
+                                <table class="table pure-table ps-table">
+                                    <thead>
+                                    <tr class="ps-table-heading"><!---->
+                                        <th class="col-xs-4 left" title="Parameter">
+                                            <span class="ps-table-header-text" title="">
+                                                Parameter
+                                            </span>
+                                        </th>
+                                        <th class="col-xs-8 left" title="Value">
+                                            <span class="ps-table-header-text" title="">
+                                                Value
+                                            </span>
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td class="col-xs-4 left"><span>Snapshot directory enabled</span></td>
+                                        <td class="col-xs-8 left">
+                                            <span>false</span><br>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-xs-4 left"><span>Export rules</span></td>
+                                        <td class="col-xs-8 left">
+                                            <span>*(rw,no_root_squash)</span><br>
                                         </td>
                                     </tr>
                                     </tbody>
