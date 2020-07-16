@@ -1,7 +1,7 @@
 FROM php:7.4.7-fpm
 
-# Copy composer.lock and composer.json
-COPY composer.lock composer.json /var/www/
+# Copy composer.json
+COPY composer.json /var/www/
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
