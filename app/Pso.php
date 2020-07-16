@@ -262,7 +262,7 @@ class Pso
                     }
                     if (($myContainerName == 'csi-provisioner') or ($myContainerName == 'pure-provisioner')) {
                         array_push($images, $container->name . ': ' . $container->image);
-                        foreach ($container->args as $arg) {
+                        foreach (($container->args ?? []) as $arg) {
                             if (strpos($arg, '--feature-gates=') !== false) {
                                 $this->psoInfo->array_push('pso_args', str_replace('--feature-gates=', '', $arg));
                             }
