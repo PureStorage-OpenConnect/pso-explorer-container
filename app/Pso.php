@@ -2,8 +2,8 @@
 
 namespace App;
 
-use App\Api\FlashArrayAPI;
-use App\Api\FlashBladeAPI;
+use App\Api\FlashArrayApi;
+use App\Api\FlashBladeApi;
 use App\Api\k8s\PodLog;
 use App\Api\k8s\VolumeSnapshotClass;
 use App\Api\k8s\VolumeSnapshot;
@@ -67,7 +67,11 @@ class Pso
         // cluster IP (kubernetes.default.svc) and locally stored credentials
         if (file_exists('/var/run/secrets/kubernetes.io')) {
             // Use for in cluster credentials
-            $this->master = 'https://kubernetes.default.svc';
+            if (file_exists('/run/secrets/rhsm')) {
+                $this->master = 'https://kubernetes.default.svc.cluster.local';
+            } else {
+                $this->master = 'https://kubernetes.default.svc';
+            }
             $this->authentication = [
                 'caCert' => '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
                 'token' => '/var/run/secrets/kubernetes.io/serviceaccount/token',
@@ -364,7 +368,7 @@ class Pso
                     $newArray->array_push('labels', $key . '=' . $value);
                 }
 
-                $fa_api = new FlashArrayAPI();
+                $fa_api = new FlashArrayApi();
                 try {
                     // Connect to the array for the array name
                     $fa_api->authenticate($mgmtEndPoint, $apiToken);
@@ -429,7 +433,7 @@ class Pso
                 }
                 $newArray->labels = $myLabels;
 
-                $fb_api = new FlashBladeAPI($mgmtEndPoint, $apiToken);
+                $fb_api = new FlashBladeApi($mgmtEndPoint, $apiToken);
                 try {
                     // Connect to the array for the array name
                     $fb_api->authenticate();
@@ -1017,7 +1021,7 @@ class Pso
             $array = new PsoArray($item);
 
             if (strpos($array->model, 'FlashArray') and ($array->offline == null)) {
-                $fa_api = new FlashArrayAPI();
+                $fa_api = new FlashArrayApi();
                 $fa_api->authenticate($array->mgmtEndPoint, $array->apiToken);
 
                 // TODO: Can we also add Cockraoch DB volumes prefix . '-pso-db_' . <number>
@@ -1196,7 +1200,7 @@ class Pso
                     }
                 }
             } elseif (strpos($array->model, 'FlashBlade') and ($array->offline == null)) {
-                $fb_api = new FlashBladeAPI($array->mgmtEndPoint, $array->apiToken);
+                $fb_api = new FlashBladeApi($array->mgmtEndPoint, $array->apiToken);
 
                 try {
                     $fb_api->authenticate();
@@ -1386,11 +1390,27 @@ class Pso
     private function refreshData()
     {
         // Only refresh data if the redis data is stale
-        if ((Redis::get(self::VALID_PSO_DATA_KEY) !== null)) {
-            $this->psoFound = true;
-            $this->errorSource = '';
-            $this->errorMessage = '';
-            return true;
+        try {
+            //config set stop-writes-on-bgsave-error no
+
+            if ((Redis::get(self::VALID_PSO_DATA_KEY) !== null)) {
+                $this->psoFound = true;
+                $this->errorSource = '';
+                $this->errorMessage = '';
+                return true;
+            }
+        } catch (Exception $e) {
+            // Log error message
+            Log::debug('xxx Error connecting to Redis');
+            Log::debug('    - Message: "' . $e->getMessage() . '"');
+            Log::debug('    - File: "' . $e->getFile() . '"');
+            Log::debug('    - Line: "' . $e->getLine() . '"');
+
+            // If we catch a CURL error, return an error message
+            $this->errorSource = 'redis';
+            $this->errorMessage = 'Redis: ' . $e->getMessage();
+            unset($e);
+            return false;
         }
 
         if (Redis::get(self::PSO_UPDATE_KEY) !== null) {

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
-class FlashArrayAPI
+class FlashArrayApi
 {
     // Constants
     public const FA_API_URI = "/api/1.10/";

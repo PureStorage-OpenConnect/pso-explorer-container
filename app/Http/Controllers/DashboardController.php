@@ -16,8 +16,9 @@ class DashboardController extends Controller
             $request->session()->flash('alert-class', 'alert-danger');
             $request->session()->flash('message', $pso->errorMessage);
             $request->session()->flash('source', $pso->errorSource);
-            $request->session()->flash('yaml', $pso->psoInfo->yaml);
-            if ($pso->psoInfo->namespace !== null) $request->session()->flash('yaml', $pso->psoInfo->yaml);
+            if ($pso->errorSource !== 'redis') {
+                $request->session()->flash('yaml', $pso->psoInfo->yaml);
+            }
 
             return false;
         } else {

@@ -1,8 +1,5 @@
 FROM php:7.4.7-fpm
 
-# Copy composer.json
-COPY composer.json /var/www/
-
 # Install dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -50,6 +47,15 @@ RUN { \
     } > /usr/local/etc/php/conf.d/php-opocache-cfg.ini
 
 COPY docker/nginx-site.conf /etc/nginx/sites-enabled/default
+RUN chown -R 1001:0 /etc/nginx
+RUN chmod -R g+w /etc/nginx
+RUN chown -R 1001:0 /var/lib/nginx
+RUN chmod -R g+w /var/lib/nginx
+RUN chown -R 1001:0 /var/log/nginx
+RUN chmod -R g+w /var/log/nginx
+RUN chown -R 1001:0 /run
+RUN chmod -R g+w /run
+
 COPY docker/entrypoint.sh /etc/entrypoint.sh
 RUN chmod +x /etc/entrypoint.sh
 
@@ -62,11 +68,14 @@ COPY . /var/www
 RUN cd /var/www && composer update
 RUN cd /var/www && php artisan key:generate
 RUN cd /var/www && php artisan config:cache
+RUN rm -f /var/www/storage/logs/laravel.log
 RUN touch /var/www/storage/logs/laravel.log
-RUN chown -R www-data:www-data /var/www
+RUN chown -R 1001:0 /var/www
+RUN chmod -R g+w /var/www
 
+USER 1001
 WORKDIR /var/www/
 
-EXPOSE 80 443
+EXPOSE 8080
 
 ENTRYPOINT ["/etc/entrypoint.sh"]
