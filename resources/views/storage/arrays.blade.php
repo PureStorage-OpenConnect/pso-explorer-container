@@ -41,7 +41,12 @@
                                     @isset($pso_arrays)
                                         @foreach($pso_arrays as $pso_array)
                                             <tr>
-                                                <td>{{ $pso_array['name'] ?? '' }}</td>
+                                                <td>
+                                                    @isset($pso_array['message'])
+                                                        <img src="/images/warning.svg" style="height: 13px; vertical-align: text-top;">
+                                                    @endisset
+                                                    {{ $pso_array['name'] ?? '' }}
+                                                </td>
                                                 <td>{{ $pso_array['volumeCount'] ?? '' }}</td>
                                                 <td>{{ $pso_array['sizeFormatted'] ?? '' }}</td>
                                                 <td>{{ $pso_array['usedFormatted'] ?? '' }}</td>

@@ -392,7 +392,6 @@ class Pso
                             $newArray->array_push('protocols', 'NVMe');
                         }
                     }
-                    $newArray->message = '';
                 } catch (Exception $e) {
                     // Log error message
                     Log::debug('xxx Error connecting to FlashArray™ "' . $mgmtEndPoint . '"');
@@ -424,7 +423,7 @@ class Pso
             $apiToken = $flashblade->APIToken ?? 'not set';
             $nfsEndPoint = $flashblade->NFSEndPoint ?? 'not set';
 
-            if (($mgmtEndPoint !== 'not set') and ($apiToken !== 'not set') and ($nfsEndPoint !== 'not set')) {
+            if (($mgmtEndPoint !== 'not set') and ($apiToken !== 'not set')) {
                 $newArray = new PsoArray($mgmtEndPoint);
                 $newArray->apiToken = $apiToken;
                 $myLabels = [];
@@ -456,6 +455,16 @@ class Pso
                     $newArray->message = 'Unable to connect to FlashBlade® (' . $e->getMessage() . ')';
                     unset($e);
                 }
+
+                if ($nfsEndPoint == 'not set') {
+                    if (isset($flashblade->NfsEndPoint)) {
+                        $newArray->message = 'Currently using NfsEndPoint for this FlashBlade®. ' .
+                            'Please change your values.yaml to use NFSEndPoint, as NfsEndPoint is deprecated.';
+                    } else {
+                        $newArray->message = 'No NFSEndPoint was set for this FlashBlade®. ' .
+                            'Please check the PSO configurations (values.yaml).';
+                    }
+                }
             } else {
                 if ($mgmtEndPoint !== 'not set') {
                     $newArray = new PsoArray($mgmtEndPoint);
@@ -464,9 +473,6 @@ class Pso
                     $newArray->offline = $mgmtEndPoint;
                     if ($apiToken == 'not set') {
                         $newArray->message = 'No API token was set for this FlashBlade®. ' .
-                            'Please check the PSO configurations (values.yaml).';
-                    } else {
-                        $newArray->message = 'No NFSEndPoint was set for this FlashBlade®. ' .
                             'Please check the PSO configurations (values.yaml).';
                     }
                 }
@@ -1391,8 +1397,6 @@ class Pso
     {
         // Only refresh data if the redis data is stale
         try {
-            //config set stop-writes-on-bgsave-error no
-
             if ((Redis::get(self::VALID_PSO_DATA_KEY) !== null)) {
                 $this->psoFound = true;
                 $this->errorSource = '';
@@ -1413,6 +1417,7 @@ class Pso
             return false;
         }
 
+        // Check if an update is already running
         if (Redis::get(self::PSO_UPDATE_KEY) !== null) {
             Log::debug('--- Already busy with refresh');
             $this->psoFound = false;
