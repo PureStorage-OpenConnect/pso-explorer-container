@@ -36,7 +36,27 @@
                                                 @endforeach
                                             </span>
                                         </td>
-                                    </tr><tr>
+                                    </tr>
+
+                                    @if(isset($settings['dbvols']))
+                                    <tr>
+                                        <td class="col-xs-4 left"><span>CockroachDB volumes</span></td>
+                                        <td class="col-xs-8 left">
+                                            <span>
+                                                @foreach($settings['dbvols'] ?? [] as $item)
+                                                    <span>
+                                                        {{ $item['pure_name'] }}
+                                                        (Array:
+                                                        <a href="{{ route('Storage-StorageArrays', ['array_keyword' => $item['pure_arrayName']]) }}">{{ $item['pure_arrayName'] }}</a>,
+                                                        {{ 'Size: ' . $item['pure_sizeFormatted'] . ', Used: ' . $item['pure_usedFormatted'] . ')'}}
+                                                    </span><br>
+                                                @endforeach
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    @endif(isset($settings['dbvols']))
+
+                                    <tr>
                                         <td class="col-xs-4 left"><span>Kubernetes namespace</span></td>
                                         <td class="col-xs-8 left">
                                             <span>{{ $settings['namespace'] ?? '' }}</span>

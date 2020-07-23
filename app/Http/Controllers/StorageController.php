@@ -42,7 +42,7 @@ class StorageController extends Controller
             $pso_arrays = $pso->arrays();
             $portalInfo = $pso->portalInfo();
 
-            return view('storage/arrays', ['pso_arrays' => $pso_arrays, 'portalInfo' => $portalInfo]);
+            return view('storage/arrays', ['pso_arrays' => $pso_arrays, 'portalInfo' => $portalInfo, 'array_keyword' => $request->input('array_keyword') ?? '']);
         }
     }
 

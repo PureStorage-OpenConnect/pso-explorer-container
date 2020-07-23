@@ -17,7 +17,7 @@
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
-                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter" placeholder="Search in table">
+                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter" placeholder="Search in table" value="{{ $array_keyword ?? ' ' }}">
                             </div>
                             <div class="row with-padding">
                                 <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter>
@@ -107,6 +107,9 @@
 
             $('.footable').footable();
 
+            var element = document.getElementById('tablefilter');
+            var event = new Event('keyup');
+            element.dispatchEvent(event);
         });
 
     </script>

@@ -8,6 +8,7 @@ use App\Api\k8s\PodLog;
 use App\Api\k8s\VolumeSnapshotClass;
 use App\Api\k8s\VolumeSnapshot;
 use App\Http\Classes\PsoArray;
+use App\Http\Classes\PsoBackendVolume;
 use App\Http\Classes\PsoDeployment;
 use App\Http\Classes\PsoInformation;
 use App\Http\Classes\PsoJob;
@@ -1074,14 +1075,20 @@ class Pso
                     }
 
                     if ($this->startsWith($this->psoInfo->prefix . '-pso-db_', $vol['name'])) {
-                        // TODO: Can we also add Cockraoch DB volumes prefix . '-pso-db_' . <number>
+                        $backend_vol = new PsoBackendVolume($array->name . ':' . $vol['name']);
 
-                        /* following is returned correctly
-                        echo $array->name . '<br>';
-                        echo $vol['name'] . '<br>';
-                        echo $vol['size'] . '<br>';
-                        echo $vol['size'] * (1 - $vol['thin_provisioning'] ?? 0) . '<br>';
-                        */
+                        $backend_vol->pure_name = $vol['name'];
+                        $backend_vol->pure_size = $vol['size'] ?? 0;
+                        $backend_vol->pure_sizeFormatted = $this->formatBytes($backend_vol->pure_size, 2);
+                        $backend_vol->pure_used = $vol['size'] * (1 - $vol['thin_provisioning'] ?? 0);
+                        $backend_vol->pure_usedFormatted = $this->formatBytes($backend_vol->pure_used, 2);
+                        $backend_vol->pure_drr = $vol['data_reduction'] ?? 1;
+                        $backend_vol->pure_thinProvisioning = $vol['thin_provisioning'] ?? 0;
+                        $backend_vol->pure_arrayName = $array->name;
+                        $backend_vol->pure_arrayType = 'FA';
+                        $backend_vol->pure_arrayMgmtEndPoint = $array->mgmtEndPoint;
+                        $backend_vol->pure_sharedSpace = $vol['shared_space'] ?? 0;
+                        $backend_vol->pure_totalReduction = $vol['total_reduction'] ?? 1;
                     }
                 }
 
@@ -1311,14 +1318,20 @@ class Pso
                     }
 
                     if ($this->startsWith($this->psoInfo->prefix . '-pso-db_', $filesystem['name'])) {
-                        // TODO: Can we also add Cockraoch DB volumes prefix . '-pso-db_' . <number>
+                        $backend_vol = new PsoBackendVolume($array->name . ':' . $filesystem['name']);
 
-                        /* following is returned correctly
-                        echo $array->name . '<br>';
-                        echo $filesystem['name'] . '<br>';
-                        echo $filesystem['provisioned'] . '<br>';
-                        echo $filesystem['space']['virtual'] . '<br>';
-                        */
+                        $backend_vol->pure_name = $filesystem['name'];
+                        $backend_vol->pure_size = $filesystem['provisioned'] ?? 0;
+                        $backend_vol->pure_sizeFormatted = $this->formatBytes($backend_vol->pure_size, 2);
+                        $backend_vol->pure_used = $filesystem['space']['virtual'];
+                        $backend_vol->pure_usedFormatted = $this->formatBytes($backend_vol->pure_used, 2);
+                        $backend_vol->pure_drr = $filesystem['space']['data_reduction'] ?? 1;
+                        $backend_vol->pure_thinProvisioning = 0;
+                        $backend_vol->pure_arrayName = $array->name;
+                        $backend_vol->pure_arrayType = 'FB';
+                        $backend_vol->pure_arrayMgmtEndPoint = $array->mgmtEndPoint;
+                        $backend_vol->pure_sharedSpace = 0;
+                        $backend_vol->pure_totalReduction = $filesystem['space']['data_reduction'] ?? 1;
                     }
                 }
             }
@@ -1459,6 +1472,7 @@ class Pso
         Log::debug('    Remove stale data');
         Redis::del(self::VALID_PSO_DATA_KEY);
         PsoArray::deleteAll(PsoArray::PREFIX);
+        PsoBackendVolume::deleteAll(PsoBackendVolume::PREFIX);
         PsoDeployment::DeleteAll(PsoDeployment::PREFIX);
         PsoInformation::deleteAll(PsoInformation::PREFIX);
         PsoLabels::deleteAll(PsoLabels::PREFIX);
@@ -2072,8 +2086,20 @@ class Pso
     public function settings()
     {
         $this->RefreshData();
+        $settings = $this->psoInfo->asArray();
 
-        return $this->psoInfo->asArray();
+        // Add PSO CockroachDB volumes to settings
+        $backendvols = PsoBackendVolume::items(PsoBackendVolume::PREFIX, 'pure_arrayName_volName');
+        if (count($backendvols) > 0) {
+            $settings['dbvols'] = [];
+            foreach ($backendvols as $pure_arrayName_volName) {
+                $backendvol = New PsoBackendVolume($pure_arrayName_volName);
+
+                array_push($settings['dbvols'], $backendvol->asArray());
+            }
+        }
+
+        return $settings;
     }
 
     public function log()
