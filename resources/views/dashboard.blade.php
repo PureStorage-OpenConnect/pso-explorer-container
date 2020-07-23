@@ -120,7 +120,9 @@
                                         @ISSET($dashboard['top10_growth_vols'])
                                         @FOREACH($dashboard['top10_growth_vols'] as $vol)
                                             <tr>
-                                                <td><a href="{{ route('Storage-Volumes', ['volume_keyword' => $vol['pure_name']]) }}">{{ $vol['name'] }}</a></td>
+                                                <td>
+                                                    <a href="{{ route('Storage-Volumes', ['volume_keyword' => $vol['pure_name']]) }}">{{ $vol['namespace'] }}/{{ $vol['name'] }}</a>
+                                                </td>
                                                 @IF($vol['status'] == 'Bound')
                                                 <td>{{ $vol['sizeFormatted']}}</td>
                                                 @ELSE

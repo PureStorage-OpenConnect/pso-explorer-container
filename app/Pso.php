@@ -569,22 +569,25 @@ class Pso
         }
 
         foreach (($pvc_list->items ?? []) as $item) {
-            $myvol = new PsoPersistentVolumeClaim($item->metadata->uid);
-            $myvol->name = $item->metadata->name ?? 'Unknown';
-            $myvol->namespace = $item->metadata->namespace ?? 'Unknown';
-            $myvol->namespace_name = $myvol->namespace . ':' . $myvol->name;
-            $myvol->size = $item->spec->resources->requests['storage'] ?? '';
-            $myvol->storageClass =  $item->spec->storageClassName ?? '';
-            $myvol->status = $item->status->phase ?? '';
-            $myvol->creationTimestamp = $item->metadata->creationTimestamp ?? '';
+            $myStorageClasses = PsoStorageClass::items(PsoStorageClass::PREFIX, 'name');
+            if (in_array(($item->spec->storageClassName ?? ''), $myStorageClasses)) {
+                $myvol = new PsoPersistentVolumeClaim($item->metadata->uid);
+                $myvol->name = $item->metadata->name ?? 'Unknown';
+                $myvol->namespace = $item->metadata->namespace ?? 'Unknown';
+                $myvol->namespace_name = $myvol->namespace . ':' . $myvol->name;
+                $myvol->size = $item->spec->resources->requests['storage'] ?? '';
+                $myvol->storageClass =  $item->spec->storageClassName ?? '';
+                $myvol->status = $item->status->phase ?? '';
+                $myvol->creationTimestamp = $item->metadata->creationTimestamp ?? '';
 
-            $labels = [];
-            foreach (($item->metadata->labels ?? []) as $key => $value) {
-                array_push($labels, $key . '=' . $value);
+                $labels = [];
+                foreach (($item->metadata->labels ?? []) as $key => $value) {
+                    array_push($labels, $key . '=' . $value);
+                }
+                $myvol->labels = $labels;
+
+                $myvol->pv_name = $item->spec->volumeName ?? '';
             }
-            $myvol->labels = $labels;
-
-            $myvol->pv_name = $item->spec->volumeName ?? '';
         }
         return true;
     }
@@ -1030,9 +1033,8 @@ class Pso
                 $fa_api = new FlashArrayApi();
                 $fa_api->authenticate($array->mgmtEndPoint, $array->apiToken);
 
-                // TODO: Can we also add Cockraoch DB volumes prefix . '-pso-db_' . <number>
                 $vols = $fa_api->GetVolumes([
-                    'names' => $this->psoInfo->prefix . '-pvc-*',
+                    'names' => $this->psoInfo->prefix . '-*',
                     'space' => 'true',
                 ]);
 
@@ -1069,6 +1071,17 @@ class Pso
                             $total_size = $total_size + ($vol['size'] ?? 0);
                         }
                         $total_snapshot_used = $total_snapshot_used + ($vol['snapshots'] ?? 0);
+                    }
+
+                    if ($this->startsWith($this->psoInfo->prefix . '-pso-db_', $vol['name'])) {
+                        // TODO: Can we also add Cockraoch DB volumes prefix . '-pso-db_' . <number>
+
+                        /* following is returned correctly
+                        echo $array->name . '<br>';
+                        echo $vol['name'] . '<br>';
+                        echo $vol['size'] . '<br>';
+                        echo $vol['size'] * (1 - $vol['thin_provisioning'] ?? 0) . '<br>';
+                        */
                     }
                 }
 
@@ -1212,7 +1225,7 @@ class Pso
                     $fb_api->authenticate();
 
                     $filesystems = $fb_api->GetFileSystems([
-                        'names' => $this->psoInfo->prefix . '-pvc-*',
+                        'names' => $this->psoInfo->prefix . '-*',
                         'space' => 'true',
                         'destroyed' => false,
                     ]);
@@ -1296,9 +1309,21 @@ class Pso
                             $perf_count = $perf_count + 1;
                         }
                     }
+
+                    if ($this->startsWith($this->psoInfo->prefix . '-pso-db_', $filesystem['name'])) {
+                        // TODO: Can we also add Cockraoch DB volumes prefix . '-pso-db_' . <number>
+
+                        /* following is returned correctly
+                        echo $array->name . '<br>';
+                        echo $filesystem['name'] . '<br>';
+                        echo $filesystem['provisioned'] . '<br>';
+                        echo $filesystem['space']['virtual'] . '<br>';
+                        */
+                    }
                 }
             }
         }
+
         $this->psoInfo->totalsize = $total_size;
         $this->psoInfo->totalused = $total_used;
         $this->psoInfo->total_orphaned_used = $total_orphaned_used;
@@ -1546,6 +1571,7 @@ class Pso
             if (($volume->pure_orphaned == null) and ($volume->pure_arrayType == 'FA')) {
                 $vol['uid'] = $uid;
                 $vol['name'] = $volume->name;
+                $vol['namespace'] = $volume->namespace;
                 $vol['pure_name'] = $volume->pure_name;
                 $vol['size'] = $volume->pure_size;
                 $vol['sizeFormatted'] = $volume->pure_sizeFormatted;
