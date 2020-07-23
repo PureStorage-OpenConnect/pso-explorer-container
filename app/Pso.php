@@ -1203,12 +1203,15 @@ class Pso
 
                         $mysnap = new PsoVolumeSnapshot($uid);
                         if (($mysnap->name == '') and ($mysnap->namespace == '') and ($mysnap->sourceName == '')) {
-                            $mysnap->name = '';
+                            $pure_volname = substr($snap['name'], 0, strpos($snap['name'], '.'));
+                            $pure_snapname = substr($snap['name'], strpos($snap['name'], '.') + 1);
+
+                            $mysnap->name = $pure_volname;
                             $mysnap->namespace = 'Unknown';
                             $mysnap->sourceName = $pure_volname;
                             $mysnap->readyToUse = 'Ready';
-                            $mysnap->errorMessage = 'This snapahot ia (no longer) managed by Kubernetes';
-                            $mysnap->orphaned = $pure_volname;
+                            $mysnap->errorMessage = 'This snaphot is (no longer) managed by Kubernetes';
+                            $mysnap->orphaned = $uid;
                         }
 
                         $mysnap->pure_name = $snap['name'];
@@ -1574,7 +1577,9 @@ class Pso
             )
         );
         $dashboard['storageclass_count'] = count(PsoStorageClass::items(PsoStorageClass::PREFIX, 'name'));
+        $dashboard['snapshotclass_count'] = count(PsoVolumeSnapshotClass::items(PsoVolumeSnapshotClass::PREFIX, 'name'));
         $dashboard['snapshot_count'] = count(PsoVolumeSnapshot::items(PsoVolumeSnapshot::PREFIX, 'uid'));
+        $dashboard['orphanedsnapshot_count'] = count(PsoVolumeSnapshot::items(PsoVolumeSnapshot::PREFIX, 'orphaned'));
         $dashboard['array_count'] = count(PsoArray::items(PsoArray::PREFIX, 'name'));
         $dashboard['offline_array_count'] = count(PsoArray::items(PsoArray::PREFIX, 'offline'));
 
@@ -1798,6 +1803,18 @@ class Pso
             array_push($volumesnapshots, $snapshot->asArray());
         }
         return $volumesnapshots;
+    }
+
+    public function orphanedsnapshots()
+    {
+        $this->RefreshData();
+
+        $orphanedsnapshots = [];
+        foreach (PsoVolumeSnapshot::items(PsoVolumeSnapshot::PREFIX, 'orphaned') as $uid) {
+            $snapshot = new PsoVolumeSnapshot($uid);
+            array_push($orphanedsnapshots, $snapshot->asArray());
+        }
+        return $orphanedsnapshots;
     }
 
     public function labels()

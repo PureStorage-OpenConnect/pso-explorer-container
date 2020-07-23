@@ -13,14 +13,14 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Volume Snapshots</span>
+                            <span>Volume Snapshots ({{ count($pso_volsnaps ?? []) - count($orphaned_snaps ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
-                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter2" placeholder="Search in table " value="{{ $volume_keyword ?? '' }}">
+                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter1" placeholder="Search in table" value="{{ $volume_keyword ?? '' }}">
                             </div>
                             <div class="row with-padding">
-                                <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter2>
+                                <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter1>
                                     <thead>
                                     <tr>
                                         <th data-toggle="true">Namespace</th>
@@ -118,20 +118,20 @@
             <div class="with-padding">
 
                 {{-- Orphaned Volume Snapshots --}}
-                <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12" id="orphaned">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Unmanaged Volume Snapshots</span>
+                            <span>Unmanaged Volume Snapshots ({{ count($orphaned_snaps ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
-                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter2" placeholder="Search in table " value="{{ $volume_keyword ?? '' }}">
+                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter2" placeholder="Search in table" value="{{ $volume_keyword ?? '' }}">
                             </div>
                             <div class="row with-padding">
                                 <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter2>
                                     <thead>
                                     <tr>
-                                        <th data-toggle="true">Snapshot source</th>
+                                        <th data-toggle="true">Volume name</th>
                                         <th>Provisioned size</th>
                                         <th>Array used space</th>
                                         <th data-hide="all">Status message</th>
@@ -141,11 +141,11 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @isset($pso_volsnaps)
-                                        @foreach($pso_volsnaps as $volsnap)
+                                    @isset($orphaned_snaps)
+                                        @foreach($orphaned_snaps as $volsnap)
                                             @if($volsnap['orphaned'] !== null)
                                                 <tr>
-                                                    <td><a href="{{ route('Storage-Volumes', ['volume_keyword' => $volsnap['pure_volname']]) }}">{{ $volsnap['sourceName'] ?? '' }}</a></td>
+                                                    <td><a href="{{ route('Storage-Volumes', ['volume_keyword' => $volsnap['pure_volname']]) }}">{{ $volsnap['pure_volname'] ?? '' }}</a></td>
 
                                                     <td>{{ $volsnap['pure_sizeFormatted'] ?? '' }}</td>
                                                     <td>{{ $volsnap['pure_usedFormatted'] ?? '' }}</td>
@@ -216,6 +216,9 @@
 
             $('.footable').footable();
 
+            var element = document.getElementById('tablefilter1');
+            var event = new Event('keyup');
+            element.dispatchEvent(event);
             var element = document.getElementById('tablefilter2');
             var event = new Event('keyup');
             element.dispatchEvent(event);

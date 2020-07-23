@@ -89,9 +89,10 @@ class StorageController extends Controller
             return view('dashboard');
         } else {
             $pso_volsnaps = $pso->volumesnapshots();
+            $orphaned_snaps = $pso->orphanedsnapshots();
             $portalInfo = $pso->portalInfo();
 
-            return view('storage/snapshots', ['pso_volsnaps' => $pso_volsnaps, 'portalInfo' => $portalInfo, 'volume_keyword' => $request->input('volume_keyword') ?? '']);
+            return view('storage/snapshots', ['pso_volsnaps' => $pso_volsnaps, 'orphaned_snaps' => $orphaned_snaps, 'portalInfo' => $portalInfo, 'volume_keyword' => $request->input('volume_keyword') ?? '']);
         }
     }
 }
