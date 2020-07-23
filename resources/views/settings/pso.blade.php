@@ -45,10 +45,19 @@
                                             <span>
                                                 @foreach($settings['dbvols'] ?? [] as $item)
                                                     <span>
-                                                        {{ $item['pure_name'] }}
-                                                        (Array:
-                                                        <a href="{{ route('Storage-StorageArrays', ['array_keyword' => $item['pure_arrayName']]) }}">{{ $item['pure_arrayName'] }}</a>,
-                                                        {{ 'Size: ' . $item['pure_sizeFormatted'] . ', Used: ' . $item['pure_usedFormatted'] . ')'}}
+                                                        @if(substr($item['pure_name'], -2) == '-u')
+                                                            <img src="/images/warning.svg" style="height: 13px; vertical-align: text-top;" data-toggle="tooltip" data-placement="top" title="This volume is no longer being used by PSO and can be removed.">
+                                                        @endif
+
+                                                        @if ($item['pure_arrayType'] == 'FA')
+                                                            <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
+                                                                {{ $item['pure_name'] }}
+                                                            </a>
+                                                        @else
+                                                            <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
+                                                                {{ $item['pure_name'] }}
+                                                            </a>
+                                                        @endif
                                                     </span><br>
                                                 @endforeach
                                             </span>
@@ -264,29 +273,6 @@
 @endsection
 
 @section('script')
-    @isset($portalInfo)
-        <script src="{{ asset('js/plugins/chartJs/Chart.min.js') }}"></script>
-
-        <script>
-            $(function () {
-                var doughnutData = {
-                    labels: ["Used (Gi)", "Provisioned (Gi)"],
-                    datasets: [{
-                        data: [{{ $portalInfo['total_used_raw']/1024/1024/1024 }}, {{ $portalInfo['total_size_raw']/1024/1024/1024 }}],
-                        backgroundColor: ["#52c8fd", "#f4f2f3"]
-                    }]
-                };
-
-                var doughnutOptions = {
-                    responsive: true
-                };
-
-                var ctx4 = document.getElementById("doughnutChart").getContext("2d");
-                new Chart(ctx4, {type: 'doughnut', data: doughnutData, options: doughnutOptions});
-            });
-        </script>
-    @endisset
-
     <script>
         function myFunction(e) {
             e.preventDefault();
