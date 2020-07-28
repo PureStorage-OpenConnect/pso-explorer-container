@@ -40,30 +40,54 @@
 
                                     @if(isset($settings['dbvols']))
                                     <tr>
-                                        <td class="col-xs-4 left"><span>CockroachDB volumes</span></td>
+                                        <td class="col-xs-4 left"><span>CockroachDB</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>
-                                                @foreach($settings['dbvols'] ?? [] as $item)
-                                                    <span>
-                                                        @if(substr($item['pure_name'], -2) == '-u')
-                                                            <img src="/images/warning.svg" style="height: 13px; vertical-align: text-top;" data-toggle="tooltip" data-placement="top" title="This volume is no longer being used by PSO and can be removed.">
-                                                        @endif
+                                            <table class="full-width table pure-table ps-table td-top">
+                                                <tr>
+                                                    <td>
+                                                        <b>Healthy volumes</b><br>
+                                                        @foreach($settings['dbvols'] ?? [] as $item)
+                                                            @if(!isset($item['unhealthy']))
+                                                                <span>
+                                                                    @if ($item['pure_arrayType'] == 'FA')
+                                                                        <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
+                                                                            {{ $item['pure_name'] }}
+                                                                        </a>
+                                                                    @else
+                                                                        <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
+                                                                            {{ $item['pure_name'] }}
+                                                                        </a>
+                                                                    @endif
+                                                                </span>
+                                                                <br>
+                                                            @endif
+                                                        @endforeach
+                                                    </td>
+                                                    <td>
+                                                        <b>Stale volumes</b><br>
+                                                    @foreach($settings['dbvols'] ?? [] as $item)
+                                                            @if(isset($item['unhealthy']))
+                                                                <span>
+                                                            <img src="/images/warning.svg" style="height: 13px; vertical-align: text-top;" data-toggle="tooltip" data-placement="top" title="This volume is parked by PSO since the replica was marked unhealthy.">
 
-                                                        @if ($item['pure_arrayType'] == 'FA')
-                                                            <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
+                                                            @if ($item['pure_arrayType'] == 'FA')
+                                                                        <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
                                                                 {{ $item['pure_name'] }}
                                                             </a>
-                                                        @else
-                                                            <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
+                                                                    @else
+                                                                        <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
                                                                 {{ $item['pure_name'] }}
                                                             </a>
-                                                        @endif
+                                                                    @endif
                                                     </span><br>
-                                                @endforeach
-                                            </span>
+                                                            @endif
+                                                        @endforeach
+                                                    </td>
+                                                </tr>
+                                            </table>
                                         </td>
                                     </tr>
-                                    @endif(isset($settings['dbvols']))
+                                    @endif
 
                                     <tr>
                                         <td class="col-xs-4 left"><span>Kubernetes namespace</span></td>

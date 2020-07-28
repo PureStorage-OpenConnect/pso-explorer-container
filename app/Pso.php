@@ -1075,7 +1075,8 @@ class Pso
                     }
 
                     if ($this->startsWith($this->psoInfo->prefix . '-pso-db_', $vol['name'])) {
-                        $backend_vol = new PsoBackendVolume($array->name . ':' . $vol['name']);
+                        $pure_arrayName_volName = $array->name . ':' . $vol['name'];
+                        $backend_vol = new PsoBackendVolume($pure_arrayName_volName);
 
                         $backend_vol->pure_name = $vol['name'];
                         $backend_vol->pure_size = $vol['size'] ?? 0;
@@ -1089,6 +1090,12 @@ class Pso
                         $backend_vol->pure_arrayMgmtEndPoint = $array->mgmtEndPoint;
                         $backend_vol->pure_sharedSpace = $vol['shared_space'] ?? 0;
                         $backend_vol->pure_totalReduction = $vol['total_reduction'] ?? 1;
+
+                        if (substr($pure_arrayName_volName, -2) == '-u') {
+                            $backend_vol->unhealthy = true;
+                            $backend_vol = New PsoBackendVolume(substr($pure_arrayName_volName, 0, -2));
+                            $backend_vol->unhealthy = true;
+                        }
                     }
                 }
 

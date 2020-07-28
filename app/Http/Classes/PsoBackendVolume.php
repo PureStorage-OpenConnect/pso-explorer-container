@@ -11,6 +11,7 @@ class PsoBackendVolume extends RedisModel
 
     protected $fillable = [
         'pure_arrayName_volName',
+        'unhealthy',
         'pure_name',
         'pure_size',
         'pure_sizeFormatted',
