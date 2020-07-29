@@ -51,7 +51,7 @@
                                                 <td>{{ $vol['name'] ?? ' ' }}</td>
                                                 <td>{{ $vol['size'] ?? ' ' }}</td>
                                                 <td>{{ $vol['pure_usedFormatted'] ?? ' '}}</td>
-                                                <td>@if($vol['pure_reads_per_sec'] !== null){{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }}}@endif </td>
+                                                <td>@if($vol['pure_reads_per_sec'] !== null){{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }}@endif </td>
                                                 <td>@if($vol['pure_output_per_sec_formatted'] !== null){{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }}@endif </td>
 
                                                 <td>{{ $vol['creationTimestamp'] ?? ' ' }}</td>

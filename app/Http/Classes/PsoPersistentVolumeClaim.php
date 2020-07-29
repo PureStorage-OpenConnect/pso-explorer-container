@@ -3,8 +3,6 @@
 
 namespace App\Http\Classes;
 
-use App\Http\Classes\PsoPersistentVolume;
-use App\Http\Classes\PsoPureVolume;
 use Illuminate\Support\Facades\Redis;
 
 class PsoPersistentVolumeClaim extends RedisModel

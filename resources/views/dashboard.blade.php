@@ -41,24 +41,30 @@
                             <div class="panel-body list-container">
                                 <div class="list-section">
                                     <div class="no-padding">
-                                        <h1 class="no-margin"><a href="{{ route('Storage-StorageClasses') }}">{{ $dashboard['storageclass_count'] ?? 0 }}</a></h1>
-                                        <small>Used for provisioning</small>
+                                        <h1 class="no-margin"><a href="{{ route('Storage-StorageClasses') }}">{{ $dashboard['storageclass_count'] ?? 0 }}</a> -
+                                        <a href="{{ route('Storage-StorageClasses') }}">{{ $dashboard['snapshotclass_count'] ?? 0 }}</a></h1>
+                                        <small>StorageClass - SnapshotClass</small>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {{-- StatefulSets summary --}}
+                    {{-- Snapshot summary --}}
                     <div class="no-left-padding col-xs-12 col-sm-12 col-md-6 col-lg-3">
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <span>Snapshots</span>
+                                @if($dashboard['orphanedsnapshot_count'] > 0)
+                                    <a href="{{ route('Storage-Snapshots') . '#orphaned'}}" >
+                                        <span class="label label-warning float-right">{{ $dashboard['orphanedsnapshot_count'] }} unmanaged</span>
+                                    </a>
+                                @endif
                             </div>
                             <div class="panel-body list-container">
                                 <div class="list-section">
                                     <div class="no-padding">
-                                        <h1 class="no-margin"><a href="{{ route('Storage-Snapshots') }}">{{ $dashboard['snapshot_count'] ?? 0 }}</a></h1>
+                                        <h1 class="no-margin"><a href="{{ route('Storage-Snapshots') }}">{{ ($dashboard['snapshot_count'] ?? 0) - ($dashboard['orphanedsnapshot_count'] ?? 0) }}</a></h1>
                                         <small>Volume Snapshots</small>
                                     </div>
                                 </div>
@@ -120,7 +126,9 @@
                                         @ISSET($dashboard['top10_growth_vols'])
                                         @FOREACH($dashboard['top10_growth_vols'] as $vol)
                                             <tr>
-                                                <td><a href="{{ route('Storage-Volumes', ['volume_keyword' => $vol['pure_name']]) }}">{{ $vol['name'] }}</a></td>
+                                                <td>
+                                                    <a href="{{ route('Storage-Volumes', ['volume_keyword' => $vol['pure_name']]) }}">{{ $vol['namespace'] }}/{{ $vol['name'] }}</a>
+                                                </td>
                                                 @IF($vol['status'] == 'Bound')
                                                 <td>{{ $vol['sizeFormatted']}}</td>
                                                 @ELSE

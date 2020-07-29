@@ -17,7 +17,7 @@
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
-                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter" placeholder="Search in table">
+                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter" placeholder="Search in table" value="{{ $array_keyword ?? ' ' }}">
                             </div>
                             <div class="row with-padding">
                                 <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter>
@@ -41,7 +41,12 @@
                                     @isset($pso_arrays)
                                         @foreach($pso_arrays as $pso_array)
                                             <tr>
-                                                <td>{{ $pso_array['name'] ?? '' }}</td>
+                                                <td>
+                                                    @isset($pso_array['message'])
+                                                        <img src="/images/warning.svg" style="height: 13px; vertical-align: text-top;">
+                                                    @endisset
+                                                    {{ $pso_array['name'] ?? '' }}
+                                                </td>
                                                 <td>{{ $pso_array['volumeCount'] ?? '' }}</td>
                                                 <td>{{ $pso_array['sizeFormatted'] ?? '' }}</td>
                                                 <td>{{ $pso_array['usedFormatted'] ?? '' }}</td>
@@ -62,6 +67,8 @@
                                         @if(count($pso_arrays) == 0)
                                             <tr>
                                                 <td><i>No arrays found</i></td>
+                                                <td> </td>
+                                                <td> </td>
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>
@@ -100,6 +107,9 @@
 
             $('.footable').footable();
 
+            var element = document.getElementById('tablefilter');
+            var event = new Event('keyup');
+            element.dispatchEvent(event);
         });
 
     </script>

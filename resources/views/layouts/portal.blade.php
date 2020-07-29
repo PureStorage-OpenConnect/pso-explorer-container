@@ -381,7 +381,8 @@
     </div>
 </modal>
 
-<script src="{{ asset('js/jquery.js') }}"></script>
+<script src="{{ asset('js/jquery.min.js') }}"></script>
+<script src="{{ asset('js/popper.min.js') }}"></script>
 <script src="{{ asset('js/bootstrap.min.js') }}"></script>
 <script src="{{ asset('js/metisMenu.min.js') }}"></script>
 
@@ -389,6 +390,11 @@
     $(function () {
         $('#sidebar-menu').metisMenu();
     });
+</script>
+<script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    })
 </script>
 <script>
     $("#toggle-btn").click(function (e) {

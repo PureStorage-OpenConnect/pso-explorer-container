@@ -36,7 +36,60 @@
                                                 @endforeach
                                             </span>
                                         </td>
-                                    </tr><tr>
+                                    </tr>
+
+                                    @if(isset($settings['dbvols']))
+                                    <tr>
+                                        <td class="col-xs-4 left"><span>CockroachDB</span></td>
+                                        <td class="col-xs-8 left">
+                                            <table class="full-width table pure-table ps-table td-top">
+                                                <tr>
+                                                    <td>
+                                                        <b>Healthy volumes</b><br>
+                                                        @foreach($settings['dbvols'] ?? [] as $item)
+                                                            @if(!isset($item['unhealthy']))
+                                                                <span>
+                                                                    @if ($item['pure_arrayType'] == 'FA')
+                                                                        <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
+                                                                            {{ $item['pure_name'] }}
+                                                                        </a>
+                                                                    @else
+                                                                        <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
+                                                                            {{ $item['pure_name'] }}
+                                                                        </a>
+                                                                    @endif
+                                                                </span>
+                                                                <br>
+                                                            @endif
+                                                        @endforeach
+                                                    </td>
+                                                    <td>
+                                                        <b>Stale volumes</b><br>
+                                                    @foreach($settings['dbvols'] ?? [] as $item)
+                                                            @if(isset($item['unhealthy']))
+                                                                <span>
+                                                            <img src="/images/warning.svg" style="height: 13px; vertical-align: text-top;" data-toggle="tooltip" data-placement="top" title="This volume is parked by PSO since the replica was marked unhealthy.">
+
+                                                            @if ($item['pure_arrayType'] == 'FA')
+                                                                        <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
+                                                                {{ $item['pure_name'] }}
+                                                            </a>
+                                                                    @else
+                                                                        <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
+                                                                {{ $item['pure_name'] }}
+                                                            </a>
+                                                                    @endif
+                                                    </span><br>
+                                                            @endif
+                                                        @endforeach
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    @endif
+
+                                    <tr>
                                         <td class="col-xs-4 left"><span>Kubernetes namespace</span></td>
                                         <td class="col-xs-8 left">
                                             <span>{{ $settings['namespace'] ?? '' }}</span>
@@ -68,7 +121,7 @@
                     <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                         <div class="panel panel-default">
                             <div class="panel-heading">
-                                <span>Block storage settings</span>
+                                <span>Default block storage settings</span>
                             </div>
                             <div class="panel-body table-no-filter">
                                 <table class="table pure-table ps-table">
@@ -167,6 +220,53 @@
             </div>
         </div>
 
+        {{-- File storage settings --}}
+        <div class="row">
+            <div class="col-xs-12 tab-container">
+                <div class="with-padding">
+                    <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <span>Default file storage settings</span>
+                            </div>
+                            <div class="panel-body table-no-filter">
+                                <table class="table pure-table ps-table">
+                                    <thead>
+                                    <tr class="ps-table-heading"><!---->
+                                        <th class="col-xs-4 left" title="Parameter">
+                                            <span class="ps-table-header-text" title="">
+                                                Parameter
+                                            </span>
+                                        </th>
+                                        <th class="col-xs-8 left" title="Value">
+                                            <span class="ps-table-header-text" title="">
+                                                Value
+                                            </span>
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td class="col-xs-4 left"><span>Snapshot directory enabled</span></td>
+                                        <td class="col-xs-8 left">
+                                            <span>false</span><br>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-xs-4 left"><span>Export rules</span></td>
+                                        <td class="col-xs-8 left">
+                                            <span>*(rw,no_root_squash)</span><br>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- PSO provisioner log --}}
         <div class="row">
             <div class="col-xs-12 tab-container">
@@ -197,29 +297,6 @@
 @endsection
 
 @section('script')
-    @isset($portalInfo)
-        <script src="{{ asset('js/plugins/chartJs/Chart.min.js') }}"></script>
-
-        <script>
-            $(function () {
-                var doughnutData = {
-                    labels: ["Used (Gi)", "Provisioned (Gi)"],
-                    datasets: [{
-                        data: [{{ $portalInfo['total_used_raw']/1024/1024/1024 }}, {{ $portalInfo['total_size_raw']/1024/1024/1024 }}],
-                        backgroundColor: ["#52c8fd", "#f4f2f3"]
-                    }]
-                };
-
-                var doughnutOptions = {
-                    responsive: true
-                };
-
-                var ctx4 = document.getElementById("doughnutChart").getContext("2d");
-                new Chart(ctx4, {type: 'doughnut', data: doughnutData, options: doughnutOptions});
-            });
-        </script>
-    @endisset
-
     <script>
         function myFunction(e) {
             e.preventDefault();

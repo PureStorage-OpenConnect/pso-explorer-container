@@ -6,7 +6,8 @@ if [ -z "$1" ] ; then
 fi
  
 # Change application version and debugging mode in .env
-sed -i '.bak' 's/APP_VERSION=.*/APP_VERSION="'"$1"'"/' .env
+cp .env .env.bak
+sed -i '' 's/APP_VERSION=.*/APP_VERSION="'"$1"'"/' .env
 sed -i '' 's/APP_DEBUG=.*/APP_DEBUG=false/' .env
 
 # Clear Laravel cache

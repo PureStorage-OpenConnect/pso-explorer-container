@@ -13,7 +13,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class FlashBladeAPI
+class FlashBladeApi
 {
     // Constants
 //    public const FA_API_URI = "/api/1.17/";

@@ -2,12 +2,13 @@
 
 namespace App;
 
-use App\Api\FlashArrayAPI;
-use App\Api\FlashBladeAPI;
+use App\Api\FlashArrayApi;
+use App\Api\FlashBladeApi;
 use App\Api\k8s\PodLog;
 use App\Api\k8s\VolumeSnapshotClass;
 use App\Api\k8s\VolumeSnapshot;
 use App\Http\Classes\PsoArray;
+use App\Http\Classes\PsoBackendVolume;
 use App\Http\Classes\PsoDeployment;
 use App\Http\Classes\PsoInformation;
 use App\Http\Classes\PsoJob;
@@ -67,7 +68,11 @@ class Pso
         // cluster IP (kubernetes.default.svc) and locally stored credentials
         if (file_exists('/var/run/secrets/kubernetes.io')) {
             // Use for in cluster credentials
-            $this->master = 'https://kubernetes.default.svc';
+            if (file_exists('/run/secrets/rhsm')) {
+                $this->master = 'https://kubernetes.default.svc.cluster.local';
+            } else {
+                $this->master = 'https://kubernetes.default.svc';
+            }
             $this->authentication = [
                 'caCert' => '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
                 'token' => '/var/run/secrets/kubernetes.io/serviceaccount/token',
@@ -94,9 +99,18 @@ class Pso
      *
      * @return string
      */
-    private function formatBytes($bytes, $precision = 2)
+    private function formatBytes($bytes, $precision = 2, $format = 1)
     {
-        $units = array('Bi', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei');
+        if ($format == 1) {
+            // Format == 1: Storage capacity
+            $units = array('Bi', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei');
+        } elseif ($format == 2) {
+            // Format == 1: Bandwidth
+            $units = array('b', 'Kb', 'Mb', 'Gb', 'Tb', 'Pb', 'Eb');
+        } else {
+            // Format == 3: Regular number
+            $units = array('', 'K', 'M', 'G', 'T', 'P', 'E');
+        }
 
         $bytes = max($bytes, 0);
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
@@ -355,7 +369,7 @@ class Pso
                     $newArray->array_push('labels', $key . '=' . $value);
                 }
 
-                $fa_api = new FlashArrayAPI();
+                $fa_api = new FlashArrayApi();
                 try {
                     // Connect to the array for the array name
                     $fa_api->authenticate($mgmtEndPoint, $apiToken);
@@ -379,7 +393,6 @@ class Pso
                             $newArray->array_push('protocols', 'NVMe');
                         }
                     }
-                    $newArray->message = '';
                 } catch (Exception $e) {
                     // Log error message
                     Log::debug('xxx Error connecting to FlashArray™ "' . $mgmtEndPoint . '"');
@@ -411,7 +424,7 @@ class Pso
             $apiToken = $flashblade->APIToken ?? 'not set';
             $nfsEndPoint = $flashblade->NFSEndPoint ?? 'not set';
 
-            if (($mgmtEndPoint !== 'not set') and ($apiToken !== 'not set') and ($nfsEndPoint !== 'not set')) {
+            if (($mgmtEndPoint !== 'not set') and ($apiToken !== 'not set')) {
                 $newArray = new PsoArray($mgmtEndPoint);
                 $newArray->apiToken = $apiToken;
                 $myLabels = [];
@@ -420,7 +433,7 @@ class Pso
                 }
                 $newArray->labels = $myLabels;
 
-                $fb_api = new FlashBladeAPI($mgmtEndPoint, $apiToken);
+                $fb_api = new FlashBladeApi($mgmtEndPoint, $apiToken);
                 try {
                     // Connect to the array for the array name
                     $fb_api->authenticate();
@@ -443,6 +456,16 @@ class Pso
                     $newArray->message = 'Unable to connect to FlashBlade® (' . $e->getMessage() . ')';
                     unset($e);
                 }
+
+                if ($nfsEndPoint == 'not set') {
+                    if (isset($flashblade->NfsEndPoint)) {
+                        $newArray->message = 'Currently using NfsEndPoint for this FlashBlade®. ' .
+                            'Please change your values.yaml to use NFSEndPoint, as NfsEndPoint is deprecated.';
+                    } else {
+                        $newArray->message = 'No NFSEndPoint was set for this FlashBlade®. ' .
+                            'Please check the PSO configurations (values.yaml).';
+                    }
+                }
             } else {
                 if ($mgmtEndPoint !== 'not set') {
                     $newArray = new PsoArray($mgmtEndPoint);
@@ -451,9 +474,6 @@ class Pso
                     $newArray->offline = $mgmtEndPoint;
                     if ($apiToken == 'not set') {
                         $newArray->message = 'No API token was set for this FlashBlade®. ' .
-                            'Please check the PSO configurations (values.yaml).';
-                    } else {
-                        $newArray->message = 'No NFSEndPoint was set for this FlashBlade®. ' .
                             'Please check the PSO configurations (values.yaml).';
                     }
                 }
@@ -550,22 +570,25 @@ class Pso
         }
 
         foreach (($pvc_list->items ?? []) as $item) {
-            $myvol = new PsoPersistentVolumeClaim($item->metadata->uid);
-            $myvol->name = $item->metadata->name ?? 'Unknown';
-            $myvol->namespace = $item->metadata->namespace ?? 'Unknown';
-            $myvol->namespace_name = $myvol->namespace . ':' . $myvol->name;
-            $myvol->size = $item->spec->resources->requests['storage'] ?? '';
-            $myvol->storageClass =  $item->spec->storageClassName ?? '';
-            $myvol->status = $item->status->phase ?? '';
-            $myvol->creationTimestamp = $item->metadata->creationTimestamp ?? '';
+            $myStorageClasses = PsoStorageClass::items(PsoStorageClass::PREFIX, 'name');
+            if (in_array(($item->spec->storageClassName ?? ''), $myStorageClasses)) {
+                $myvol = new PsoPersistentVolumeClaim($item->metadata->uid);
+                $myvol->name = $item->metadata->name ?? 'Unknown';
+                $myvol->namespace = $item->metadata->namespace ?? 'Unknown';
+                $myvol->namespace_name = $myvol->namespace . ':' . $myvol->name;
+                $myvol->size = $item->spec->resources->requests['storage'] ?? '';
+                $myvol->storageClass =  $item->spec->storageClassName ?? '';
+                $myvol->status = $item->status->phase ?? '';
+                $myvol->creationTimestamp = $item->metadata->creationTimestamp ?? '';
 
-            $labels = [];
-            foreach (($item->metadata->labels ?? []) as $key => $value) {
-                array_push($labels, $key . '=' . $value);
+                $labels = [];
+                foreach (($item->metadata->labels ?? []) as $key => $value) {
+                    array_push($labels, $key . '=' . $value);
+                }
+                $myvol->labels = $labels;
+
+                $myvol->pv_name = $item->spec->volumeName ?? '';
             }
-            $myvol->labels = $labels;
-
-            $myvol->pv_name = $item->spec->volumeName ?? '';
         }
         return true;
     }
@@ -1008,12 +1031,11 @@ class Pso
             $array = new PsoArray($item);
 
             if (strpos($array->model, 'FlashArray') and ($array->offline == null)) {
-                $fa_api = new FlashArrayAPI();
+                $fa_api = new FlashArrayApi();
                 $fa_api->authenticate($array->mgmtEndPoint, $array->apiToken);
 
-                // TODO: Can we also add Cockraoch DB volumes prefix . '-pso-db_' . <number>
                 $vols = $fa_api->GetVolumes([
-                    'names' => $this->psoInfo->prefix . '-pvc-*',
+                    'names' => $this->psoInfo->prefix . '-*',
                     'space' => 'true',
                 ]);
 
@@ -1051,6 +1073,30 @@ class Pso
                         }
                         $total_snapshot_used = $total_snapshot_used + ($vol['snapshots'] ?? 0);
                     }
+
+                    if ($this->startsWith($this->psoInfo->prefix . '-pso-db_', $vol['name'])) {
+                        $pure_arrayName_volName = $array->name . ':' . $vol['name'];
+                        $backend_vol = new PsoBackendVolume($pure_arrayName_volName);
+
+                        $backend_vol->pure_name = $vol['name'];
+                        $backend_vol->pure_size = $vol['size'] ?? 0;
+                        $backend_vol->pure_sizeFormatted = $this->formatBytes($backend_vol->pure_size, 2);
+                        $backend_vol->pure_used = $vol['size'] * (1 - $vol['thin_provisioning'] ?? 0);
+                        $backend_vol->pure_usedFormatted = $this->formatBytes($backend_vol->pure_used, 2);
+                        $backend_vol->pure_drr = $vol['data_reduction'] ?? 1;
+                        $backend_vol->pure_thinProvisioning = $vol['thin_provisioning'] ?? 0;
+                        $backend_vol->pure_arrayName = $array->name;
+                        $backend_vol->pure_arrayType = 'FA';
+                        $backend_vol->pure_arrayMgmtEndPoint = $array->mgmtEndPoint;
+                        $backend_vol->pure_sharedSpace = $vol['shared_space'] ?? 0;
+                        $backend_vol->pure_totalReduction = $vol['total_reduction'] ?? 1;
+
+                        if (substr($pure_arrayName_volName, -2) == '-u') {
+                            $backend_vol->unhealthy = true;
+                            $backend_vol = New PsoBackendVolume(substr($pure_arrayName_volName, 0, -2));
+                            $backend_vol->unhealthy = true;
+                        }
+                    }
                 }
 
                 $vols_perf = $fa_api->GetVolumes([
@@ -1069,20 +1115,22 @@ class Pso
                         $myvol->pure_input_per_sec = $vol_perf['input_per_sec'] ?? 0;
                         $myvol->pure_input_per_sec_formatted = $this->formatBytes(
                             $vol_perf['input_per_sec'],
-                            1
-                        );
+                            1,
+                            2
+                        ) . '/s';
                         $myvol->pure_output_per_sec = $vol_perf['output_per_sec'] ?? 0;
                         $myvol->pure_output_per_sec_formatted = $this->formatBytes(
                             $vol_perf['output_per_sec'],
-                            1
-                        );
+                            1,
+                            2
+                        ) . '/s';
                         $myvol->pure_usec_per_read_op = round(
                             $vol_perf['usec_per_read_op'] / 1000,
-                            2
+                            2,
                         );
                         $myvol->pure_usec_per_write_op = round(
                             $vol_perf['usec_per_write_op'] / 1000,
-                            2
+                            2,
                         );
 
                         $total_iops_read = $total_iops_read + $vol_perf['reads_per_sec'] ?? 0;
@@ -1162,12 +1210,15 @@ class Pso
 
                         $mysnap = new PsoVolumeSnapshot($uid);
                         if (($mysnap->name == '') and ($mysnap->namespace == '') and ($mysnap->sourceName == '')) {
-                            $mysnap->name = '';
+                            $pure_volname = substr($snap['name'], 0, strpos($snap['name'], '.'));
+                            $pure_snapname = substr($snap['name'], strpos($snap['name'], '.') + 1);
+
+                            $mysnap->name = $pure_volname;
                             $mysnap->namespace = 'Unknown';
                             $mysnap->sourceName = $pure_volname;
                             $mysnap->readyToUse = 'Ready';
-                            $mysnap->errorMessage = 'This snapahot ia (no longer) managed by Kubernetes';
-                            $mysnap->orphaned = $pure_volname;
+                            $mysnap->errorMessage = 'This snaphot is (no longer) managed by Kubernetes';
+                            $mysnap->orphaned = $uid;
                         }
 
                         $mysnap->pure_name = $snap['name'];
@@ -1185,13 +1236,13 @@ class Pso
                     }
                 }
             } elseif (strpos($array->model, 'FlashBlade') and ($array->offline == null)) {
-                $fb_api = new FlashBladeAPI($array->mgmtEndPoint, $array->apiToken);
+                $fb_api = new FlashBladeApi($array->mgmtEndPoint, $array->apiToken);
 
                 try {
                     $fb_api->authenticate();
 
                     $filesystems = $fb_api->GetFileSystems([
-                        'names' => $this->psoInfo->prefix . '-pvc-*',
+                        'names' => $this->psoInfo->prefix . '-*',
                         'space' => 'true',
                         'destroyed' => false,
                     ]);
@@ -1249,13 +1300,15 @@ class Pso
                             $myvol->pure_input_per_sec = $fs_perf_item['write_bytes_per_sec'] ?? 0;
                             $myvol->pure_input_per_sec_formatted = $this->formatBytes(
                                 $myvol->pure_input_per_sec,
-                                1
-                            );
+                                1,
+                                2
+                            ) . '/s';
                             $myvol->pure_output_per_sec = $fs_perf_item['read_bytes_per_sec'];
                             $myvol->pure_output_per_sec_formatted = $this->formatBytes(
                                 $myvol->pure_output_per_sec,
-                                1
-                            );
+                                1,
+                                2
+                            ) . '/s';
                             $myvol->pure_usec_per_read_op = round(
                                 $myvol->pure_usec_per_read_op / 1000,
                                 2
@@ -1273,9 +1326,27 @@ class Pso
                             $perf_count = $perf_count + 1;
                         }
                     }
+
+                    if ($this->startsWith($this->psoInfo->prefix . '-pso-db_', $filesystem['name'])) {
+                        $backend_vol = new PsoBackendVolume($array->name . ':' . $filesystem['name']);
+
+                        $backend_vol->pure_name = $filesystem['name'];
+                        $backend_vol->pure_size = $filesystem['provisioned'] ?? 0;
+                        $backend_vol->pure_sizeFormatted = $this->formatBytes($backend_vol->pure_size, 2);
+                        $backend_vol->pure_used = $filesystem['space']['virtual'];
+                        $backend_vol->pure_usedFormatted = $this->formatBytes($backend_vol->pure_used, 2);
+                        $backend_vol->pure_drr = $filesystem['space']['data_reduction'] ?? 1;
+                        $backend_vol->pure_thinProvisioning = 0;
+                        $backend_vol->pure_arrayName = $array->name;
+                        $backend_vol->pure_arrayType = 'FB';
+                        $backend_vol->pure_arrayMgmtEndPoint = $array->mgmtEndPoint;
+                        $backend_vol->pure_sharedSpace = 0;
+                        $backend_vol->pure_totalReduction = $filesystem['space']['data_reduction'] ?? 1;
+                    }
                 }
             }
         }
+
         $this->psoInfo->totalsize = $total_size;
         $this->psoInfo->totalused = $total_used;
         $this->psoInfo->total_orphaned_used = $total_orphaned_used;
@@ -1373,13 +1444,28 @@ class Pso
     private function refreshData()
     {
         // Only refresh data if the redis data is stale
-        if ((Redis::get(self::VALID_PSO_DATA_KEY) !== null)) {
-            $this->psoFound = true;
-            $this->errorSource = '';
-            $this->errorMessage = '';
-            return true;
+        try {
+            if ((Redis::get(self::VALID_PSO_DATA_KEY) !== null)) {
+                $this->psoFound = true;
+                $this->errorSource = '';
+                $this->errorMessage = '';
+                return true;
+            }
+        } catch (Exception $e) {
+            // Log error message
+            Log::debug('xxx Error connecting to Redis');
+            Log::debug('    - Message: "' . $e->getMessage() . '"');
+            Log::debug('    - File: "' . $e->getFile() . '"');
+            Log::debug('    - Line: "' . $e->getLine() . '"');
+
+            // If we catch a CURL error, return an error message
+            $this->errorSource = 'redis';
+            $this->errorMessage = 'Redis: ' . $e->getMessage();
+            unset($e);
+            return false;
         }
 
+        // Check if an update is already running
         if (Redis::get(self::PSO_UPDATE_KEY) !== null) {
             Log::debug('--- Already busy with refresh');
             $this->psoFound = false;
@@ -1396,6 +1482,7 @@ class Pso
         Log::debug('    Remove stale data');
         Redis::del(self::VALID_PSO_DATA_KEY);
         PsoArray::deleteAll(PsoArray::PREFIX);
+        PsoBackendVolume::deleteAll(PsoBackendVolume::PREFIX);
         PsoDeployment::DeleteAll(PsoDeployment::PREFIX);
         PsoInformation::deleteAll(PsoInformation::PREFIX);
         PsoLabels::deleteAll(PsoLabels::PREFIX);
@@ -1497,7 +1584,9 @@ class Pso
             )
         );
         $dashboard['storageclass_count'] = count(PsoStorageClass::items(PsoStorageClass::PREFIX, 'name'));
+        $dashboard['snapshotclass_count'] = count(PsoVolumeSnapshotClass::items(PsoVolumeSnapshotClass::PREFIX, 'name'));
         $dashboard['snapshot_count'] = count(PsoVolumeSnapshot::items(PsoVolumeSnapshot::PREFIX, 'uid'));
+        $dashboard['orphanedsnapshot_count'] = count(PsoVolumeSnapshot::items(PsoVolumeSnapshot::PREFIX, 'orphaned'));
         $dashboard['array_count'] = count(PsoArray::items(PsoArray::PREFIX, 'name'));
         $dashboard['offline_array_count'] = count(PsoArray::items(PsoArray::PREFIX, 'offline'));
 
@@ -1508,6 +1597,7 @@ class Pso
             if (($volume->pure_orphaned == null) and ($volume->pure_arrayType == 'FA')) {
                 $vol['uid'] = $uid;
                 $vol['name'] = $volume->name;
+                $vol['namespace'] = $volume->namespace;
                 $vol['pure_name'] = $volume->pure_name;
                 $vol['size'] = $volume->pure_size;
                 $vol['sizeFormatted'] = $volume->pure_sizeFormatted;
@@ -1720,6 +1810,18 @@ class Pso
             array_push($volumesnapshots, $snapshot->asArray());
         }
         return $volumesnapshots;
+    }
+
+    public function orphanedsnapshots()
+    {
+        $this->RefreshData();
+
+        $orphanedsnapshots = [];
+        foreach (PsoVolumeSnapshot::items(PsoVolumeSnapshot::PREFIX, 'orphaned') as $uid) {
+            $snapshot = new PsoVolumeSnapshot($uid);
+            array_push($orphanedsnapshots, $snapshot->asArray());
+        }
+        return $orphanedsnapshots;
     }
 
     public function labels()
@@ -1990,9 +2092,12 @@ class Pso
 
         $portalInfo['total_iops_read'] = $this->psoInfo->total_iops_read;
         $portalInfo['total_iops_write'] = $this->psoInfo->total_iops_write;
-        $portalInfo['total_bw'] = $this->formatBytes($this->psoInfo->total_bw_read + $this->psoInfo->total_bw_write);
-        $portalInfo['total_bw_read'] = $this->formatBytes($this->psoInfo->total_bw_read);
-        $portalInfo['total_bw_write'] = $this->formatBytes($this->psoInfo->total_bw_write);
+        $portalInfo['total_bw'] = $this->formatBytes(
+            $this->psoInfo->total_bw_read + $this->psoInfo->total_bw_write,
+            1,
+            2);
+        $portalInfo['total_bw_read'] = $this->formatBytes($this->psoInfo->total_bw_read, 1, 2);
+        $portalInfo['total_bw_write'] = $this->formatBytes($this->psoInfo->total_bw_write, 1, 2);
 
         $portalInfo['low_msec_read'] = round($this->psoInfo->low_msec_read, 2);
         $portalInfo['low_msec_write'] = round($this->psoInfo->low_msec_write, 2);
@@ -2005,8 +2110,20 @@ class Pso
     public function settings()
     {
         $this->RefreshData();
+        $settings = $this->psoInfo->asArray();
 
-        return $this->psoInfo->asArray();
+        // Add PSO CockroachDB volumes to settings
+        $backendvols = PsoBackendVolume::items(PsoBackendVolume::PREFIX, 'pure_arrayName_volName');
+        if (count($backendvols) > 0) {
+            $settings['dbvols'] = [];
+            foreach ($backendvols as $pure_arrayName_volName) {
+                $backendvol = New PsoBackendVolume($pure_arrayName_volName);
+
+                array_push($settings['dbvols'], $backendvol->asArray());
+            }
+        }
+
+        return $settings;
     }
 
     public function log()
