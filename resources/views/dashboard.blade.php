@@ -143,18 +143,20 @@
                                                 @if ($vol['growthPercentage'] > 0)
                                                     <td class="text-navy text-danger">
                                                         ↑
-                                                        @IF($vol['status'] == 'Bound')
+                                                        @if($vol['status'] == 'Bound')
                                                             {{ number_format($vol['growthPercentage'], 2) }}%
-                                                        @ENDIF
+                                                        @endif
                                                     </td>
                                                 @elseif (($vol['growthPercentage'] < 0))
                                                     <td class="text-navy text-success">
                                                         ↓
-                                                        @IF($vol['status'] == 'Bound')
+                                                        @if($vol['status'] == 'Bound')
                                                             {{ number_format($vol['growthPercentage'], 2) }}%
-                                                        @ENDIF
+                                                        @endif
                                                     </td>
-                                                    @endif
+                                                @else
+                                                    <td> </td>
+                                                @endif
                                                 </td>
                                             </tr>
                                         @ENDFOREACH

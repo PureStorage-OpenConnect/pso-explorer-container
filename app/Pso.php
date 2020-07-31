@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * Pso module
+ * This module retrieves information from Kubernetes and Pure Storage products
+ * and stores the result in Redis using models. It is also be used to retrieve
+ * the information from Redis.
+ *
+ * @category Class
+ * @package  PSO_Explorer
+ * @author   Remko Deenik <rdeenik@purestorage.com>
+ * @license  https://raw.githubusercontent.com/PureStorage-OpenConnect/pso-explorer/master/LICENSE Apache 2
+ * @link     https://github.com/PureStorage-OpenConnect/pso-explorer-container
+ *
+ * php version 7.4
+ */
+
 namespace App;
 
 use App\Api\FlashArrayApi;
@@ -221,8 +236,11 @@ class Pso
                     }
                     $containers = [];
                     foreach (($item->spec->containers ?? []) as $container) {
-                        array_push($containers, ($container->name ?? 'Unknown container name') . ': ' .
-                            ($container->image  ?? 'Unknown container image'));
+                        array_push(
+                            $containers,
+                            ($container->name ?? 'Unknown container name') . ': ' .
+                            ($container->image  ?? 'Unknown container image')
+                        );
                     }
                     $my_pod->containers = $containers;
 
@@ -264,8 +282,8 @@ class Pso
                 }
 
                 if (
-                    ($myPodName == 'pso-csi-controller-0') or
-                        ($this->startsWith('pure-provisioner', $myPodName))
+                    ($myPodName == 'pso-csi-controller-0')
+                    or ($this->startsWith('pure-provisioner', $myPodName))
                 ) {
                     $this->psoInfo->provisioner_pod = $myPodName;
                     $this->psoInfo->provisioner_container = $item->spec->containers[0]->name ?? 'Unknown';
@@ -281,7 +299,6 @@ class Pso
                                 $this->psoInfo->array_push('pso_args', str_replace('--feature-gates=', '', $arg));
                             }
                         }
-
                     }
                     if ($myContainerName == 'csi-snapshotter') {
                         array_push($images, $container->name . ': ' . $container->image);
@@ -625,8 +642,11 @@ class Pso
                             in_array(($template->spec->storageClassName), $myStorageClasses)
                             or $template->spec->storageClassName == null
                         ) {
-                            array_push($namespace_names, $item->metadata->namespace . ':' .
-                                $template->metadata->name . '-' . $item->metadata->name . '-' . $i);
+                            array_push(
+                                $namespace_names,
+                                $item->metadata->namespace . ':' .
+                                $template->metadata->name . '-' . $item->metadata->name . '-' . $i
+                            );
                         }
                     }
                 }
@@ -762,8 +782,11 @@ class Pso
                     }
 
                     $my_job->array_push('pvc_name', $volume->persistentVolumeClaim->claimName ?? 'not set');
-                    $my_job->array_push('pvc_namespace_name', ($item->metadata->namespace ?? 'Unknown') . ':' .
-                        ($volume->persistentVolumeClaim->claimName ?? 'Unknown'));
+                    $my_job->array_push(
+                        'pvc_namespace_name',
+                        ($item->metadata->namespace ?? 'Unknown') . ':' .
+                        ($volume->persistentVolumeClaim->claimName ?? 'Unknown')
+                    );
                 }
             }
         }
@@ -902,8 +925,10 @@ class Pso
             }
         } catch (Exception $e) {
             // Log error message
-            Log::debug('xxx Error retrieving VolumeSnapshotClasses using API version ' .
-                $this->psoInfo->snapshot_api_version);
+            Log::debug(
+                'xxx Error retrieving VolumeSnapshotClasses using API version ' .
+                $this->psoInfo->snapshot_api_version
+            );
             Log::debug('    - Message: "' . $e->getMessage() . '"');
             Log::debug('    - File: "' . $e->getFile() . '"');
             Log::debug('    - Line: "' . $e->getLine() . '"');
@@ -992,8 +1017,10 @@ class Pso
             }
         } catch (Exception $e) {
             // Log error message
-            Log::debug('xxx Error retrieving VolumeSnapshots using API version ' .
-                $this->psoInfo->snapshot_api_version);
+            Log::debug(
+                'xxx Error retrieving VolumeSnapshots using API version ' .
+                $this->psoInfo->snapshot_api_version
+            );
             Log::debug('    - Message: "' . $e->getMessage() . '"');
             Log::debug('    - File: "' . $e->getFile() . '"');
             Log::debug('    - Line: "' . $e->getLine() . '"');
@@ -1034,14 +1061,16 @@ class Pso
                 $fa_api = new FlashArrayApi();
                 $fa_api->authenticate($array->mgmtEndPoint, $array->apiToken);
 
-                $vols = $fa_api->GetVolumes([
+                $vols = $fa_api->GetVolumes(
+                    [
                     'names' => $this->psoInfo->prefix . '-*',
                     'space' => 'true',
-                ]);
+                    ]
+                );
 
                 foreach (($vols ?? []) as $vol) {
                     if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $vol['name'])) {
-                        $uid = str_ireplace($this->psoInfo->prefix . '-pvc-', '', $vol['name']) ;
+                        $uid = str_ireplace($this->psoInfo->prefix . '-pvc-', '', $vol['name']);
 
                         $myvol = new PsoPersistentVolumeClaim($uid);
                         $myvol->pure_name = $vol['name'] ?? '';
@@ -1093,21 +1122,27 @@ class Pso
 
                         if (substr($pure_arrayName_volName, -2) == '-u') {
                             $backend_vol->unhealthy = true;
-                            $backend_vol = New PsoBackendVolume(substr($pure_arrayName_volName, 0, -2));
+                            $backend_vol = new PsoBackendVolume(substr($pure_arrayName_volName, 0, -2));
                             $backend_vol->unhealthy = true;
                         }
                     }
                 }
 
-                $vols_perf = $fa_api->GetVolumes([
+                $vols_perf = $fa_api->GetVolumes(
+                    [
                     'names' => $this->psoInfo->prefix . '-pvc-*',
                     'action' => 'monitor',
-                ]);
+                    ]
+                );
 
                 foreach (($vols_perf ?? []) as $vol_perf) {
                     if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $vol_perf['name'])) {
-                        $uid = str_ireplace($this->psoInfo->prefix .
-                            '-pvc-', '', $vol_perf['name']) ;
+                        $uid = str_ireplace(
+                            $this->psoInfo->prefix .
+                            '-pvc-',
+                            '',
+                            $vol_perf['name']
+                        );
 
                         $myvol = new PsoPersistentVolumeClaim($uid);
                         $myvol->pure_reads_per_sec = $vol_perf['reads_per_sec'] ?? 0;
@@ -1156,11 +1191,13 @@ class Pso
                 }
 
                 try {
-                    $vols_perf = $fa_api->GetVolumes([
+                    $vols_perf = $fa_api->GetVolumes(
+                        [
                         'names' => $this->psoInfo->prefix . '-pvc-*',
                         'space' => 'true',
                         'historical' => '24h',
-                    ]);
+                        ]
+                    );
 
                     $vol_hist_size = [];
                     foreach (($vols_perf ?? []) as $vol_perf) {
@@ -1168,8 +1205,8 @@ class Pso
                             $uid = str_ireplace($this->psoInfo->prefix . '-pvc-', '', $vol_perf['name']);
 
                             if (
-                                isset($vol_hist_size[$uid]['first_date']) and
-                                (strtotime($vol_perf['time']) < $vol_hist_size[$uid]['first_date'])
+                                isset($vol_hist_size[$uid]['first_date'])
+                                and (strtotime($vol_perf['time']) < $vol_hist_size[$uid]['first_date'])
                             ) {
                                 $vol_hist_size[$uid]['first_used'] = $vol_perf['total'];
                                 $vol_hist_size[$uid]['first_date'] = strtotime($vol_perf['time']);
@@ -1196,11 +1233,13 @@ class Pso
                     unset($e);
                 }
 
-                $snaps = $fa_api->GetVolumes([
+                $snaps = $fa_api->GetVolumes(
+                    [
                     'names' => $this->psoInfo->prefix . '-pvc-*',
                     'space' => 'true',
                     'snap' => 'true',
-                ]);
+                    ]
+                );
 
                 foreach (($snaps ?? []) as $snap) {
                     if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $snap['name'])) {
@@ -1241,11 +1280,13 @@ class Pso
                 try {
                     $fb_api->authenticate();
 
-                    $filesystems = $fb_api->GetFileSystems([
+                    $filesystems = $fb_api->GetFileSystems(
+                        [
                         'names' => $this->psoInfo->prefix . '-*',
                         'space' => 'true',
                         'destroyed' => false,
-                    ]);
+                        ]
+                    );
                 } catch (Exception $e) {
                     // Log error message
                     Log::debug('xxx Error getting FileSystems for "' . $array->mgmtEndPoint . '"');
@@ -1259,7 +1300,7 @@ class Pso
 
                 foreach (($filesystems['items'] ?? []) as $filesystem) {
                     if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $filesystem['name'])) {
-                        $uid = str_ireplace($this->psoInfo->prefix . '-pvc-', '', $filesystem['name']) ;
+                        $uid = str_ireplace($this->psoInfo->prefix . '-pvc-', '', $filesystem['name']);
 
                         $myvol = new PsoPersistentVolumeClaim($uid);
                         $myvol->pure_name = $filesystem['name'] ?? '';
@@ -1289,10 +1330,12 @@ class Pso
                         }
                         $total_snapshot_used = $total_snapshot_used + ($filesystem['space']['snapshots'] ?? 0);
 
-                        $fs_perf = $fb_api->GetFileSystemsPerformance([
+                        $fs_perf = $fb_api->GetFileSystemsPerformance(
+                            [
                             'names' => $filesystem['name'],
                             'protocol' => 'nfs',
-                        ]);
+                            ]
+                        );
 
                         foreach (($fs_perf['items'] ?? []) as $fs_perf_item) {
                             $myvol->pure_reads_per_sec = $fs_perf_item['reads_per_sec'] ?? 0;
@@ -1404,8 +1447,8 @@ class Pso
                         PsoStorageClass::PREFIX,
                         'name'
                     )
-                ) and
-                ($item->status->phase == 'Released')
+                )
+                and ($item->status->phase == 'Released')
             ) {
                 $uid = str_replace('pvc-', '', ($item->metadata->name ?? 'Unknown'));
 
@@ -1584,7 +1627,9 @@ class Pso
             )
         );
         $dashboard['storageclass_count'] = count(PsoStorageClass::items(PsoStorageClass::PREFIX, 'name'));
-        $dashboard['snapshotclass_count'] = count(PsoVolumeSnapshotClass::items(PsoVolumeSnapshotClass::PREFIX, 'name'));
+        $dashboard['snapshotclass_count'] = count(
+            PsoVolumeSnapshotClass::items(PsoVolumeSnapshotClass::PREFIX, 'name')
+        );
         $dashboard['snapshot_count'] = count(PsoVolumeSnapshot::items(PsoVolumeSnapshot::PREFIX, 'uid'));
         $dashboard['orphanedsnapshot_count'] = count(PsoVolumeSnapshot::items(PsoVolumeSnapshot::PREFIX, 'orphaned'));
         $dashboard['array_count'] = count(PsoArray::items(PsoArray::PREFIX, 'name'));
@@ -1604,8 +1649,11 @@ class Pso
                 $vol['used'] = $volume->pure_used;
                 $vol['usedFormatted'] = $volume->pure_usedFormatted;
                 $vol['growth'] = $volume->pure_used - $volume->pure_24h_historic_used;
-                $vol['growthFormatted'] = $this->formatBytes($volume->pure_used -
-                    $volume->pure_24h_historic_used, 2);
+                $vol['growthFormatted'] = $this->formatBytes(
+                    $volume->pure_used -
+                    $volume->pure_24h_historic_used,
+                    2
+                );
                 $vol['status'] = $volume->status;
 
                 if ($volume->pure_size !== null) {
@@ -1853,7 +1901,7 @@ class Pso
             }
 
             if ($pure_volumes > 0) {
-                $label_info = new PsoLabels(PsoLabels::PREFIX, $label);
+                $label_info = new PsoLabels($label);
                 if ($label !== '') {
                     $label_info->label = $label;
                     $label_info->key = explode('=', $label)[0];
@@ -2095,7 +2143,8 @@ class Pso
         $portalInfo['total_bw'] = $this->formatBytes(
             $this->psoInfo->total_bw_read + $this->psoInfo->total_bw_write,
             1,
-            2);
+            2
+        );
         $portalInfo['total_bw_read'] = $this->formatBytes($this->psoInfo->total_bw_read, 1, 2);
         $portalInfo['total_bw_write'] = $this->formatBytes($this->psoInfo->total_bw_write, 1, 2);
 
@@ -2117,7 +2166,7 @@ class Pso
         if (count($backendvols) > 0) {
             $settings['dbvols'] = [];
             foreach ($backendvols as $pure_arrayName_volName) {
-                $backendvol = New PsoBackendVolume($pure_arrayName_volName);
+                $backendvol = new PsoBackendVolume($pure_arrayName_volName);
 
                 array_push($settings['dbvols'], $backendvol->asArray());
             }
