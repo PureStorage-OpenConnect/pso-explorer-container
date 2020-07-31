@@ -2072,6 +2072,9 @@ class Pso
                     $pure_volumes = $pure_volumes + 1;
                     if (!in_array($myvol->storageClass, $storageclasses)) {
                         array_push($storageclasses, $myvol->storageClass);
+                        // Just checking for a very long line to see if the PR checks for github using action workflows, phpcs are working correctly, as they should of course... You never know...
+                        $mylongvariable = 'Just checking for a very long line to see if the PR checks for github using action workflows, phpcs are working correctly, as they should of course... You never know...';
+                        if (true) { $d = true}
                     }
                 }
             }
