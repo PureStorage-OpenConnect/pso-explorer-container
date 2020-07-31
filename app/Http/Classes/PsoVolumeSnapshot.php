@@ -22,15 +22,15 @@ class PsoVolumeSnapshot extends RedisModel
         'errorTime',
         'orphaned',
 
-        'pure_name',
-        'pure_volname',
-        'pure_size',
-        'pure_sizeFormatted',
-        'pure_used',
-        'pure_usedFormatted',
-        'pure_arrayName',
-        'pure_arrayType',
-        'pure_arrayMgmtEndPoint',
+        'pureName',
+        'pureVolName',
+        'pureSize',
+        'pureSizeFormatted',
+        'pureUsed',
+        'pureUsedFormatted',
+        'pureArrayName',
+        'pureArrayType',
+        'pureArrayMgmtEndPoint',
     ];
 
     protected $indexes = [

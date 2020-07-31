@@ -52,16 +52,12 @@ class SettingsController extends Controller
     public function nodes(Request $request)
     {
         // Get PSO instance
-        $pso = $this->getPso($request);
+        $pso = new Pso();
 
         // If $pso is false, an error was returned
-        if (!$pso) {
-            return view('dashboard');
-        } else {
-            $nodes = $pso->nodes();
-            $portalInfo = $pso->portalInfo();
+        $nodes = $pso->nodes();
+        $portalInfo = $pso->portalInfo();
 
-            return view('settings/nodes', ['nodes' => $nodes, 'portalInfo' => $portalInfo]);
-        }
+        return view('settings/nodes', ['nodes' => $nodes, 'portalInfo' => $portalInfo]);
     }
 }

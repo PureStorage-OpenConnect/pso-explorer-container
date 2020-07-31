@@ -13,7 +13,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Jobs with managed persistent volume claims ({{ count($pso_jobs ?? []) }})</span>
+                            <span>Jobs with managed persistent volume claims ({{ count($psoJobs ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -36,8 +36,8 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @isset($pso_jobs)
-                                        @foreach($pso_jobs as $pso_job)
+                                    @isset($psoJobs)
+                                        @foreach($psoJobs as $pso_job)
                                             <tr>
                                                 <td>{{ $pso_job['namespace'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_job['name'] ?? '<unknown>' }}</td>
@@ -47,9 +47,9 @@
                                                 <td>{{ $pso_job['creationTimestamp'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_job['status'] ?? '<unknown>' }}</td>
                                                 <td>
-                                                    @isset($pso_job['pvc_link'])
-                                                    @foreach($pso_job['pvc_link'] as $pvc_link)
-                                                        {!! $pvc_link !!}<br>
+                                                    @isset($pso_job['pvcLink'])
+                                                    @foreach($pso_job['pvcLink'] as $pvcLink)
+                                                        {!! $pvcLink !!}<br>
                                                     @endforeach
                                                     @endisset
                                                 </td>
@@ -57,7 +57,7 @@
                                                 <td>{{ implode(', ', $pso_job['storageClasses'] ?? []) }}</td>
                                             </tr>
                                         @endforeach
-                                        @if(count($pso_jobs) == 0)
+                                        @if(count($psoJobs) == 0)
                                             <tr>
                                                 <td><i>No jobs with PVC's managed by PSO were found</i></td>
                                                 <td> </td>

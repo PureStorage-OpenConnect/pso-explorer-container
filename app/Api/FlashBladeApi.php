@@ -23,7 +23,7 @@ class FlashBladeApi
     protected $header;
     protected $username;
     protected $authenticated;
-    protected $api_versions;
+    protected $apiVersions;
 
     // Request method
     private function getRequest($request, $filter = [])
@@ -99,8 +99,8 @@ class FlashBladeApi
                 )->withHeaders($myheader)->get($this->url . '/api/api_version');
 
                 $result = json_decode($response->body(), true);
-                $this->api_versions = end($result['versions']);
-                $this->url = $this->url . '/api/' . $this->api_versions . '/';
+                $this->apiVersions = end($result['versions']);
+                $this->url = $this->url . '/api/' . $this->apiVersions . '/';
                 $this->authenticated = true;
             } else {
                 Log::debug('xxx Unable to authenticate to FlashBlade® at "' . $this->url . '"');

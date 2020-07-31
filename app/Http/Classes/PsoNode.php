@@ -22,7 +22,7 @@ class PsoNode extends RedisModel
         'osImage',
         'operatingSystem',
         'hostname',
-        'InternalIP',
+        'internalIP',
         'condition',
     ];
 

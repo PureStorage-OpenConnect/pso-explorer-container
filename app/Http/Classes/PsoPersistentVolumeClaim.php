@@ -12,51 +12,51 @@ class PsoPersistentVolumeClaim extends RedisModel
         'uid',
         'name',
         'namespace',
-        'namespace_name',
+        'namespaceName',
         'size',
         'storageClass',
         'labels',
         'status',
         'creationTimestamp',
 
-        'pv_name',
-        'has_snaps',
+        'pvName',
+        'hasSnaps',
 
-        'pure_name',
-        'pure_size',
-        'pure_sizeFormatted',
-        'pure_used',
-        'pure_usedFormatted',
-        'pure_drr',
-        'pure_thinProvisioning',
-        'pure_arrayName',
-        'pure_arrayType',
-        'pure_arrayMgmtEndPoint',
-        'pure_snapshots',
-        'pure_volumes',
-        'pure_sharedSpace',
-        'pure_totalReduction',
-        'pure_orphaned',
-        'pure_orphaned_state',
-        'pure_orphaned_pvc_name',
-        'pure_orphaned_pvc_namespace',
+        'pureName',
+        'pureSize',
+        'pureSizeFormatted',
+        'pureUsed',
+        'pureUsedFormatted',
+        'pureDrr',
+        'pureThinProvisioning',
+        'pureArrayName',
+        'pureArrayType',
+        'pureArrayMgmtEndPoint',
+        'pureSnapshots',
+        'pureVolumes',
+        'pureSharedSpace',
+        'pureTotalReduction',
+        'pureOrphaned',
+        'pureOrphanedState',
+        'pureOrphanedPvcName',
+        'pureOrphanedPvcNamespace',
 
-        'pure_reads_per_sec',
-        'pure_writes_per_sec',
-        'pure_input_per_sec',
-        'pure_input_per_sec_formatted',
-        'pure_output_per_sec',
-        'pure_output_per_sec_formatted',
-        'pure_usec_per_read_op',
-        'pure_usec_per_write_op',
-        'pure_24h_historic_used',
+        'pureReadsPerSec',
+        'pureWritesPerSec',
+        'pureInputPerSec',
+        'pureInputPerSecFormatted',
+        'pureOutputPerSec',
+        'pureOutputPerSecFormatted',
+        'pureUsecPerReadOp',
+        'pureUsecPerWriteOp',
+        'pure24hHistoricUsed',
     ];
 
     protected $indexes = [
         'uid',
         'namespace',
-        'namespace_name',
-        'pure_orphaned',
+        'namespaceName',
+        'pureOrphaned',
         'labels',
     ];
 
@@ -73,13 +73,13 @@ class PsoPersistentVolumeClaim extends RedisModel
     {
         $namespaceName = $namespace . ':' . $name;
 
-        $keys = Redis::keys(self::PREFIX . ':*:namespace_name');
+        $keys = Redis::keys(self::PREFIX . ':*:namespaceName');
         foreach ($keys as $key) {
             if (!strpos($key, '__index')) {
                 $keyname = str_replace(config('database.redis.options.prefix'), '', $key);
 
                 if (Redis::get($keyname) == $namespaceName) {
-                    $keyname = str_replace(':namespace_name', ':uid', $keyname);
+                    $keyname = str_replace(':namespaceName', ':uid', $keyname);
                     $uid = Redis::get($keyname);
                     return $uid;
                 }

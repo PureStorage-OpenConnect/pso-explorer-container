@@ -41,10 +41,10 @@ class AnalysisController extends Controller
         if (!$pso) {
             return view('dashboard');
         } else {
-            $pso_pods = $pso->pods();
+            $psoPods = $pso->pods();
             $portalInfo = $pso->portalInfo();
 
-            return view('analysis/pods', ['pso_pods' => $pso_pods, 'portalInfo' => $portalInfo]);
+            return view('analysis/pods', ['psoPods' => $psoPods, 'portalInfo' => $portalInfo]);
         }
     }
 
@@ -57,10 +57,10 @@ class AnalysisController extends Controller
         if (!$pso) {
             return view('dashboard');
         } else {
-            $pso_jobs = $pso->jobs();
+            $psoJobs = $pso->jobs();
             $portalInfo = $pso->portalInfo();
 
-            return view('analysis/jobs', ['pso_jobs' => $pso_jobs, 'portalInfo' => $portalInfo]);
+            return view('analysis/jobs', ['psoJobs' => $psoJobs, 'portalInfo' => $portalInfo]);
         }
     }
 
@@ -73,10 +73,10 @@ class AnalysisController extends Controller
         if (!$pso) {
             return view('dashboard');
         } else {
-            $pso_deployments = $pso->deployments();
+            $psoDeployments = $pso->deployments();
             $portalInfo = $pso->portalInfo();
 
-            return view('analysis/deployments', ['pso_deployments' => $pso_deployments, 'portalInfo' => $portalInfo]);
+            return view('analysis/deployments', ['psoDeployments' => $psoDeployments, 'portalInfo' => $portalInfo]);
         }
     }
 
@@ -89,13 +89,13 @@ class AnalysisController extends Controller
         if (!$pso) {
             return view('dashboard');
         } else {
-            $pso_statefulsets = $pso->statefulsets();
+            $psoStatefulsets = $pso->statefulsets();
             $portalInfo = $pso->portalInfo();
 
             return view(
                 'analysis/statefulsets',
                 [
-                    'pso_statefulsets' => $pso_statefulsets,
+                    'psoStatefulsets' => $psoStatefulsets,
                     'portalInfo' => $portalInfo
                 ]
             );
@@ -111,10 +111,10 @@ class AnalysisController extends Controller
         if (!$pso) {
             return view('dashboard');
         } else {
-            $pso_labels = $pso->labels();
+            $psoLabels = $pso->labels();
             $portalInfo = $pso->portalInfo();
 
-            return view('analysis/labels', ['pso_labels' => $pso_labels, 'portalInfo' => $portalInfo]);
+            return view('analysis/labels', ['psoLabels' => $psoLabels, 'portalInfo' => $portalInfo]);
         }
     }
 
@@ -127,10 +127,10 @@ class AnalysisController extends Controller
         if (!$pso) {
             return view('dashboard');
         } else {
-            $pso_namespaces = $pso->namespaces();
+            $psoNamespaces = $pso->namespaces();
             $portalInfo = $pso->portalInfo();
 
-            return view('analysis/namespaces', ['pso_namespaces' => $pso_namespaces, 'portalInfo' => $portalInfo]);
+            return view('analysis/namespaces', ['psoNamespaces' => $psoNamespaces, 'portalInfo' => $portalInfo]);
         }
     }
 }

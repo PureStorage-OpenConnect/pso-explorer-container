@@ -12,8 +12,8 @@ class PsoPod extends RedisModel
         'namespace',
         'creationTimestamp',
         'pvc_name',
-        'pvc_namespace_name',
-        'pvc_link',
+        'pvcNamespaceName',
+        'pvcLink',
         'labels',
         'status',
         'containers',
@@ -27,7 +27,7 @@ class PsoPod extends RedisModel
 
     protected $indexes = [
         'uid',
-        'pvc_namespace_name',
+        'pvcNamespaceName',
     ];
 
 

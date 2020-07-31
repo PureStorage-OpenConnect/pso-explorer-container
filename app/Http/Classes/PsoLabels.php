@@ -4,7 +4,7 @@ namespace App\Http\Classes;
 
 class PsoLabels extends RedisModel
 {
-    public const PREFIX = 'pso_labels';
+    public const PREFIX = 'psoLabels';
 
     protected $fillable = [
         'label',

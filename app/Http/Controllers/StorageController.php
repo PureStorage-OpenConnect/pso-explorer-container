@@ -41,13 +41,13 @@ class StorageController extends Controller
         if (!$pso) {
             return view('dashboard');
         } else {
-            $pso_arrays = $pso->arrays();
+            $psoArrays = $pso->arrays();
             $portalInfo = $pso->portalInfo();
 
             return view(
                 'storage/arrays',
                 [
-                    'pso_arrays' => $pso_arrays,
+                    'psoArrays' => $psoArrays,
                     'portalInfo' => $portalInfo,
                     'array_keyword' => $request->input('array_keyword') ?? ''
                 ]
@@ -64,15 +64,15 @@ class StorageController extends Controller
         if (!$pso) {
             return view('dashboard');
         } else {
-            $pso_storageclasses = $pso->storageclasses();
-            $pso_volumesnapshotclasses = $pso->volumesnapshotclasses();
+            $psoStorageClasses = $pso->storageclasses();
+            $psoVolumeSnapshotClasses = $pso->volumesnapshotclasses();
             $portalInfo = $pso->portalInfo();
 
             return view(
                 'storage/storageclasses',
                 [
-                    'pso_storageclasses' => $pso_storageclasses,
-                    'pso_volumesnapshotclasses' => $pso_volumesnapshotclasses,
+                    'psoStorageClasses' => $psoStorageClasses,
+                    'psoVolumeSnapshotClasses' => $psoVolumeSnapshotClasses,
                     'portalInfo' => $portalInfo
                 ]
             );
@@ -88,15 +88,15 @@ class StorageController extends Controller
         if (!$pso) {
             return view('dashboard');
         } else {
-            $pso_vols = $pso->volumes();
-            $orphaned_vols = $pso->orphaned();
+            $psoVols = $pso->volumes();
+            $orphanedVols = $pso->orphaned();
             $portalInfo = $pso->portalInfo();
 
             return view(
                 'storage/volumes',
                 [
-                    'pso_vols' => $pso_vols,
-                    'orphaned_vols' => $orphaned_vols,
+                    'psoVols' => $psoVols,
+                    'orphanedVols' => $orphanedVols,
                     'portalInfo' => $portalInfo,
                     'volume_keyword' => $request->input('volume_keyword') ?? ''
                 ]
@@ -112,15 +112,15 @@ class StorageController extends Controller
         if (!$pso) {
             return view('dashboard');
         } else {
-            $pso_volsnaps = $pso->volumesnapshots();
-            $orphaned_snaps = $pso->orphanedsnapshots();
+            $psoVolsnaps = $pso->volumesnapshots();
+            $orphanedSnaps = $pso->orphanedsnapshots();
             $portalInfo = $pso->portalInfo();
 
             return view(
                 'storage/snapshots',
                 [
-                    'pso_volsnaps' => $pso_volsnaps,
-                    'orphaned_snaps' => $orphaned_snaps,
+                    'psoVolsnaps' => $psoVolsnaps,
+                    'orphanedSnaps' => $orphanedSnaps,
                     'portalInfo' => $portalInfo,
                     'volume_keyword' => $request->input('volume_keyword') ?? ''
                 ]

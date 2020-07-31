@@ -13,7 +13,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>StatefulSets with managed persistent volume claims ({{ count($pso_statefulsets ?? []) }})</span>
+                            <span>StatefulSets with managed persistent volume claims ({{ count($psoStatefulsets ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -36,8 +36,8 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    @isset($pso_statefulsets)
-                                        @foreach($pso_statefulsets as $item)
+                                    @isset($psoStatefulsets)
+                                        @foreach($psoStatefulsets as $item)
                                             <tr>
                                                 <td>{{ $item['namespace'] ?? '<unknown>' }}</td>
                                                 <td>{{ $item['name'] ?? '<unknown>' }}</td>
@@ -47,7 +47,7 @@
                                                 <td>{{ $item['creationTimestamp'] ?? '<unknown>' }}</td>
                                                 <td>{{ $item['replicas'] ?? '<unknown>' }}</td>
                                                 <td>
-                                                    @foreach($item['namespace_names'] as $vol)
+                                                    @foreach($item['namespaceNames'] as $vol)
                                                         <a href="{{ route('Storage-Volumes', ['volume_keyword' => str_replace($item['namespace'] . ':', '', $vol)]) . '+' . $item['namespace'] }}">{{ str_replace($item['namespace'] . ':', '', $vol) }}</a><br>
                                                     @endforeach
                                                 </td>
@@ -55,7 +55,7 @@
                                                 <td>{{ $item['storageClasses'] ?? '<unknown>' }}</td>
                                             </tr>
                                         @endforeach
-                                        @if(count($pso_statefulsets) == 0)
+                                        @if(count($psoStatefulsets) == 0)
                                             <tr>
                                                 <td><i>No StatefulSets found using PVCs</i></td>
                                                 <td> </td>

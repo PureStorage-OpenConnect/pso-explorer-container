@@ -12,8 +12,8 @@ class PsoJob extends RedisModel
         'namespace',
         'creationTimestamp',
         'pvc_name',
-        'pvc_namespace_name',
-        'pvc_link',
+        'pvcNamespaceName',
+        'pvcLink',
         'labels',
         'status',
         'size',
@@ -26,7 +26,7 @@ class PsoJob extends RedisModel
 
     protected $indexes = [
         'uid',
-        'pvc_namespace_name',
+        'pvcNamespaceName',
     ];
 
 

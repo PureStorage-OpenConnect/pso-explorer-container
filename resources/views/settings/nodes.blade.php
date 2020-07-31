@@ -48,7 +48,7 @@
                                             <tr>
                                                 <td>{{ $node['name'] ?? 'Unknown' }}</td>
                                                 <td>{{ $node['kubeletVersion'] ?? 'Unknown' }}</td>
-                                                <td>{{ $node['InternalIP'] ?? 'Unknown' }}</td>
+                                                <td>{{ $node['internalIP'] ?? 'Unknown' }}</td>
                                                 <td>{{ $node['osImage'] ?? 'Unknown' }}</td>
                                                 <td>{{ $node['containerRuntimeVersion'] ?? 'Unknown' }}</td>
                                                 <td>

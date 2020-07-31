@@ -82,7 +82,7 @@ class FlashArrayApi
     {
         // Set default result to false
         $result = false;
-        $api_version = self::FA_API_URI;
+        $apiVersion = self::FA_API_URI;
         $this->apitoken = $apitoken;
 
         try {
@@ -93,17 +93,20 @@ class FlashArrayApi
 
             foreach (json_decode($response->body())->version as $item) {
                 if (substr($item, 0, 2) == '1.') {
-                    $api_version = $item;
+                    $apiVersion = $item;
                 }
             }
-            $this->url = 'https://' . $mgmtEndPoint . '/api/' . $api_version . '/';
+            $this->url = 'https://' . $mgmtEndPoint . '/api/' . $apiVersion . '/';
 
             // Try to authenticate to API
             $response = Http::withOptions(
                 ['connect_timeout' => 20, 'verify' => false]
-            )->withHeaders($this->header)->post($this->url . 'auth/session', [
+            )->withHeaders($this->header)->post(
+                $this->url . 'auth/session',
+                [
                 'api_token' => $this->apitoken,
-            ]);
+                ]
+            );
 
             // If request is successful, save the sessiontoken and add it to our header
             if ($response->successful()) {
