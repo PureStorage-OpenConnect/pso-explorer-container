@@ -1,12 +1,10 @@
 <?php
 
-
 namespace App\Http\Classes;
-
 
 class PsoVolumeSnapshotClass extends RedisModel
 {
-    public const PREFIX='pso_snapshotclass';
+    public const PREFIX = 'pso_snapshotclass';
 
     protected $fillable = [
         'name',
@@ -28,8 +26,10 @@ class PsoVolumeSnapshotClass extends RedisModel
 
     public function __construct(string $name)
     {
-        parent::__construct(SELF::PREFIX, $name);
+        parent::__construct(self::PREFIX, $name);
 
-        if ($name !== '') $this->name = $name;
+        if ($name !== '') {
+            $this->name = $name;
+        }
     }
 }

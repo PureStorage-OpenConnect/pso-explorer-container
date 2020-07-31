@@ -1,13 +1,12 @@
 <?php
 
-
 namespace App\Http\Classes;
 
 use Illuminate\Support\Facades\Redis;
 
 class PsoPersistentVolumeClaim extends RedisModel
 {
-    public const PREFIX='pso_pvc';
+    public const PREFIX = 'pso_pvc';
 
     protected $fillable = [
         'uid',
@@ -64,8 +63,10 @@ class PsoPersistentVolumeClaim extends RedisModel
 
     public function __construct(string $uid)
     {
-        parent::__construct(SELF::PREFIX, $uid);
-        if ($uid !== '') $this->uid = $uid;
+        parent::__construct(self::PREFIX, $uid);
+        if ($uid !== '') {
+            $this->uid = $uid;
+        }
     }
 
     public static function getUidByNamespaceName(string $namespace, string $name)

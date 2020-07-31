@@ -231,7 +231,7 @@ class Pso
 
                     if ($my_pod->labels == null) {
                         foreach (($item->metadata->labels ?? []) as $key => $value) {
-                            $my_pod->array_push('labels', $key . '=' . $value);
+                            $my_pod->arrayPush('labels', $key . '=' . $value);
                         }
                     }
                     $containers = [];
@@ -245,9 +245,9 @@ class Pso
                     $my_pod->containers = $containers;
 
                     $myClaimName = ($volume->persistentVolumeClaim->claimName ?? 'Unknown');
-                    $my_pod->array_push('pvc_name', $myClaimName);
+                    $my_pod->arrayPush('pvc_name', $myClaimName);
                     $myNamespaceName = $my_pod->namespace . ':' . $myClaimName;
-                    $my_pod->array_push('pvc_namespace_name', $myNamespaceName);
+                    $my_pod->arrayPush('pvc_namespace_name', $myNamespaceName);
                 }
             }
 
@@ -296,7 +296,7 @@ class Pso
                         array_push($images, $container->name . ': ' . $container->image);
                         foreach (($container->args ?? []) as $arg) {
                             if (strpos($arg, '--feature-gates=') !== false) {
-                                $this->psoInfo->array_push('pso_args', str_replace('--feature-gates=', '', $arg));
+                                $this->psoInfo->arrayPush('pso_args', str_replace('--feature-gates=', '', $arg));
                             }
                         }
                     }
@@ -383,31 +383,31 @@ class Pso
                 $newArray = new PsoArray($mgmtEndPoint);
                 $newArray->apiToken = $apiToken;
                 foreach (($flasharray->Labels ?? []) as $key => $value) {
-                    $newArray->array_push('labels', $key . '=' . $value);
+                    $newArray->arrayPush('labels', $key . '=' . $value);
                 }
 
                 $fa_api = new FlashArrayApi();
                 try {
                     // Connect to the array for the array name
                     $fa_api->authenticate($mgmtEndPoint, $apiToken);
-                    $array_details = $fa_api->GetArray();
-                    $model_details = $fa_api->GetArray('controllers=true');
+                    $array_details = $fa_api->getArray();
+                    $model_details = $fa_api->getArray('controllers=true');
 
                     $newArray->name = $array_details['array_name'];
                     $newArray->version = 'Purity//FA ' . $array_details['version'];
                     $newArray->model = 'Pure Storage® FlashArray™ ' . $model_details[0]['model'];
 
-                    $port_details = $fa_api->GetPort();
+                    $port_details = $fa_api->getPort();
 
                     foreach (($port_details  ?? []) as $port_detail) {
                         if (isset($port_detail['iqn']) and !in_array('iSCSI', ($newArray->protocols ?? []))) {
-                            $newArray->array_push('protocols', 'iSCSI');
+                            $newArray->arrayPush('protocols', 'iSCSI');
                         }
                         if (isset($port_detail['wwn']) and !in_array('FC', ($newArray->protocols ?? []))) {
-                            $newArray->array_push('protocols', 'FC');
+                            $newArray->arrayPush('protocols', 'FC');
                         }
                         if (isset($port_detail['nqn']) and !in_array('NVMe', ($newArray->protocols ?? []))) {
-                            $newArray->array_push('protocols', 'NVMe');
+                            $newArray->arrayPush('protocols', 'NVMe');
                         }
                     }
                 } catch (Exception $e) {
@@ -454,7 +454,7 @@ class Pso
                 try {
                     // Connect to the array for the array name
                     $fb_api->authenticate();
-                    $array = $fb_api->GetArray();
+                    $array = $fb_api->getArray();
 
                     $newArray->name = $array['items'][0]['name'];
                     $newArray->model = 'Pure Storage® FlashBlade®';
@@ -777,12 +777,12 @@ class Pso
 
                     if ($my_job->labels == null) {
                         foreach (($item->metadata->labels ?? []) as $key => $value) {
-                            $my_job->array_push('labels', $key . '=' . $value);
+                            $my_job->arrayPush('labels', $key . '=' . $value);
                         }
                     }
 
-                    $my_job->array_push('pvc_name', $volume->persistentVolumeClaim->claimName ?? 'not set');
-                    $my_job->array_push(
+                    $my_job->arrayPush('pvc_name', $volume->persistentVolumeClaim->claimName ?? 'not set');
+                    $my_job->arrayPush(
                         'pvc_namespace_name',
                         ($item->metadata->namespace ?? 'Unknown') . ':' .
                         ($volume->persistentVolumeClaim->claimName ?? 'Unknown')
@@ -1061,7 +1061,7 @@ class Pso
                 $fa_api = new FlashArrayApi();
                 $fa_api->authenticate($array->mgmtEndPoint, $array->apiToken);
 
-                $vols = $fa_api->GetVolumes(
+                $vols = $fa_api->getVolumes(
                     [
                     'names' => $this->psoInfo->prefix . '-*',
                     'space' => 'true',
@@ -1128,7 +1128,7 @@ class Pso
                     }
                 }
 
-                $vols_perf = $fa_api->GetVolumes(
+                $vols_perf = $fa_api->getVolumes(
                     [
                     'names' => $this->psoInfo->prefix . '-pvc-*',
                     'action' => 'monitor',
@@ -1191,7 +1191,7 @@ class Pso
                 }
 
                 try {
-                    $vols_perf = $fa_api->GetVolumes(
+                    $vols_perf = $fa_api->getVolumes(
                         [
                         'names' => $this->psoInfo->prefix . '-pvc-*',
                         'space' => 'true',
@@ -1233,7 +1233,7 @@ class Pso
                     unset($e);
                 }
 
-                $snaps = $fa_api->GetVolumes(
+                $snaps = $fa_api->getVolumes(
                     [
                     'names' => $this->psoInfo->prefix . '-pvc-*',
                     'space' => 'true',
@@ -1280,7 +1280,7 @@ class Pso
                 try {
                     $fb_api->authenticate();
 
-                    $filesystems = $fb_api->GetFileSystems(
+                    $filesystems = $fb_api->getFileSystems(
                         [
                         'names' => $this->psoInfo->prefix . '-*',
                         'space' => 'true',
@@ -1330,7 +1330,7 @@ class Pso
                         }
                         $total_snapshot_used = $total_snapshot_used + ($filesystem['space']['snapshots'] ?? 0);
 
-                        $fs_perf = $fb_api->GetFileSystemsPerformance(
+                        $fs_perf = $fb_api->getFileSystemsPerformance(
                             [
                             'names' => $filesystem['name'],
                             'protocol' => 'nfs',

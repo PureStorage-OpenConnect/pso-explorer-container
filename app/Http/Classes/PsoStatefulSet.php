@@ -1,14 +1,12 @@
 <?php
 
-
 namespace App\Http\Classes;
-
 
 use Illuminate\Support\Facades\Redis;
 
 class PsoStatefulSet extends RedisModel
 {
-    public const PREFIX='pso_statefulset';
+    public const PREFIX = 'pso_statefulset';
 
     protected $fillable = [
         'uid',
@@ -34,8 +32,10 @@ class PsoStatefulSet extends RedisModel
 
     public function __construct(string $uid)
     {
-        parent::__construct(SELF::PREFIX, $uid);
+        parent::__construct(self::PREFIX, $uid);
 
-        if ($uid !== '') $this->uid = $uid;
+        if ($uid !== '') {
+            $this->uid = $uid;
+        }
     }
 }

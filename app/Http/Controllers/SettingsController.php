@@ -17,7 +17,9 @@ class SettingsController extends Controller
             $request->session()->flash('message', $pso->errorMessage);
             $request->session()->flash('source', $pso->errorSource);
             $request->session()->flash('yaml', $pso->psoInfo->yaml);
-            if ($pso->psoInfo->namespace !== null) $request->session()->flash('yaml', $pso->psoInfo->yaml);
+            if ($pso->psoInfo->namespace !== null) {
+                $request->session()->flash('yaml', $pso->psoInfo->yaml);
+            }
 
             return false;
         } else {
@@ -30,7 +32,7 @@ class SettingsController extends Controller
         }
     }
 
-    public function Pso(Request $request)
+    public function pso(Request $request)
     {
         // Get PSO instance
         $pso = $this->getPso($request);
@@ -47,7 +49,7 @@ class SettingsController extends Controller
         }
     }
 
-    public function Nodes(Request $request)
+    public function nodes(Request $request)
     {
         // Get PSO instance
         $pso = $this->getPso($request);

@@ -17,7 +17,9 @@ class AnalysisController extends Controller
             $request->session()->flash('message', $pso->errorMessage);
             $request->session()->flash('source', $pso->errorSource);
             $request->session()->flash('yaml', $pso->psoInfo->yaml);
-            if ($pso->psoInfo->namespace !== null) $request->session()->flash('yaml', $pso->psoInfo->yaml);
+            if ($pso->psoInfo->namespace !== null) {
+                $request->session()->flash('yaml', $pso->psoInfo->yaml);
+            }
 
             return false;
         } else {
@@ -30,7 +32,7 @@ class AnalysisController extends Controller
         }
     }
 
-    public function Pods (Request $request)
+    public function pods(Request $request)
     {
         // Get PSO instance
         $pso = $this->getPso($request);
@@ -46,7 +48,7 @@ class AnalysisController extends Controller
         }
     }
 
-    public function Jobs (Request $request)
+    public function jobs(Request $request)
     {
         // Get PSO instance
         $pso = $this->getPso($request);
@@ -62,7 +64,7 @@ class AnalysisController extends Controller
         }
     }
 
-    public function Deployments (Request $request)
+    public function deployments(Request $request)
     {
         // Get PSO instance
         $pso = $this->getPso($request);
@@ -78,7 +80,7 @@ class AnalysisController extends Controller
         }
     }
 
-    public function StatefulSets (Request $request)
+    public function statefulSets(Request $request)
     {
         // Get PSO instance
         $pso = $this->getPso($request);
@@ -90,11 +92,17 @@ class AnalysisController extends Controller
             $pso_statefulsets = $pso->statefulsets();
             $portalInfo = $pso->portalInfo();
 
-            return view('analysis/statefulsets', ['pso_statefulsets' => $pso_statefulsets, 'portalInfo' => $portalInfo]);
+            return view(
+                'analysis/statefulsets',
+                [
+                    'pso_statefulsets' => $pso_statefulsets,
+                    'portalInfo' => $portalInfo
+                ]
+            );
         }
     }
 
-    public function Labels (Request $request)
+    public function labels(Request $request)
     {
         // Get PSO instance
         $pso = $this->getPso($request);
@@ -110,7 +118,7 @@ class AnalysisController extends Controller
         }
     }
 
-    public function Namespaces (Request $request)
+    public function namespaces(Request $request)
     {
         // Get PSO instance
         $pso = $this->getPso($request);

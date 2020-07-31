@@ -1,12 +1,10 @@
 <?php
 
-
 namespace App\Http\Classes;
-
 
 class PsoPod extends RedisModel
 {
-    public const PREFIX='pso_pod';
+    public const PREFIX = 'pso_pod';
 
     protected $fillable = [
         'uid',
@@ -35,8 +33,10 @@ class PsoPod extends RedisModel
 
     public function __construct(string $uid)
     {
-        parent::__construct(SELF::PREFIX, $uid);
+        parent::__construct(self::PREFIX, $uid);
 
-        if ($uid !== '') $this->uid = $uid;
+        if ($uid !== '') {
+            $this->uid = $uid;
+        }
     }
 }

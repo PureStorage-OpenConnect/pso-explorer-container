@@ -1,13 +1,12 @@
 <?php
 
-
 namespace App\Http\Classes;
 
 use Illuminate\Support\Facades\Redis;
 
 class PsoBackendVolume extends RedisModel
 {
-    public const PREFIX='pso_dbvol';
+    public const PREFIX = 'pso_dbvol';
 
     protected $fillable = [
         'pure_arrayName_volName',
@@ -34,7 +33,9 @@ class PsoBackendVolume extends RedisModel
 
     public function __construct(string $pure_arrayName_volName)
     {
-        parent::__construct(SELF::PREFIX, $pure_arrayName_volName);
-        if ($pure_arrayName_volName !== '') $this->pure_arrayName_volName = $pure_arrayName_volName;
+        parent::__construct(self::PREFIX, $pure_arrayName_volName);
+        if ($pure_arrayName_volName !== '') {
+            $this->pure_arrayName_volName = $pure_arrayName_volName;
+        }
     }
 }

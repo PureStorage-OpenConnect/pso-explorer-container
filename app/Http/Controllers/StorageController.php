@@ -17,7 +17,9 @@ class StorageController extends Controller
             $request->session()->flash('message', $pso->errorMessage);
             $request->session()->flash('source', $pso->errorSource);
             $request->session()->flash('yaml', $pso->psoInfo->yaml);
-            if ($pso->psoInfo->namespace !== null) $request->session()->flash('yaml', $pso->psoInfo->yaml);
+            if ($pso->psoInfo->namespace !== null) {
+                $request->session()->flash('yaml', $pso->psoInfo->yaml);
+            }
 
             return false;
         } else {
@@ -30,7 +32,7 @@ class StorageController extends Controller
         }
     }
 
-    public function StorageArrays (Request $request)
+    public function storageArrays(Request $request)
     {
         // Get PSO instance
         $pso = $this->getPso($request);
@@ -42,11 +44,18 @@ class StorageController extends Controller
             $pso_arrays = $pso->arrays();
             $portalInfo = $pso->portalInfo();
 
-            return view('storage/arrays', ['pso_arrays' => $pso_arrays, 'portalInfo' => $portalInfo, 'array_keyword' => $request->input('array_keyword') ?? '']);
+            return view(
+                'storage/arrays',
+                [
+                    'pso_arrays' => $pso_arrays,
+                    'portalInfo' => $portalInfo,
+                    'array_keyword' => $request->input('array_keyword') ?? ''
+                ]
+            );
         }
     }
 
-    public function StorageClasses (Request $request)
+    public function storageClasses(Request $request)
     {
         // Get PSO instance
         $pso = $this->getPso($request);
@@ -59,11 +68,18 @@ class StorageController extends Controller
             $pso_volumesnapshotclasses = $pso->volumesnapshotclasses();
             $portalInfo = $pso->portalInfo();
 
-            return view('storage/storageclasses', ['pso_storageclasses' => $pso_storageclasses, 'pso_volumesnapshotclasses' => $pso_volumesnapshotclasses, 'portalInfo' => $portalInfo]);
+            return view(
+                'storage/storageclasses',
+                [
+                    'pso_storageclasses' => $pso_storageclasses,
+                    'pso_volumesnapshotclasses' => $pso_volumesnapshotclasses,
+                    'portalInfo' => $portalInfo
+                ]
+            );
         }
     }
 
-    public function Volumes (Request $request)
+    public function volumes(Request $request)
     {
         // Get PSO instance
         $pso = $this->getPso($request);
@@ -76,10 +92,18 @@ class StorageController extends Controller
             $orphaned_vols = $pso->orphaned();
             $portalInfo = $pso->portalInfo();
 
-            return view('storage/volumes', ['pso_vols' => $pso_vols, 'orphaned_vols' => $orphaned_vols, 'portalInfo' => $portalInfo, 'volume_keyword' => $request->input('volume_keyword') ?? '']);
+            return view(
+                'storage/volumes',
+                [
+                    'pso_vols' => $pso_vols,
+                    'orphaned_vols' => $orphaned_vols,
+                    'portalInfo' => $portalInfo,
+                    'volume_keyword' => $request->input('volume_keyword') ?? ''
+                ]
+            );
         }
     }
-    public function Snapshots (Request $request)
+    public function snapshots(Request $request)
     {
         // Get PSO instance
         $pso = $this->getPso($request);
@@ -92,7 +116,15 @@ class StorageController extends Controller
             $orphaned_snaps = $pso->orphanedsnapshots();
             $portalInfo = $pso->portalInfo();
 
-            return view('storage/snapshots', ['pso_volsnaps' => $pso_volsnaps, 'orphaned_snaps' => $orphaned_snaps, 'portalInfo' => $portalInfo, 'volume_keyword' => $request->input('volume_keyword') ?? '']);
+            return view(
+                'storage/snapshots',
+                [
+                    'pso_volsnaps' => $pso_volsnaps,
+                    'orphaned_snaps' => $orphaned_snaps,
+                    'portalInfo' => $portalInfo,
+                    'volume_keyword' => $request->input('volume_keyword') ?? ''
+                ]
+            );
         }
     }
 }

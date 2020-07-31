@@ -33,13 +33,16 @@ class FlashArrayApi
             throw new RuntimeException('Unauthenticated API call. You need to authenticate to the API first.');
         }
 
-        try
-        {
+        try {
             // Retrieve companies from API
             if (isset($filter)) {
-                $response = Http::withOptions(['connect_timeout' => 20, 'verify' => false, 'cookies' => $this->cookieJar])->withHeaders($this->header)->get($this->url . $request, $filter);
+                $response = Http::withOptions(
+                    ['connect_timeout' => 20, 'verify' => false, 'cookies' => $this->cookieJar]
+                )->withHeaders($this->header)->get($this->url . $request, $filter);
             } else {
-                $response = Http::withOptions(['connect_timeout' => 20, 'verify' => false, 'cookies' => $this->cookieJar])->withHeaders($this->header)->get($this->url . $request);
+                $response = Http::withOptions(
+                    ['connect_timeout' => 20, 'verify' => false, 'cookies' => $this->cookieJar]
+                )->withHeaders($this->header)->get($this->url . $request);
             }
 
             // If request is successful, return the body
@@ -60,10 +63,14 @@ class FlashArrayApi
     }
 
     // Construct method
-    public function __construct ()
+    public function __construct()
     {
         // Initialize ALSO MarketPlace API class
-        $this->header			= array('accept' => 'application/json', 'Content-Type' => 'application/json', 'User-Agent' => 'pso-explorer/' . config('app.version', 'unknown-version'));
+        $this->header           = array(
+            'accept' => 'application/json',
+            'Content-Type' => 'application/json',
+            'User-Agent' => 'pso-explorer/' . config('app.version', 'unknown-version')
+        );
         $this->apitoken         = null;
         $this->cookieJar        = null;
         $this->username         = null;
@@ -71,7 +78,7 @@ class FlashArrayApi
     }
 
     // Authentication method
-    public function authenticate ($mgmtEndPoint, $apitoken)
+    public function authenticate($mgmtEndPoint, $apitoken)
     {
         // Set default result to false
         $result = false;
@@ -80,7 +87,9 @@ class FlashArrayApi
 
         try {
             $this->url = 'https://' . $mgmtEndPoint . '/api/api_version';
-            $response = Http::withOptions(['connect_timeout' => 20, 'verify' => false])->withHeaders($this->header)->get($this->url);
+            $response = Http::withOptions(
+                ['connect_timeout' => 20, 'verify' => false]
+            )->withHeaders($this->header)->get($this->url);
 
             foreach (json_decode($response->body())->version as $item) {
                 if (substr($item, 0, 2) == '1.') {
@@ -90,7 +99,9 @@ class FlashArrayApi
             $this->url = 'https://' . $mgmtEndPoint . '/api/' . $api_version . '/';
 
             // Try to authenticate to API
-            $response = Http::withOptions(['connect_timeout' => 20, 'verify' => false])->withHeaders($this->header)->post($this->url . 'auth/session', [
+            $response = Http::withOptions(
+                ['connect_timeout' => 20, 'verify' => false]
+            )->withHeaders($this->header)->post($this->url . 'auth/session', [
                 'api_token' => $this->apitoken,
             ]);
 
@@ -117,17 +128,17 @@ class FlashArrayApi
         return $result;
     }
 
-    public function GetVolumes($filter = [])
+    public function getVolumes($filter = [])
     {
         return $this->getRequest('volume', $filter);
     }
 
-    public function GetArray($filter = [])
+    public function getArray($filter = [])
     {
         return $this->getRequest('array', $filter);
     }
 
-    public function GetPort($filter = [])
+    public function getPort($filter = [])
     {
         return $this->getRequest('port', $filter);
     }

@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Http\Classes;
-
 
 use Illuminate\Support\Facades\Redis;
 
@@ -52,22 +50,19 @@ class RedisModel
                     return Redis::lrange($this->redisPrefix . ':' . $this->redisUid . ':' . $name, 0, -1);
                     break;
             }
-
         }
     }
 
     public function delete()
     {
         // TODO: Ideally I'd use SCAN here instead of KEYS, since KEYS blocks redis
-        foreach (Redis::keys($this->redisPrefix . ':' . $this->redisUid . ':*') as $key)
-        {
+        foreach (Redis::keys($this->redisPrefix . ':' . $this->redisUid . ':*') as $key) {
             $keyname = str_replace(config('database.redis.options.prefix'), '', $key);
             Redis::del($keyname);
         }
-        foreach ($this->indexes as $index)
-        {
+        foreach ($this->indexes as $index) {
             if (is_array($this->data[$index])) {
-                foreach ( $this->data[$index]as $item) {
+                foreach ($this->data[$index] as $item) {
                     Redis::srem($this->redisPrefix . ':__index:' . $index, $item);
                 }
             } else {
@@ -88,14 +83,13 @@ class RedisModel
     public static function deleteAll(string $redisPrefix)
     {
         // TODO: Ideally I'd use SCAN here instead of KEYS, since KEYS blocks redis
-        foreach (Redis::keys($redisPrefix . ':*') as $key)
-        {
+        foreach (Redis::keys($redisPrefix . ':*') as $key) {
             $keyname = str_replace(config('database.redis.options.prefix'), '', $key);
             Redis::del($keyname);
         }
     }
 
-    public function array_push($name, $value)
+    public function arrayPush($name, $value)
     {
         if (!isset($this->data[$name])) {
             $this->data[$name] = [];
@@ -124,7 +118,9 @@ class RedisModel
     {
         $array = [];
         foreach ($this->fillable as $item) {
-            if ($item !== 'uid') $array[$item] = $this->__get($item);
+            if ($item !== 'uid') {
+                $array[$item] = $this->__get($item);
+            }
         }
         return $array;
     }

@@ -1,12 +1,10 @@
 <?php
 
-
 namespace App\Http\Classes;
-
 
 class PsoInformation extends RedisModel
 {
-    public const PREFIX='psoInformation';
+    public const PREFIX = 'psoInformation';
 
     protected $fillable = [
         'prefix',
@@ -39,7 +37,7 @@ class PsoInformation extends RedisModel
 
     public function __construct()
     {
-        $prefix = SELF::PREFIX;
+        $prefix = self::PREFIX;
         $uid = 'global';
         parent::__construct($prefix, $uid);
     }
