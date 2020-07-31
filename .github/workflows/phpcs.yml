@@ -14,6 +14,6 @@ jobs:
       env:
         GH_BOT_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
         SKIP_FOLDERS: "tests,.github"
-        PHPCS_SNIFFS_EXCLUDE: "Generic.Files.LineLength"
+        PHPCS_SNIFFS_EXCLUDE: ""
       with:
-        args: "PSR12,Zend"
+        args: "PSR12"
