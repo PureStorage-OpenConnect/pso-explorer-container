@@ -16,7 +16,9 @@ use Illuminate\Support\Facades\Route;
 // *** GUI routes ***
 // --- Dashboard
 Route::get('/', 'DashboardController@index')->name('Dashboard');
-Route::get('/refreshdata', function () { return redirect('/'); });
+Route::get('/refreshdata', function () {
+    return redirect('/');
+});
 Route::post('/refreshdata', 'DashboardController@refreshData')->name('RefreshData');
 // --- Analysis
 Route::get('/analysis/pods', 'AnalysisController@pods')->name('Analysis-Pods');
