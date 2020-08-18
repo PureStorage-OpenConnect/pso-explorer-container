@@ -1616,6 +1616,16 @@ class Pso
         // Log function call
         Log::debug('    Call addArrayVolumeInfo()');
 
+        // Initialize variables
+        $this->psoInfo->totalUsed = 0;
+        $this->psoInfo->totalSize = 0;
+        $this->psoInfo->totalOrphanedUsed = 0;
+        $this->psoInfo->totalSnapshotUsed = 0;
+        $this->psoInfo->totalIopsRead = 0;
+        $this->psoInfo->totalIopsWrite = 0;
+        $this->psoInfo->totalBwRead = 0;
+        $this->psoInfo->totalBwWrite = 0;
+
         foreach (PsoArray::items(PsoArray::PREFIX, 'mgmtEndPoint') as $item) {
             $array = new PsoArray($item);
             Log::debug('    Array: ' . $array->mgmtEndPoint);
