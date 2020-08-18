@@ -39,6 +39,7 @@
                                         <th data-hide="all">podCIDRs</th>
                                         <th data-hide="all">Labels</th>
                                         <th data-hide="all">Taints</th>
+                                        <th data-hide="all">Messages</th>
                                         <th>Schedulable</th>
                                     </tr>
                                     </thead>
@@ -52,26 +53,22 @@
                                                 <td>{{ $node['osImage'] ?? 'Unknown' }}</td>
                                                 <td>{{ $node['containerRuntimeVersion'] ?? 'Unknown' }}</td>
                                                 <td>
-                                                    @isset($node['condition'])
-                                                        @foreach($node['condition'] as $item)
-                                                            @if($item == "Ready")
-                                                                <span class="label label-success">{{ $item }}</span><br>
-                                                            @else
-                                                                <span class="label label-warning">{{ $item }}</span><br>
-                                                            @endif
-                                                        @endforeach
-                                                    @endisset
+                                                    @foreach(($node['conditions'] ?? []) as $item)
+                                                        @if($item == "Ready")
+                                                            <span class="label label-success">{{ $item }}</span><br>
+                                                        @else
+                                                            <span class="label label-warning">{{ $item }}</span><br>
+                                                        @endif
+                                                    @endforeach
                                                 </td>
 
                                                 <td>{{ $node['creationTimestamp'] ?? 'Unknown' }}</td>
                                                 <td>
-                                                    @isset($node['labels'])
-                                                        @foreach($node['labels'] as $item)
-                                                            @if(strpos($item, 'node-role.kubernetes.io/') !== false)
-                                                                {{ substr($item, strlen('node-role.kubernetes.io/'), -1) }}<br>
-                                                            @endif
-                                                        @endforeach
-                                                    @endisset
+                                                    @foreach(($node['labels'] ?? []) as $item)
+                                                        @if(strpos($item, 'node-role.kubernetes.io/') !== false)
+                                                            {{ substr($item, strlen('node-role.kubernetes.io/'), -1) }}<br>
+                                                        @endif
+                                                    @endforeach
                                                 </td>
                                                 <td>{{ $node['hostname'] ?? 'Unknown' }}</td>
                                                 <td>{{ $node['operatingSystem'] ?? 'Unknown' }}</td>
@@ -87,6 +84,11 @@
                                                 </td>
                                                 <td>@isset($node['labels']){{ implode(', ', $node['labels']) }}@endisset </td>
                                                 <td>@isset($node['taints']){{ implode(', ', $node['taints']) }}@endisset </td>
+                                                <td>
+                                                    @foreach(($node['conditionMessages'] ?? []) as $item)
+                                                        {{ $item }}<br>
+                                                    @endforeach
+                                                </td>
 
                                                 @if($node['unschedulable'] == 1)
                                                     <td><span class="label label-warning">Unschedulable</span></td>
@@ -98,6 +100,7 @@
                                         @if(count($nodes) == 0)
                                             <tr>
                                                 <td><i>No nodes found</i></td>
+                                                <td> </td>
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>

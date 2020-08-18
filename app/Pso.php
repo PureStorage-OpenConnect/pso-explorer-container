@@ -632,38 +632,33 @@ class Pso
             $mynode->osImage = $item->status->nodeInfo->osImage ?? '';
             $mynode->operatingSystem = $item->status->nodeInfo->operatingSystem ?? '';
             foreach (($item->status->addresses ?? []) as $address) {
-                switch ($address->type) {
-                    case 'Hostname':
+                switch (strtolower($address->type)) {
+                    case 'hostname':
                         $mynode->hostname = $address->address ?? '';
                         break;
-                    case 'internalIP':
+                    case 'internalip':
                         $mynode->internalIP = $address->address ?? '';
                         break;
                 }
             }
 
             $conditions = [];
+            $conditionMessages = [];
             foreach (($item->status->conditions ?? []) as $condition) {
-                /*
-                 * TODO: If kubelet is stopped, the following is true
-                var_dump($condition);
-
-                /Users/rdeenik/LocalFiles/pso-explorer/application/app/Pso.php:229:
-                object(Kubernetes\Model\Io\K8s\Api\Core\V1\NodeCondition)[898]
-                    public 'lastHeartbeatTime' => string '2020-08-09T04:04:26Z' (length=20)
-                   public 'lastTransitionTime' => string '2020-08-09T04:05:18Z' (length=20)
-                    public 'message' => string 'Kubelet stopped posting node status.' (length=36)
-                    public 'reason' => string 'NodeStatusUnknown' (length=17)
-                    public 'status' => string 'Unknown' (length=7)
-                    public 'type' => string 'PIDPressure' (length=11)
-                    protected 'isRawObject' => boolean false
-                    protected 'rawData' => null
-                */
                 if ($condition->status == 'True') {
                     array_push($conditions, ($condition->type ?? ''));
+                    array_push($conditionMessages, ($condition->type ?? 'Status') . ': ' . ($condition->message ?? 'No message available'));
+                } elseif ($condition->status == 'Unknown') {
+                    if ($condition->type == 'Ready') {
+                        array_push($conditions, 'Not Ready');
+                    } else {
+                        array_push($conditions, ($condition->type ?? ''));
+                    }
+                    array_push($conditionMessages, ($condition->type ?? 'Status') . ': ' . ($condition->message ?? 'No message available'));
                 }
             }
-            $mynode->condition = $conditions;
+            $mynode->conditions = $conditions;
+            $mynode->conditionMessages = $conditionMessages;
         }
         return true;
     }

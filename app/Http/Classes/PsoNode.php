@@ -23,7 +23,8 @@ class PsoNode extends RedisModel
         'operatingSystem',
         'hostname',
         'internalIP',
-        'condition',
+        'conditions',
+        'conditionMessages',
     ];
 
     protected $indexes = [
