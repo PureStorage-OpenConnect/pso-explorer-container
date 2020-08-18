@@ -185,7 +185,7 @@ class Pso
         foreach (($vols ?? []) as $vol) {
             if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $vol['name']) or ($vol['name'] == $query)) {
                 if ($vol['name'] == $query) {
-                    $name = PsoPersistentVolume::getNameBycsi_volumeHandle($query);
+                    $name = PsoPersistentVolume::getNameBycsiVolumeHandle($query);
                 } else {
                     $name = str_ireplace($this->psoInfo->prefix . '-', '', $vol['name']);
                 }
@@ -279,7 +279,7 @@ class Pso
         foreach (($volsPerf ?? []) as $volPerf) {
             if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $volPerf['name']) or ($volPerf['name'] == $query)) {
                 if ($volPerf['name'] == $query) {
-                    $name = PsoPersistentVolume::getNameBycsi_volumeHandle($query);
+                    $name = PsoPersistentVolume::getNameBycsiVolumeHandle($query);
                 } else {
                     $name = str_ireplace($this->psoInfo->prefix . '-', '', $volPerf['name']);
                 }
@@ -354,7 +354,7 @@ class Pso
             foreach (($volsHist ?? []) as $volHist) {
                 if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $volHist['name']) or ($volHist['name'] == $query)) {
                     if ($volHist['name'] == $query) {
-                        $name = PsoPersistentVolume::getNameBycsi_volumeHandle($query);
+                        $name = PsoPersistentVolume::getNameBycsiVolumeHandle($query);
                     } else {
                         $name = str_ireplace($this->psoInfo->prefix . '-', '', $volHist['name']);
                     }
@@ -479,7 +479,7 @@ class Pso
                 ($filesystem['name'] == $query)) {
 
                 if ($filesystem['name'] == $query) {
-                    $name = PsoPersistentVolume::getNameBycsi_volumeHandle($query);
+                    $name = PsoPersistentVolume::getNameBycsiVolumeHandle($query);
                 } else {
                     $name = str_ireplace($this->psoInfo->prefix . '-', '', $filesystem['name']);
                 }

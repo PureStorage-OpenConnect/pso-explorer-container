@@ -95,7 +95,7 @@ class PsoPersistentVolume extends RedisModel
         }
     }
 
-    public static function getNameBycsi_volumeHandle(string $volumeHandle)
+    public static function getNameBycsiVolumeHandle(string $volumeHandle)
     {
         $keys = Redis::keys(self::PREFIX . ':*:csi_volumeHandle');
         foreach ($keys as $key) {
