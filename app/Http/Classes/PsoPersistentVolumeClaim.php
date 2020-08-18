@@ -7,59 +7,46 @@ use Illuminate\Support\Facades\Redis;
 class PsoPersistentVolumeClaim extends RedisModel
 {
     public const PREFIX = 'pso_pvc';
+    public $pv = null;
 
     protected $fillable = [
+        // Primary index
         'uid',
+
+        // metadata fields
+        'annotations',
+        'creationTimestamp',
+        'finalizers',
+        'labels',
         'name',
         'namespace',
+        'resourceVersion',
+
+        // spec fields
+        'accessModes',
+        'storageClassName',
+        'volumeMode',
+        'volumeName',
+
+        // spec->status fields
+        'status_accessModes',
+        'status_capacity',
+        'status_conditions',
+        'status_phase',
+
+        // Calculated data fields
         'namespaceName',
-        'size',
-        'storageClass',
-        'labels',
-        'status',
-        'creationTimestamp',
-
-        'pvName',
         'hasSnaps',
-
-        'pureName',
-        'pureSize',
-        'pureSizeFormatted',
-        'pureUsed',
-        'pureUsedFormatted',
-        'pureDrr',
-        'pureThinProvisioning',
-        'pureArrayName',
-        'pureArrayType',
-        'pureArrayMgmtEndPoint',
-        'pureSnapshots',
-        'pureVolumes',
-        'pureSharedSpace',
-        'pureTotalReduction',
-        'pureOrphaned',
-        'pureOrphanedState',
-        'pureOrphanedPvcName',
-        'pureOrphanedPvcNamespace',
-
-        'pureReadsPerSec',
-        'pureWritesPerSec',
-        'pureInputPerSec',
-        'pureInputPerSecFormatted',
-        'pureOutputPerSec',
-        'pureOutputPerSecFormatted',
-        'pureUsecPerReadOp',
-        'pureUsecPerWriteOp',
-        'pure24hHistoricUsed',
     ];
 
     protected $indexes = [
         'uid',
+        'labels',
         'namespace',
         'namespaceName',
         'pureOrphaned',
-        'labels',
+        'volumeName',
     ];
-
 
     public function __construct(string $uid)
     {
@@ -85,5 +72,16 @@ class PsoPersistentVolumeClaim extends RedisModel
                 }
             }
         }
+    }
+
+    public function asArray()
+    {
+        $array = parent::asArray();
+        if ($this->volumeName !== null) {
+            $pv = new PsoPersistentVolume($this->volumeName);
+            $array['pv'] = $pv->asArray();
+        }
+
+        return $array;
     }
 }

@@ -19,6 +19,7 @@ class PsoStorageClass extends RedisModel
         'volumeBindingMode',
         'reclaimPolicy',
         'isDefaultClass',
+        'backend',
     ];
 
     protected $indexes = [

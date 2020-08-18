@@ -2,6 +2,7 @@
 
 namespace App\Http\Classes;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
 class RedisModel
@@ -36,6 +37,8 @@ class RedisModel
                 }
             }
             $this->data[$name] = $value;
+        } else {
+            Log::debug('    Error trying to save field "' . $name . '" since it\'s not in fillable');
         }
     }
 
@@ -50,6 +53,8 @@ class RedisModel
                     return Redis::lrange($this->redisPrefix . ':' . $this->redisUid . ':' . $name, 0, -1);
                     break;
             }
+        } else {
+            Log::debug('    Error trying to access field "' . $name . '" since it\'s not in fillable');
         }
     }
 
@@ -71,10 +76,10 @@ class RedisModel
         }
     }
 
-    public static function items(string $redisPrefix, string $name)
+    public static function items(string $redisPrefix, string $index)
     {
-        if (Redis::exists($redisPrefix . ':__index:' . $name)) {
-            return Redis::sort($redisPrefix . ':__index:' . $name, ['ALPHA' => true, 'sort' => 'ASC']);
+        if (Redis::exists($redisPrefix . ':__index:' . $index)) {
+            return Redis::sort($redisPrefix . ':__index:' . $index, ['ALPHA' => true, 'sort' => 'ASC']);
         } else {
             return [];
         }

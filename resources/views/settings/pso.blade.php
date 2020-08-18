@@ -47,7 +47,7 @@
                                                     <td>
                                                         <b>Healthy volumes</b><br>
                                                         @foreach($settings['dbvols'] ?? [] as $item)
-                                                            @if(!isset($item['unhealthy']))
+                                                            @if($item['unhealthy'] == null)
                                                                 <span>
                                                                     @if ($item['pureArrayType'] == 'FA')
                                                                         <a href="https://{{ $item['pureArrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pureName'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pureArrayName'] }}, Size: {{ $item['pureSizeFormatted'] }}, Used: {{ $item['pureUsedFormatted'] }}">
@@ -66,20 +66,20 @@
                                                     <td>
                                                         <b>Stale volumes</b><br>
                                                     @foreach($settings['dbvols'] ?? [] as $item)
-                                                            @if(isset($item['unhealthy']))
+                                                            @if($item['unhealthy'])
                                                                 <span>
-                                                            <img src="/images/warning.svg" style="height: 13px; vertical-align: text-top;" data-toggle="tooltip" data-placement="top" title="This volume is parked by PSO since the replica was marked unhealthy.">
+                                                                    <img src="/images/warning.svg" style="height: 13px; vertical-align: text-top;" data-toggle="tooltip" data-placement="top" title="This volume is parked by PSO since the replica was marked unhealthy.">
 
-                                                            @if ($item['pureArrayType'] == 'FA')
+                                                                    @if ($item['pureArrayType'] == 'FA')
                                                                         <a href="https://{{ $item['pureArrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pureName'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pureArrayName'] }}, Size: {{ $item['pureSizeFormatted'] }}, Used: {{ $item['pureUsedFormatted'] }}">
-                                                                {{ $item['pureName'] }}
-                                                            </a>
+                                                                            {{ $item['pureName'] }}
+                                                                        </a>
                                                                     @else
                                                                         <a href="https://{{ $item['pureArrayMgmtEndPoint'] }}/storage/filesystems/{{ $item['pureName'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pureArrayName'] }}, Size: {{ $item['pureSizeFormatted'] }}, Used: {{ $item['pureUsedFormatted'] }}">
-                                                                {{ $item['pureName'] }}
-                                                            </a>
+                                                                            {{ $item['pureName'] }}
+                                                                        </a>
                                                                     @endif
-                                                    </span><br>
+                                                                </span><br>
                                                             @endif
                                                         @endforeach
                                                     </td>

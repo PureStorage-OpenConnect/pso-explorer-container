@@ -26,7 +26,6 @@ class PsoBackendVolume extends RedisModel
     ];
 
     protected $indexes = [
-        'pureName',
         'pureArrayNameVolName',
     ];
 

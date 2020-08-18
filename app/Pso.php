@@ -30,6 +30,7 @@ use App\Http\Classes\PsoJob;
 use App\Http\Classes\PsoLabels;
 use App\Http\Classes\PsoNamespace;
 use App\Http\Classes\PsoNode;
+use App\Http\Classes\PsoPersistentVolume;
 use App\Http\Classes\PsoPersistentVolumeClaim;
 use App\Http\Classes\PsoPod;
 use App\Http\Classes\PsoVolumeSnapshot;
@@ -51,15 +52,8 @@ use Kubernetes\API\Secret;
 use Kubernetes\API\StatefulSet;
 use Kubernetes\API\StorageClass;
 use KubernetesRuntime\Client;
-use Kubernetes\Model\Io\K8s\Apimachinery\Pkg\Apis\Meta\V1\APIResource;
-use Kubernetes\Model\Io\K8s\Api\Apps\V1\StatefulSetList;
-use Kubernetes\Model\Io\K8s\Api\Apps\V1\DeploymentList;
-use Kubernetes\Model\Io\K8s\Api\Core\V1\Container;
-use Kubernetes\Model\Io\K8s\Api\Core\V1\EnvVar;
-use Kubernetes\Model\Io\K8s\Api\Core\V1\PersistentVolumeList;
-use Kubernetes\Model\Io\K8s\Api\Core\V1\Volume;
-use Kubernetes\Model\Io\K8s\Api\Storage\V1\StorageClassList;
-use Monolog\Handler\IFTTTHandler;
+
+use PhpParser\Node\Expr\PostDec;
 use function HighlightUtilities\splitCodeIntoArray;
 
 class Pso
@@ -166,6 +160,512 @@ class Pso
             }
         }
         return $array;
+    }
+
+    private function addFlashArrayVolInfo($array, $query)
+    {
+        $result = false;
+        $listPv_names = PsoPersistentVolume::items(PsoPersistentVolume::PREFIX, 'name');
+
+        $totalUsed = $this->psoInfo->totalUsed;
+        $totalSize = $this->psoInfo->totalSize;
+        $totalOrphanedUsed = $this->psoInfo->totalOrphanedUsed;
+        $totalSnapshotUsed = $this->psoInfo->totalSnapshotUsed;
+
+        $fa = new FlashArrayApi();
+        $fa->authenticate($array->mgmtEndPoint, $array->apiToken);
+
+        $vols = $fa->getVolumes(
+            [
+                'names' => $query,
+                'space' => 'true',
+            ]
+        );
+
+        foreach (($vols ?? []) as $vol) {
+            if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $vol['name']) or ($vol['name'] == $query)) {
+                if ($vol['name'] == $query) {
+                    $name = PsoPersistentVolume::getNameBycsi_volumeHandle($query);
+                } else {
+                    $name = str_ireplace($this->psoInfo->prefix . '-', '', $vol['name']);
+                }
+                $myPv = new PsoPersistentVolume($name);
+
+                $myPv->pureName = $vol['name'] ?? '';
+                $myPv->pureSize = $vol['size'] ?? 0;
+                $myPv->pureSizeFormatted = $this->formatBytes($myPv->pureSize, 2);
+                $myPv->pureTotal = $vol['total'] ?? 0;
+                $myPv->pureUsed = $vol['size'] * (1 - $vol['thin_provisioning'] ?? 0);
+                $myPv->pureUsedFormatted = $this->formatBytes($myPv->pureUsed, 2);
+                $myPv->pureDrr = $vol['data_reduction'] ?? 1;
+                $myPv->pureThinProvisioning = $vol['thin_provisioning'] ?? 0;
+                $myPv->pureArrayName = $array->name;
+                $myPv->pureArrayType = 'FA';
+                $myPv->pureArrayMgmtEndPoint = $array->mgmtEndPoint;
+                $myPv->pureSnapshots = $vol['snapshots'] ?? 0;
+                $myPv->pureVolumes = $vol['volumes'] ?? 0;
+                $myPv->pureSharedSpace = $vol['shared_space'] ?? 0;
+                $myPv->pureTotalReduction = $vol['total_reduction'] ?? 1;
+                $totalUsed = $totalUsed + ($vol['size'] ?? 0)  *
+                    (1 - ($vol['thin_provisioning'] ?? 0));
+                $totalSize = $totalSize + ($vol['size'] ?? 0);
+                $totalSnapshotUsed = $totalSnapshotUsed + ($vol['snapshots'] ?? 0);
+
+                // If the FA volume has no PV it's orphaned
+                if (!in_array($name, $listPv_names)) {
+                    $myPv->isOrphaned = $name;
+                    $totalOrphanedUsed = $totalOrphanedUsed + ($vol['size'] ?? 0) *
+                        (1 - ($vol['thin_provisioning'] ?? 0));
+                }
+
+                $result = true;
+            }
+
+            if ($this->startsWith($this->psoInfo->prefix . '-pso-db_', $vol['name'])) {
+                $pureArrayNameVolName = $array->name . ':' . $vol['name'];
+                $backendVol = new PsoBackendVolume($pureArrayNameVolName);
+
+                $backendVol->pureName = $vol['name'];
+                $backendVol->pureSize = $vol['size'] ?? 0;
+                $backendVol->pureSizeFormatted = $this->formatBytes($backendVol->pureSize, 2);
+                $backendVol->pureUsed = $vol['size'] * (1 - $vol['thin_provisioning'] ?? 0);
+                $backendVol->pureUsedFormatted = $this->formatBytes($backendVol->pureUsed, 2);
+                $backendVol->pureDrr = $vol['data_reduction'] ?? 1;
+                $backendVol->pureThinProvisioning = $vol['thin_provisioning'] ?? 0;
+                $backendVol->pureArrayName = $array->name;
+                $backendVol->pureArrayType = 'FA';
+                $backendVol->pureArrayMgmtEndPoint = $array->mgmtEndPoint;
+                $backendVol->pureSharedSpace = $vol['shared_space'] ?? 0;
+                $backendVol->pureTotalReduction = $vol['total_reduction'] ?? 1;
+
+                if (substr($pureArrayNameVolName, -2) == '-u') {
+                    $backendVol->unhealthy = true;
+                    $backendVol2 = new PsoBackendVolume(substr($pureArrayNameVolName, 0, -2));
+                    $backendVol2->unhealthy = true;
+                }
+            }
+        }
+        $this->psoInfo->totalUsed = $totalUsed;
+        $this->psoInfo->totalSize = $totalSize;
+        $this->psoInfo->totalOrphanedUsed = $totalOrphanedUsed;
+        $this->psoInfo->totalSnapshotUsed = $totalSnapshotUsed;
+
+        return $result;
+    }
+
+    private function addFlashArrayPerfInfo($array, $query)
+    {
+        $listPv_names = PsoPersistentVolume::items(PsoPersistentVolume::PREFIX, 'name');
+
+        $totalIopsRead = $this->psoInfo->totalIopsRead;
+        $totalIopsWrite = $this->psoInfo->totalIopsWrite;
+        $totalBwRead = $this->psoInfo->totalBwRead;
+        $totalBwWrite = $this->psoInfo->totalBwWrite;
+        $lowMsecRead = -1;
+        $lowMsecWrite = -1;
+        $highMsecRead = 0;
+        $highMsecWrite = 0;
+
+        $fa = new FlashArrayApi();
+        $fa->authenticate($array->mgmtEndPoint, $array->apiToken);
+
+        $volsPerf = $fa->getVolumes(
+            [
+                'names' => $query,
+                'action' => 'monitor',
+            ]
+        );
+
+        foreach (($volsPerf ?? []) as $volPerf) {
+            if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $volPerf['name']) or ($volPerf['name'] == $query)) {
+                if ($volPerf['name'] == $query) {
+                    $name = PsoPersistentVolume::getNameBycsi_volumeHandle($query);
+                } else {
+                    $name = str_ireplace($this->psoInfo->prefix . '-', '', $volPerf['name']);
+                }
+
+                $myPv = new PsoPersistentVolume($name);
+                $myPv->pureReadsPerSec = $volPerf['reads_per_sec'] ?? 0;
+                $myPv->pureWritesPerSec = $volPerf['writes_per_sec'] ?? 0;
+                $myPv->pureInputPerSec = $volPerf['input_per_sec'] ?? 0;
+                $myPv->pureInputPerSecFormatted = $this->formatBytes(
+                        $volPerf['input_per_sec'],
+                        1,
+                        2
+                    ) . '/s';
+                $myPv->pureOutputPerSec = $volPerf['output_per_sec'] ?? 0;
+                $myPv->pureOutputPerSecFormatted = $this->formatBytes(
+                        $volPerf['output_per_sec'],
+                        1,
+                        2
+                    ) . '/s';
+                $myPv->pureUsecPerReadOp = round(
+                    $volPerf['usec_per_read_op'] / 1000,
+                    2
+                );
+                $myPv->pureUsecPerWriteOp = round(
+                    $volPerf['usec_per_write_op'] / 1000,
+                    2
+                );
+
+                // Only count performance for non-orphaned volumes
+                if (in_array($name, $listPv_names)) {
+                    $totalIopsRead = $totalIopsRead + $volPerf['reads_per_sec'] ?? 0;
+                    $totalIopsWrite = $totalIopsWrite + $volPerf['writes_per_sec'] ?? 0;
+                    $totalBwRead = $totalBwRead + $volPerf['output_per_sec'] ?? 0;
+                    $totalBwWrite = $totalBwWrite + $volPerf['input_per_sec'] ?? 0;
+
+                    if (($volPerf['usec_per_read_op'] / 1000 < $lowMsecRead) or ($lowMsecRead = -1)) {
+                        $lowMsecRead = $volPerf['usec_per_read_op'] / 1000;
+                    }
+                    if (($volPerf['usec_per_write_op'] / 1000 < $lowMsecWrite) or ($lowMsecWrite = -1)) {
+                        $lowMsecWrite = $volPerf['usec_per_write_op'] / 1000;
+                    }
+                    if ($volPerf['usec_per_read_op'] / 1000 > $highMsecRead) {
+                        $highMsecRead = $volPerf['usec_per_read_op'] / 1000;
+                    }
+                    if ($volPerf['usec_per_write_op'] / 1000 > $highMsecWrite) {
+                        $highMsecWrite = $volPerf['usec_per_write_op'] / 1000;
+                    }
+                }
+            }
+        }
+        $this->psoInfo->totalIopsRead = $totalIopsRead;
+        $this->psoInfo->totalIopsWrite = $totalIopsWrite;
+        $this->psoInfo->totalBwRead = $totalBwRead;
+        $this->psoInfo->totalBwWrite = $totalBwWrite;
+    }
+
+    private function addFlashArrayHistInfo($array, $query)
+    {
+        $fa = new FlashArrayApi();
+        $fa->authenticate($array->mgmtEndPoint, $array->apiToken);
+
+        try {
+            $volsHist = $fa->getVolumes(
+                [
+                    'names' => $query,
+                    'space' => 'true',
+                    'historical' => '24h',
+                ]
+            );
+
+            $volHistSize = [];
+            foreach (($volsHist ?? []) as $volHist) {
+                if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $volHist['name']) or ($volHist['name'] == $query)) {
+                    if ($volHist['name'] == $query) {
+                        $name = PsoPersistentVolume::getNameBycsi_volumeHandle($query);
+                    } else {
+                        $name = str_ireplace($this->psoInfo->prefix . '-', '', $volHist['name']);
+                    }
+
+                    if (
+                        isset($volHistSize[$name]['firstDate'])
+                        and (strtotime($volHist['time']) < $volHistSize[$name]['firstDate'])
+                    ) {
+                        $volHistSize[$name]['firstTotal'] = $volHist['total'];
+                        $volHistSize[$name]['firstDate'] = strtotime($volHist['time']);
+                    } elseif (!isset($volHistSize[$name]['firstDate'])) {
+                        $volHistSize[$name]['firstTotal'] = $volHist['total'];
+                        $volHistSize[$name]['firstDate'] = strtotime($volHist['time']);
+                    }
+                }
+            }
+
+            foreach (PsoPersistentVolume::items(PsoPersistentVolume::PREFIX, 'name') as $name) {
+                $myPv = new PsoPersistentVolume($name);
+
+                if (isset($volHistSize[$name]['firstTotal']) and ($myPv->pureArrayType == 'FA')) {
+                    $myPv->pure24hHistoricTotal = $volHistSize[$name]['firstTotal'];
+                }
+            }
+        } catch (Exception $e) {
+            // Log error message
+            Log::debug('xxx Error retrieving historical space usage for volumes.');
+            Log::debug('    - Message: "' . $e->getMessage() . '"');
+            Log::debug('    - File: "' . $e->getFile() . '"');
+            Log::debug('    - Line: "' . $e->getLine() . '"');
+            unset($e);
+        }
+    }
+
+    private function addFlashArraySnapInfo($array, $query)
+    {
+        $fa = new FlashArrayApi();
+        $fa->authenticate($array->mgmtEndPoint, $array->apiToken);
+
+        $snaps = $fa->getVolumes(
+            [
+                'names' => $query,
+                'space' => 'true',
+                'snap' => 'true',
+            ]
+        );
+
+        foreach (($snaps ?? []) as $snap) {
+            if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $snap['name'])
+                or $this->startsWith($query, $snap['name'])) {
+                $snapPrefix = '.snapshot-';
+                $pureVolName = substr($snap['name'], 0, strpos($snap['name'], $snapPrefix));
+                $uid = substr($snap['name'], strpos($snap['name'], $snapPrefix) + strlen($snapPrefix));
+
+                $mysnap = new PsoVolumeSnapshot($uid);
+                if (($mysnap->name == '') and ($mysnap->namespace == '') and ($mysnap->sourceName == '')) {
+                    $pureVolName = substr($snap['name'], 0, strpos($snap['name'], '.'));
+
+                    $mysnap->name = $pureVolName;
+                    $mysnap->namespace = 'Unknown';
+                    $mysnap->sourceName = $pureVolName;
+                    $mysnap->readyToUse = 'Ready';
+                    $mysnap->errorMessage = 'This snaphot is (no longer) managed by Kubernetes';
+                    $mysnap->orphaned = $uid;
+                }
+
+                $mysnap->pureName = $snap['name'];
+                $mysnap->pureVolName = $pureVolName;
+                $mysnap->pureSize = $snap['size'] ?? 0;
+                $mysnap->pureSizeFormatted = $this->formatBytes($mysnap->pureSize, 2);
+                ;
+                $mysnap->pureUsed = $snap['total'] ?? 0;
+                $mysnap->pureUsedFormatted = $this->formatBytes($mysnap->pureUsed, 2);
+                ;
+
+                $mysnap->pureArrayName = $array->name;
+                $mysnap->pureArrayType = 'FA';
+                $mysnap->pureArrayMgmtEndPoint = $array->mgmtEndPoint;
+            }
+        }
+    }
+
+    private function addFlashBladeVolInfo($array, $query)
+    {
+        $result = false;
+        $listPv_names = PsoPersistentVolume::items(PsoPersistentVolume::PREFIX, 'name');
+
+        $totalUsed = $this->psoInfo->totalUsed;
+        $totalSize = $this->psoInfo->totalSize;
+        $totalOrphanedUsed = $this->psoInfo->totalOrphanedUsed;
+        $totalSnapshotUsed = $this->psoInfo->totalSnapshotUsed;
+        $totalIopsRead = $this->psoInfo->totalIopsRead;
+        $totalIopsWrite = $this->psoInfo->totalIopsWrite;
+        $totalBwRead = $this->psoInfo->totalBwRead;
+        $totalBwWrite = $this->psoInfo->totalBwWrite;
+
+        $fb = new FlashBladeApi($array->mgmtEndPoint, $array->apiToken);
+
+        try {
+            $fb->authenticate();
+
+            $filesystems = $fb->getFileSystems(
+                [
+                    'names' => $query,
+                    'space' => 'true',
+                    'destroyed' => false,
+                ]
+            );
+        } catch (Exception $e) {
+            // Log error message
+            Log::debug('xxx Error getting FileSystems for "' . $array->mgmtEndPoint . '"');
+            Log::debug('    - Message: "' . $e->getMessage() . '"');
+            Log::debug('    - File: "' . $e->getFile() . '"');
+            Log::debug('    - Line: "' . $e->getLine() . '"');
+
+            unset($e);
+            $filesystems = null;
+        }
+
+        foreach (($filesystems['items'] ?? []) as $filesystem) {
+            if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $filesystem['name']) or
+                ($filesystem['name'] == $query)) {
+
+                if ($filesystem['name'] == $query) {
+                    $name = PsoPersistentVolume::getNameBycsi_volumeHandle($query);
+                } else {
+                    $name = str_ireplace($this->psoInfo->prefix . '-', '', $filesystem['name']);
+                }
+
+                $myPv = new PsoPersistentVolume($name);
+                $myPv->pureName = $filesystem['name'] ?? '';
+                $myPv->pureSize = $filesystem['provisioned'] ?? 0;
+                $myPv->pureSizeFormatted = $this->formatBytes($myPv->pureSize, 2);
+                $myPv->pureUsed = $filesystem['space']['virtual'] ?? 0;
+                $myPv->pureUsedFormatted = $this->formatBytes($myPv->pureUsed, 2);
+                $myPv->pureDrr = $filesystem['space']['data_reduction'] ?? 1;
+                $myPv->pureThinProvisioning = 0;
+                $myPv->pureArrayName = $array->name;
+                $myPv->pureArrayType = 'FB';
+                $myPv->pureArrayMgmtEndPoint = $array->mgmtEndPoint;
+                $myPv->pureSnapshots = $filesystem['space']['snapshots'] ?? 0;
+                $myPv->pureVolumes = $filesystem['space']['unique'] ?? 0;
+                $myPv->pureSharedSpace = 0;
+                $myPv->pureTotalReduction = $filesystem['space']['data_reduction'] ?? 1;
+
+                if (in_array($name, $listPv_names)) {
+                    $totalUsed = $totalUsed + ($filesystem['space']['virtual'] ?? 0);
+                    $totalSize = $totalSize + ($filesystem['provisioned'] ?? 0);
+                } else {
+                    $myPv->isOrphaned = $name;
+                    $totalOrphanedUsed = $totalOrphanedUsed + ($filesystem['space']['virtual'] ?? 0);
+                }
+
+                $totalSnapshotUsed = $totalSnapshotUsed + ($filesystem['space']['snapshots'] ?? 0);
+
+                $fsPerf = $fb->getFileSystemsPerformance(
+                    [
+                        'names' => $filesystem['name'],
+                        'protocol' => 'nfs',
+                    ]
+                );
+
+                foreach (($fsPerf['items'] ?? []) as $fsPerf) {
+                    $myPv->pureReadsPerSec = $fsPerf['reads_per_sec'] ?? 0;
+                    $myPv->pureWritesPerSec = $fsPerf['writes_per_sec'] ?? 0;
+                    $myPv->pureInputPerSec = $fsPerf['write_bytes_per_sec'] ?? 0;
+                    $myPv->pureInputPerSecFormatted = $this->formatBytes(
+                            $myPv->pureInputPerSec,
+                            1,
+                            2
+                        ) . '/s';
+                    $myPv->pureOutputPerSec = $fsPerf['read_bytes_per_sec'];
+                    $myPv->pureOutputPerSecFormatted = $this->formatBytes(
+                            $myPv->pureOutputPerSec,
+                            1,
+                            2
+                        ) . '/s';
+                    $myPv->pureUsecPerReadOp = round(
+                        $myPv->pureUsecPerReadOp / 1000,
+                        2
+                    );
+                    $myPv->pureUsecPerWriteOp = round(
+                        $myPv->pureUsecPerWriteOp / 1000,
+                        2
+                    );
+
+                    $totalIopsRead = $totalIopsRead + $myPv->pureReadsPerSec;
+                    $totalIopsWrite = $totalIopsWrite + $myPv->pureWritesPerSec;
+                    $totalBwRead = $totalBwRead + $myPv->pureOutputPerSec;
+                    $totalBwWrite = $totalBwWrite + $myPv->pureInputPerSec;
+                }
+                $result = true;
+            }
+
+            if ($this->startsWith($this->psoInfo->prefix . '-pso-db_', $filesystem['name'])) {
+                $pureArrayNameVolName = $array->name . ':' . $filesystem['name'];
+                $backendVol = new PsoBackendVolume($pureArrayNameVolName);
+
+                $backendVol->pureName = $filesystem['name'];
+                $backendVol->pureSize = $filesystem['provisioned'] ?? 0;
+                $backendVol->pureSizeFormatted = $this->formatBytes($backendVol->pureSize, 2);
+                $backendVol->pureUsed = $filesystem['space']['virtual'];
+                $backendVol->pureUsedFormatted = $this->formatBytes($backendVol->pureUsed, 2);
+                $backendVol->pureDrr = $filesystem['space']['data_reduction'] ?? 1;
+                $backendVol->pureThinProvisioning = 0;
+                $backendVol->pureArrayName = $array->name;
+                $backendVol->pureArrayType = 'FB';
+                $backendVol->pureArrayMgmtEndPoint = $array->mgmtEndPoint;
+                $backendVol->pureSharedSpace = 0;
+                $backendVol->pureTotalReduction = $filesystem['space']['data_reduction'] ?? 1;
+
+                if (substr($pureArrayNameVolName, -2) == '-u') {
+                    $backendVol->unhealthy = true;
+                    $backendVol2 = new PsoBackendVolume(substr($pureArrayNameVolName, 0, -2));
+                    $backendVol2->unhealthy = true;
+                }
+            }
+        }
+
+        $this->psoInfo->totalUsed = $totalUsed;
+        $this->psoInfo->totalSize = $totalSize;
+        $this->psoInfo->totalOrphanedUsed = $totalOrphanedUsed;
+        $this->psoInfo->totalSnapshotUsed = $totalSnapshotUsed;
+        $this->psoInfo->totalIopsRead = $totalIopsRead;
+        $this->psoInfo->totalIopsWrite = $totalIopsWrite;
+        $this->psoInfo->totalBwRead = $totalBwRead;
+        $this->psoInfo->totalBwWrite = $totalBwWrite;
+
+        return $result;
+    }
+
+    /**
+     * Connect to Kubernetes to retrieve the Nodes
+     *
+     * @return boolean
+     */
+    private function getNodes()
+    {
+        // Log function call
+        Log::debug('    Call getNodes()');
+
+        // Retrieve all Kubernetes StatefulSets for this cluster
+        Client::configure($this->master, $this->authentication);
+        $node = new Node();
+        $nodeList = $node->list();
+
+        if (isset($nodeList->code)) {
+            $this->psoFound = false;
+            $this->errorSource = 'k8s';
+            $this->errorMessage = 'Unable to list Nodes. Check the ClusterRoles and ClusterRoleBindings.';
+            return false;
+        }
+
+        foreach (($nodeList->items ?? []) as $item) {
+            $mynode = new PsoNode($item->metadata->uid);
+            $mynode->name = $item->metadata->name ?? $item->metadata->uid;
+            $labels = [];
+            foreach (($item->metadata->labels ?? []) as $key => $value) {
+                array_push($labels, $key . '=' . $value);
+            }
+            $mynode->labels = $labels;
+            $mynode->creationTimestamp = $item->metadata->creationTimestamp ?? '';
+            $mynode->podCIDR = $item->spec->podCIDR ?? '';
+            $mynode->podCIDRs = $item->spec->podCIDRs ?? [];
+            $taints = [];
+            foreach (($item->spec->taints ?? []) as $taint) {
+                array_push($taints, $taint->key . '=' . $taint->value . ':' . $taint->effect);
+            }
+            $mynode->taints = $taints;
+            $mynode->unschedulable = $item->spec->unschedulable ?? '';
+            $mynode->architecture = $item->status->nodeInfo->architecture ?? '';
+            $mynode->containerRuntimeVersion = $item->status->nodeInfo->containerRuntimeVersion ?? '';
+            $mynode->kernelVersion = $item->status->nodeInfo->kernelVersion ?? '';
+            $mynode->kubeletVersion = $item->status->nodeInfo->kubeletVersion ?? '';
+            $mynode->osImage = $item->status->nodeInfo->osImage ?? '';
+            $mynode->operatingSystem = $item->status->nodeInfo->operatingSystem ?? '';
+            foreach (($item->status->addresses ?? []) as $address) {
+                switch ($address->type) {
+                    case 'Hostname':
+                        $mynode->hostname = $address->address ?? '';
+                        break;
+                    case 'internalIP':
+                        $mynode->internalIP = $address->address ?? '';
+                        break;
+                }
+            }
+
+            $conditions = [];
+            foreach (($item->status->conditions ?? []) as $condition) {
+                /*
+                 * TODO: If kubelet is stopped, the following is true
+                var_dump($condition);
+
+                /Users/rdeenik/LocalFiles/pso-explorer/application/app/Pso.php:229:
+                object(Kubernetes\Model\Io\K8s\Api\Core\V1\NodeCondition)[898]
+                    public 'lastHeartbeatTime' => string '2020-08-09T04:04:26Z' (length=20)
+                   public 'lastTransitionTime' => string '2020-08-09T04:05:18Z' (length=20)
+                    public 'message' => string 'Kubelet stopped posting node status.' (length=36)
+                    public 'reason' => string 'NodeStatusUnknown' (length=17)
+                    public 'status' => string 'Unknown' (length=7)
+                    public 'type' => string 'PIDPressure' (length=11)
+                    protected 'isRawObject' => boolean false
+                    protected 'rawData' => null
+                */
+                if ($condition->status == 'True') {
+                    array_push($conditions, ($condition->type ?? ''));
+                }
+            }
+            $mynode->condition = $conditions;
+        }
+        return true;
     }
 
     /**
@@ -366,184 +866,6 @@ class Pso
     }
 
     /**
-     * Connect to the Pure Storage® arrays (FlashArray™ and FlashBlade®) to retrieve
-     * management IP's and API tokens
-     *
-     * @return boolean
-     */
-    private function getArrayInfo()
-    {
-        // Log function call
-        Log::debug('    Call getArrayInfo()');
-
-        // Get the PSO secret from Kubernetes to retrieve the MgmtEndPoint and APIToken
-        Client::configure($this->master, $this->authentication);
-        $secret = new Secret($this->psoInfo->namespace);
-
-        $psoConfig = $secret->read($this->psoInfo->namespace, 'pure-provisioner-secret');
-        if (isset($psoConfig->code)) {
-            $this->psoFound = false;
-            $this->errorSource = 'k8s';
-            $this->errorMessage = 'Unable to read (get) the PSO secret. ' .
-                'Check the ClusterRoles and ClusterRoleBindings.';
-            return false;
-        }
-
-        if (isset($psoConfig->data)) {
-            $psoSecretData = $psoConfig->data;
-            $psoConfig = json_decode(base64_decode($psoSecretData['pure.json'], true));
-        } else {
-            $this->psoFound = false;
-            $this->errorSource = 'k8s';
-            $this->errorMessage = 'Unexpected error while getting PSO secrets. ' .
-                'Check the ClusterRoles and ClusterRoleBindings.';
-            return false;
-        }
-
-        $psoYaml = $this->objectToArray($psoConfig);
-        if ($psoYaml !== []) {
-            $myYaml = [];
-            foreach ($psoYaml as $item) {
-                $myYaml = array_merge($myYaml, $item);
-            }
-            $this->psoInfo->yaml = yaml_emit(["arrays" => $myYaml]);
-        }
-
-        // Get FlashArray™ information
-        foreach (($psoConfig->FlashArrays ?? []) as $flasharray) {
-            $mgmtEndPoint = $flasharray->MgmtEndPoint ?? 'not set';
-            $apiToken = $flasharray->APIToken ?? 'not set';
-
-            if (($mgmtEndPoint !== 'not set') and ($apiToken !== 'not set')) {
-                $newArray = new PsoArray($mgmtEndPoint);
-                $newArray->apiToken = $apiToken;
-                foreach (($flasharray->Labels ?? []) as $key => $value) {
-                    $newArray->arrayPush('labels', $key . '=' . $value);
-                }
-
-                $fa = new FlashArrayApi();
-                try {
-                    // Connect to the array for the array name
-                    $fa->authenticate($mgmtEndPoint, $apiToken);
-                    $arrayDetails = $fa->getArray();
-                    $modelDetails = $fa->getArray('controllers=true');
-
-                    $newArray->name = $arrayDetails['array_name'];
-                    $newArray->version = 'Purity//FA ' . $arrayDetails['version'];
-                    $newArray->model = 'Pure Storage® FlashArray™ ' . $modelDetails[0]['model'];
-
-                    $portDetails = $fa->getPort();
-
-                    foreach (($portDetails  ?? []) as $portDetail) {
-                        if (isset($portDetail['iqn']) and !in_array('iSCSI', ($newArray->protocols ?? []))) {
-                            $newArray->arrayPush('protocols', 'iSCSI');
-                        }
-                        if (isset($portDetail['wwn']) and !in_array('FC', ($newArray->protocols ?? []))) {
-                            $newArray->arrayPush('protocols', 'FC');
-                        }
-                        if (isset($portDetail['nqn']) and !in_array('NVMe', ($newArray->protocols ?? []))) {
-                            $newArray->arrayPush('protocols', 'NVMe');
-                        }
-                    }
-                } catch (Exception $e) {
-                    // Log error message
-                    Log::debug('xxx Error connecting to FlashArray™ "' . $mgmtEndPoint . '"');
-                    Log::debug('    - Message: "' . $e->getMessage() . '"');
-                    Log::debug('    - File: "' . $e->getFile() . '"');
-                    Log::debug('    - Line: "' . $e->getLine() . '"');
-
-                    $newArray->name = $mgmtEndPoint;
-                    $newArray->model = 'Unknown';
-                    $newArray->offline = $mgmtEndPoint;
-                    $newArray->message = 'Unable to connect to FlashArray™ (' . $e->getMessage() . ')';
-                    unset($e);
-                }
-            } else {
-                if ($mgmtEndPoint !== 'not set') {
-                    $newArray = new PsoArray($mgmtEndPoint);
-                    $newArray->name = $mgmtEndPoint;
-                    $newArray->model = 'Unknown';
-                    $newArray->offline = $mgmtEndPoint;
-                    $newArray->message = 'No API token was set for this FlashArray™. ' .
-                        'Please check the PSO configurations (values.yaml).';
-                }
-            }
-        }
-
-        // Get FlashBlade® information
-        foreach (($psoConfig->FlashBlades ?? []) as $flashblade) {
-            $mgmtEndPoint = $flashblade->MgmtEndPoint ?? 'not set';
-            $apiToken = $flashblade->APIToken ?? 'not set';
-            $nfsEndPoint = $flashblade->NFSEndPoint ?? 'not set';
-
-            if (($mgmtEndPoint !== 'not set') and ($apiToken !== 'not set')) {
-                $newArray = new PsoArray($mgmtEndPoint);
-                $newArray->apiToken = $apiToken;
-                $myLabels = [];
-                foreach (($flashblade->Labels  ?? []) as $key => $value) {
-                    array_push($myLabels, $key . '=' . $value);
-                }
-                $newArray->labels = $myLabels;
-
-                $fb = new FlashBladeApi($mgmtEndPoint, $apiToken);
-                try {
-                    // Connect to the array for the array name
-                    $fb->authenticate();
-                    $array = $fb->getArray();
-
-                    $newArray->name = $array['items'][0]['name'];
-                    $newArray->model = 'Pure Storage® FlashBlade®';
-                    $newArray->version = $array['items'][0]['os'] . ' ' . $array['items'][0]['version'];
-                    $newArray->protocols = ['NFS', 'S3'];
-                } catch (Exception $e) {
-                    // Log error message
-                    Log::debug('xxx Error connecting to FlashBlade® "' . $mgmtEndPoint . '"');
-                    Log::debug('    - Message: "' . $e->getMessage() . '"');
-                    Log::debug('    - File: "' . $e->getFile() . '"');
-                    Log::debug('    - Line: "' . $e->getLine() . '"');
-
-                    $newArray->name = $mgmtEndPoint;
-                    $newArray->model = 'Offline';
-                    $newArray->offline = $mgmtEndPoint;
-                    $newArray->message = 'Unable to connect to FlashBlade® (' . $e->getMessage() . ')';
-                    unset($e);
-                }
-
-                if ($nfsEndPoint == 'not set') {
-                    if (isset($flashblade->NfsEndPoint)) {
-                        $newArray->message = 'Currently using NfsEndPoint for this FlashBlade®. ' .
-                            'Please change your values.yaml to use NFSEndPoint, as NfsEndPoint is deprecated.';
-                    } else {
-                        $newArray->message = 'No NFSEndPoint was set for this FlashBlade®. ' .
-                            'Please check the PSO configurations (values.yaml).';
-                    }
-                }
-            } else {
-                if ($mgmtEndPoint !== 'not set') {
-                    $newArray = new PsoArray($mgmtEndPoint);
-                    $newArray->name = $mgmtEndPoint;
-                    $newArray->model = 'Unknown';
-                    $newArray->offline = $mgmtEndPoint;
-                    if ($apiToken == 'not set') {
-                        $newArray->message = 'No API token was set for this FlashBlade®. ' .
-                            'Please check the PSO configurations (values.yaml).';
-                    }
-                }
-            }
-        }
-
-        if (count(PsoArray::items(PsoArray::PREFIX, 'mgmtEndPoint')) == 0) {
-            // If no arrays were found, return an error
-            $this->psoFound = false;
-            $this->errorSource = 'pso';
-            $this->errorMessage = 'No arrays configured for PSO! Check the syntax of your values.yaml file.';
-            return false;
-        };
-
-        return true;
-    }
-
-    /**
      * Connect to Kubernetes to retrieve the StorageClasses
      *
      * @return boolean
@@ -566,22 +888,23 @@ class Pso
         }
 
         foreach (($storageclassList->items ?? []) as $item) {
-                // Add all storageclasses that use PSO
+            // Add all storageclasses that use PSO
             if (in_array(($item->provisioner ?? ''), self::PURE_PROVISIONERS)) {
                 $mystorageclass = new PsoStorageClass($item->metadata->name ?? $item->metadata->uid);
 
                 $parameters = [];
                 foreach (($item->parameters ?? []) as $key => $value) {
                     array_push($parameters, $key . '=' . $value);
+                    if ($key == 'backend') {
+                        $mystorageclass->backend = $value;
+                    }
                 }
                 $mystorageclass->parameters = $parameters;
 
-                $mountOptions = [];
                 foreach (($item->mountOptions ?? []) as $key => $value) {
                     // key is only the array counter
-                    array_push($mountOptions, $value);
+                    $mystorageclass->arrayPush('mountOptions', $value);
                 }
-                $mystorageclass->mountOptions = $mountOptions ?? '';
 
                 $mystorageclass->allowVolumeExpansion = $item->allowVolumeExpansion ?? '';
                 $mystorageclass->volumeBindingMode = $item->volumeBindingMode ?? '';
@@ -591,6 +914,88 @@ class Pso
                 foreach (($item->metadata->annotations ?? []) as $key => $value) {
                     if (('storageclass.kubernetes.io/is-default-class' == $key) and ($value == 'true')) {
                         $mystorageclass->isDefaultClass = true;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Connect to Kubernetes to retrieve the PersistentVolumes
+     *
+     * @return boolean
+     */
+    private function getPersistentVolumes()
+    {
+        // Log function call
+        Log::debug('    Call getPersistentVolumes()');
+
+        // Retrieve all Kubernetes PVC's for this cluster
+        Client::configure($this->master, $this->authentication);
+        $pv = new PersistentVolume();
+        $pvList = $pv->list();
+
+        if (isset($pvList->code)) {
+            $this->psoFound = false;
+            $this->errorSource = 'k8s';
+            $this->errorMessage = 'Unable to list Persistent Volumes (PV\'s). ' .
+                'Check the ClusterRoles and ClusterRoleBindings.';
+            return false;
+        }
+
+        $pureStorageClasses = PsoStorageClass::items(PsoStorageClass::PREFIX, 'name');
+        foreach (($pvList->items ?? []) as $item) {
+            // Only use PVs that are managed by PSO
+            if (in_array($item->spec->storageClassName, $pureStorageClasses)) {
+                $name = $item->metadata->name ?? '';
+                if ($name !== '') {
+                    // Create PV record by PV name
+                    $newPv = new PsoPersistentVolume($name);
+
+                    // Save metadata fields
+                    $newPv->creationTimestamp = $item->metadata->creationTimestamp ?? null;
+                    $newPv->finalizers = $item->metadata->finalizers ?? [];
+                    $newPv->resourceVersion = $item->metadata->resourceVersion ?? null;
+                    $newPv->uid = $item->metadata->uid ?? null;
+
+                    // Save spec fields
+                    if (is_array($item->spec->accessModes) and count($item->spec->accessModes) > 0) {
+                        $newPv->accessModes = $item->spec->accessModes[0];
+                    } else {
+                        $newPv->accessModes = 'Unknown';
+                    }
+                    $newPv->capacity = $item->spec->capacity['storage'] ?? null;
+                    foreach (($item->metadata->labels ?? []) as $key => $value) {
+                        $newPv->arrayPush('labels', $key . '=' . $value);
+                    }
+                    $newPv->persistentVolumeReclaimPolicy = $item->spec->persistentVolumeReclaimPolicy ?? null;
+                    $newPv->storageClassName = $item->spec->storageClassName ?? null;
+                    $newPv->volumeMode = $item->spec->volumeMode ?? null;
+
+                    // spec->csi fields
+                    $newPv->csi_backend = $item->spec->csi->volumeAttributes['backend'] ?? null;
+                    $newPv->csi_createoptions = $item->spec->csi->volumeAttributes['createoptions'] ?? null;
+                    $newPv->csi_driver = $item->spec->csi->driver ?? null;
+                    $newPv->csi_fsType = $item->spec->csi->fsType ?? null;
+                    $newPv->csi_namespace = $item->spec->csi->volumeAttributes['namespace'] ?? null;
+                    $newPv->csi_volumeHandle = $item->spec->csi->volumeHandle ?? null;
+                    $newPv->csi_volumeName = $item->spec->csi->volumeAttributes['volumeName'] ?? null;
+
+                    // spec->status fields
+                    $newPv->status_message = $item->status->message ?? null;
+                    $newPv->status_phase = $item->status->phase ?? null;
+                    $newPv->status_reason = $item->status->reason ?? null;
+
+                    // spec->claimRef fields
+                    $newPv->claimRef_name = $item->spec->claimRef->name;
+                    $newPv->claimRef_namespace = $item->spec->claimRef->namespace;
+                    $newPv->claimRef_resourceVersion = $item->spec->claimRef->resourceVersion;
+                    $newPv->claimRef_uid = $item->spec->claimRef->uid;
+
+                    // Calculated data fields
+                    if ($newPv->status_phase == 'Released') {
+                        $newPv->isReleased = $name;
                     }
                 }
             }
@@ -621,25 +1026,51 @@ class Pso
             return false;
         }
 
+        $pureStorageClasses = PsoStorageClass::items(PsoStorageClass::PREFIX, 'name');
         foreach (($pvcList->items ?? []) as $item) {
-            $myStorageClasses = PsoStorageClass::items(PsoStorageClass::PREFIX, 'name');
-            if (in_array(($item->spec->storageClassName ?? ''), $myStorageClasses)) {
-                $myvol = new PsoPersistentVolumeClaim($item->metadata->uid);
-                $myvol->name = $item->metadata->name ?? 'Unknown';
-                $myvol->namespace = $item->metadata->namespace ?? 'Unknown';
-                $myvol->namespaceName = $myvol->namespace . ':' . $myvol->name;
-                $myvol->size = $item->spec->resources->requests['storage'] ?? '';
-                $myvol->storageClass =  $item->spec->storageClassName ?? '';
-                $myvol->status = $item->status->phase ?? '';
-                $myvol->creationTimestamp = $item->metadata->creationTimestamp ?? '';
+            if (in_array($item->spec->storageClassName, $pureStorageClasses)) {
+                $uid = $item->metadata->uid ?? '';
+                if ($uid !== '') {
+                    // Create PV record by PV name
+                    $newPvc = new PsoPersistentVolumeClaim($uid);
 
-                $labels = [];
-                foreach (($item->metadata->labels ?? []) as $key => $value) {
-                    array_push($labels, $key . '=' . $value);
+                    // Save metadata fields
+                    $newPvc->annotations = [];
+                    foreach (($item->metadata->annotations ?? []) as $key => $value) {
+                        $newPvc->arrayPush('annotations', $key . '=' . $value);
+                    }
+                    $newPvc->creationTimestamp = $item->metadata->creationTimestamp ?? null;
+                    $newPvc->finalizers = $item->metadata->finalizers ?? [];
+                    foreach (($item->metadata->labels ?? []) as $key => $value) {
+                        $newPvc->arrayPush('labels', $key . '=' . $value);
+                    }
+                    $newPvc->name = $item->metadata->name ?? 'Unknown';
+                    $newPvc->namespace = $item->metadata->namespace ?? 'Unknown';
+                    $newPvc->resourceVersion = $item->metadata->resourceVersion ?? null;
+
+                    // spec fields
+                    if (is_array($item->spec->accessModes) and count($item->spec->accessModes) > 0) {
+                        $newPvc->accessModes = $item->spec->accessModes[0];
+                    } else {
+                        $newPvc->accessModes = 'Unknown';
+                    }
+                    $newPvc->storageClassName = $item->spec->storageClassName ?? null;
+                    $newPvc->volumeMode = $item->spec->volumeMode ?? null;
+                    $newPvc->volumeName = $item->spec->volumeName ?? null;
+
+                    // spec->status fields
+                    if (is_array($item->status->accessModes) and count($item->status->accessModes) > 0) {
+                        $newPvc->status_accessModes = $item->status->accessModes[0];
+                    } else {
+                        $newPvc->status_accessModes = null;
+                    }
+                    $newPvc->status_capacity = $item->status->capacity['storage'] ?? null;
+                    $newPvc->status_conditions = $item->status->conditions ?? null;
+                    $newPvc->status_phase = $item->status->phase ?? null;
+
+                    // Calculated data fields
+                    $newPvc->namespaceName = $newPvc->namespace . ':' . $newPvc->name;
                 }
-                $myvol->labels = $labels;
-
-                $myvol->pvName = $item->spec->volumeName ?? '';
             }
         }
         return true;
@@ -667,25 +1098,26 @@ class Pso
             return false;
         }
 
+        $pureStorageClasses = PsoStorageClass::items(PsoStorageClass::PREFIX, 'name');
+        $listPvc_namespaceName = PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'namespaceName');
         foreach (($statefulsetList->items ?? []) as $item) {
+            // Only check statefulsets that use a volumeclaimtemplate
             if (isset($item->spec->volumeClaimTemplates)) {
+                // Get all volumes for statefulset, using namespaceNames format
                 $namespaceNames = [];
-                foreach (($item->spec->volumeClaimTemplates ?? []) as $template) {
+                foreach (($item->spec->volumeClaimTemplates ?? []) as $volumeClaimTemplate) {
                     for ($i = 0; $i < $item->spec->replicas; $i++) {
-                        $myStorageClasses = PsoStorageClass::items(PsoStorageClass::PREFIX, 'name');
-                        if (
-                            in_array(($template->spec->storageClassName), $myStorageClasses)
-                            or $template->spec->storageClassName == null
-                        ) {
-                            array_push(
-                                $namespaceNames,
-                                $item->metadata->namespace . ':' .
-                                $template->metadata->name . '-' . $item->metadata->name . '-' . $i
-                            );
+                        $pvcNamespaceName = $item->metadata->namespace . ':' .
+                        $volumeClaimTemplate->metadata->name . '-' . $item->metadata->name . '-' . $i;
+
+                        // Add volume name to $namespaceNames, if the statefulset volume is in our PVC list
+                        if (in_array($pvcNamespaceName, $listPvc_namespaceName)) {
+                            array_push($namespaceNames, $pvcNamespaceName);
                         }
                     }
                 }
 
+                // If the stateful set contains one or mode PSO volumes, save a record
                 if ($namespaceNames !== []) {
                     $myset = new PsoStatefulSet($item->metadata->uid);
                     $myset->name = $item->metadata->name ?? 'Unknown';
@@ -694,11 +1126,9 @@ class Pso
                     $myset->creationTimestamp = $item->metadata->creationTimestamp ?? '';
                     $myset->replicas = $item->spec->replicas ?? '';
 
-                    $labels = [];
                     foreach (($item->metadata->labels ?? []) as $key => $value) {
-                        array_push($labels, $key . '=' . $value);
+                        $myset->arrayPush('labels', $key . '=' . $value);
                     }
-                    $myset->labels = $labels;
                 }
             }
         }
@@ -727,33 +1157,22 @@ class Pso
             return false;
         }
 
+        $listPvc_namespaceName = PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'namespaceName');
         foreach (($deploymentList->items ?? []) as $item) {
             foreach (($item->spec->template->spec->volumes ?? []) as $vol) {
+                // Only check deployments that use persistent volume claims
                 if (isset($vol->persistentVolumeClaim->claimName)) {
                     $mynamespaceName = ($item->metadata->namespace ?? 'Unknown') . ':' .
                         ($vol->persistentVolumeClaim->claimName  ?? 'Unknown');
-                    $myPvcs = PsoPersistentVolumeClaim::items(
-                        PsoPersistentVolumeClaim::PREFIX,
-                        'namespaceName'
-                    );
 
-                    if (in_array($mynamespaceName, $myPvcs)) {
+                    if (in_array($mynamespaceName, $listPvc_namespaceName)) {
                         $mydeployment = new PsoDeployment($item->metadata->uid);
                         $mydeployment->name = $item->metadata->name ?? 'Unknown';
                         $mydeployment->namespace = $item->metadata->namespace ?? 'Unknown';
                         $mydeployment->creationTimestamp = $item->metadata->creationTimestamp ?? '';
-
                         $mydeployment->volumeCount = $mydeployment->volumeCount + 1;
-
-                        $namespaceName = $mydeployment->namespaceNames;
-                        if ($namespaceName == null) {
-                            $mydeployment->namespaceNames = [$mynamespaceName];
-                        } else {
-                            array_push($namespaceName, $mynamespaceName);
-                            $mydeployment->namespaceNames = $namespaceName;
-                        }
-
                         $mydeployment->replicas = $item->spec->replicas ?? '';
+                        $mydeployment->arrayPush('namespaceNames', $mynamespaceName);
 
                         $labels = [];
                         foreach (($item->metadata->labels ?? []) as $key => $value) {
@@ -789,12 +1208,12 @@ class Pso
             return false;
         }
 
+        $listPvc_namespaceName = PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'namespaceName');
         foreach (($jobList->items ?? []) as $item) {
             foreach (($item->spec->template->spec->volumes ?? []) as $volume) {
                 $mynamespaceName = ($item->metadata->namespace ?? 'Unknown') . ':' .
                     ($volume->persistentVolumeClaim->claimName ?? 'Unknown');
-                $myPvcs = PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'namespaceName');
-                if (in_array($mynamespaceName, $myPvcs)) {
+                if (in_array($mynamespaceName, $listPvc_namespaceName)) {
                     $myJob = new PsoJob($item->metadata->uid);
                     $myJob->name = $item->metadata->name ?? 'Unknown';
                     $myJob->namespace = $item->metadata->namespace ?? 'Unknown';
@@ -824,74 +1243,6 @@ class Pso
                     );
                 }
             }
-        }
-        return true;
-    }
-
-    /**
-     * Connect to Kubernetes to retrieve the Nodes
-     *
-     * @return boolean
-     */
-    private function getNodes()
-    {
-        // Log function call
-        Log::debug('    Call getNodes()');
-
-        // Retrieve all Kubernetes StatefulSets for this cluster
-        Client::configure($this->master, $this->authentication);
-        $node = new Node();
-        $nodeList = $node->list();
-
-        if (isset($nodeList->code)) {
-            $this->psoFound = false;
-            $this->errorSource = 'k8s';
-            $this->errorMessage = 'Unable to list Nodes. Check the ClusterRoles and ClusterRoleBindings.';
-            return false;
-        }
-
-        foreach (($nodeList->items ?? []) as $item) {
-            $mynode = new PsoNode($item->metadata->uid);
-
-            $mynode->name = $item->metadata->name ?? $item->metadata->uid;
-            $labels = [];
-            foreach (($item->metadata->labels ?? []) as $key => $value) {
-                array_push($labels, $key . '=' . $value);
-            }
-            $mynode->labels = $labels;
-            $mynode->creationTimestamp = $item->metadata->creationTimestamp ?? '';
-            $mynode->podCIDR = $item->spec->podCIDR ?? '';
-            $mynode->podCIDRs = $item->spec->podCIDRs ?? [];
-            $taints = [];
-            foreach (($item->spec->taints ?? []) as $taint) {
-                array_push($taints, $taint->key . '=' . $taint->value . ':' . $taint->effect);
-            }
-            $mynode->taints = $taints;
-            $mynode->unschedulable = $item->spec->unschedulable ?? '';
-            $mynode->architecture = $item->status->nodeInfo->architecture ?? '';
-            $mynode->containerRuntimeVersion = $item->status->nodeInfo->containerRuntimeVersion ?? '';
-            $mynode->kernelVersion = $item->status->nodeInfo->kernelVersion ?? '';
-            $mynode->kubeletVersion = $item->status->nodeInfo->kubeletVersion ?? '';
-            $mynode->osImage = $item->status->nodeInfo->osImage ?? '';
-            $mynode->operatingSystem = $item->status->nodeInfo->operatingSystem ?? '';
-            foreach (($item->status->addresses ?? []) as $address) {
-                switch ($address->type) {
-                    case 'Hostname':
-                        $mynode->hostname = $address->address ?? '';
-                        break;
-                    case 'internalIP':
-                        $mynode->internalIP = $address->address ?? '';
-                        break;
-                }
-            }
-
-            $conditions = [];
-            foreach (($item->status->conditions ?? []) as $condition) {
-                if ($condition->status == 'True') {
-                    array_push($conditions, ($condition->type ?? ''));
-                }
-            }
-            $mynode->condition = $conditions;
         }
         return true;
     }
@@ -1043,11 +1394,8 @@ class Pso
                         $volumeSnapshot->namespace,
                         $volumeSnapshot->sourceName
                     );
-                    $volumeSnapshot->pureVolName = $this->psoInfo->prefix . '-pvc-' . $uid;
-                    if (isset($uid)) {
-                        $pvc = new PsoPersistentVolumeClaim($uid);
-                        $pvc->hasSnaps = true;
-                    }
+                    $myPvc = new PsoPersistentVolumeClaim($uid);
+                    $myPvc->hasSnaps = true;
                 }
             }
         } catch (Exception $e) {
@@ -1064,6 +1412,187 @@ class Pso
     }
 
     /**
+     * Connect to the Pure Storage® arrays (FlashArray™ and FlashBlade®) to retrieve
+     * management IP's and API tokens
+     *
+     * @return boolean
+     */
+    private function getArrayInfo()
+    {
+        // Log function call
+        Log::debug('    Call getArrayInfo()');
+
+        // Get the PSO secret from Kubernetes to retrieve the MgmtEndPoint and APIToken
+        Client::configure($this->master, $this->authentication);
+        $secret = new Secret($this->psoInfo->namespace);
+
+        $psoConfig = $secret->read($this->psoInfo->namespace, 'pure-provisioner-secret');
+        if (isset($psoConfig->code)) {
+            $this->psoFound = false;
+            $this->errorSource = 'k8s';
+            $this->errorMessage = 'Unable to read (get) the PSO secret. ' .
+                'Check the ClusterRoles and ClusterRoleBindings.';
+            return false;
+        }
+
+        if (isset($psoConfig->data)) {
+            $psoSecretData = $psoConfig->data;
+            $psoConfig = json_decode(base64_decode($psoSecretData['pure.json'], true));
+        } else {
+            $this->psoFound = false;
+            $this->errorSource = 'k8s';
+            $this->errorMessage = 'Unexpected error while getting PSO secrets. ' .
+                'Check the ClusterRoles and ClusterRoleBindings.';
+            return false;
+        }
+
+        $psoYaml = $this->objectToArray($psoConfig);
+        if ($psoYaml !== []) {
+            $myYaml = [];
+            foreach ($psoYaml as $item) {
+                $myYaml = array_merge($myYaml, $item);
+            }
+            $this->psoInfo->yaml = yaml_emit(["arrays" => $myYaml]);
+        }
+
+        // Get FlashArray™ information
+        foreach (($psoConfig->FlashArrays ?? []) as $flasharray) {
+            $mgmtEndPoint = $flasharray->MgmtEndPoint ?? 'not set';
+            $apiToken = $flasharray->APIToken ?? 'not set';
+
+            if (($mgmtEndPoint !== 'not set') and ($apiToken !== 'not set')) {
+                $newArray = new PsoArray($mgmtEndPoint);
+                $newArray->apiToken = $apiToken;
+                foreach (($flasharray->Labels ?? []) as $key => $value) {
+                    $newArray->arrayPush('labels', $key . '=' . $value);
+                }
+
+                $fa = new FlashArrayApi();
+                try {
+                    // Connect to the array for the array name
+                    $fa->authenticate($mgmtEndPoint, $apiToken);
+                    $arrayDetails = $fa->getArray();
+                    $modelDetails = $fa->getArray('controllers=true');
+
+                    $newArray->name = $arrayDetails['array_name'];
+                    $newArray->version = 'Purity//FA ' . $arrayDetails['version'];
+                    $newArray->model = 'Pure Storage® FlashArray™ ' . $modelDetails[0]['model'];
+                    $newArray->flasharray = 'flasharray';
+
+                    $portDetails = $fa->getPort();
+
+                    foreach (($portDetails  ?? []) as $portDetail) {
+                        if (isset($portDetail['iqn']) and !in_array('iSCSI', ($newArray->protocols ?? []))) {
+                            $newArray->arrayPush('protocols', 'iSCSI');
+                        }
+                        if (isset($portDetail['wwn']) and !in_array('FC', ($newArray->protocols ?? []))) {
+                            $newArray->arrayPush('protocols', 'FC');
+                        }
+                        if (isset($portDetail['nqn']) and !in_array('NVMe', ($newArray->protocols ?? []))) {
+                            $newArray->arrayPush('protocols', 'NVMe');
+                        }
+                    }
+                } catch (Exception $e) {
+                    // Log error message
+                    Log::debug('xxx Error connecting to FlashArray™ "' . $mgmtEndPoint . '"');
+                    Log::debug('    - Message: "' . $e->getMessage() . '"');
+                    Log::debug('    - File: "' . $e->getFile() . '"');
+                    Log::debug('    - Line: "' . $e->getLine() . '"');
+
+                    $newArray->name = $mgmtEndPoint;
+                    $newArray->model = 'Unknown';
+                    $newArray->offline = $mgmtEndPoint;
+                    $newArray->message = 'Unable to connect to FlashArray™ (' . $e->getMessage() . ')';
+                    unset($e);
+                }
+            } else {
+                if ($mgmtEndPoint !== 'not set') {
+                    $newArray = new PsoArray($mgmtEndPoint);
+                    $newArray->name = $mgmtEndPoint;
+                    $newArray->model = 'Unknown';
+                    $newArray->offline = $mgmtEndPoint;
+                    $newArray->message = 'No API token was set for this FlashArray™. ' .
+                        'Please check the PSO configurations (values.yaml).';
+                }
+            }
+        }
+
+        // Get FlashBlade® information
+        foreach (($psoConfig->FlashBlades ?? []) as $flashblade) {
+            $mgmtEndPoint = $flashblade->MgmtEndPoint ?? 'not set';
+            $apiToken = $flashblade->APIToken ?? 'not set';
+            $nfsEndPoint = $flashblade->NFSEndPoint ?? 'not set';
+
+            if (($mgmtEndPoint !== 'not set') and ($apiToken !== 'not set')) {
+                $newArray = new PsoArray($mgmtEndPoint);
+                $newArray->apiToken = $apiToken;
+                $myLabels = [];
+                foreach (($flashblade->Labels  ?? []) as $key => $value) {
+                    array_push($myLabels, $key . '=' . $value);
+                }
+                $newArray->labels = $myLabels;
+
+                $fb = new FlashBladeApi($mgmtEndPoint, $apiToken);
+                try {
+                    // Connect to the array for the array name
+                    $fb->authenticate();
+                    $array = $fb->getArray();
+
+                    $newArray->name = $array['items'][0]['name'];
+                    $newArray->model = 'Pure Storage® FlashBlade®';
+                    $newArray->version = $array['items'][0]['os'] . ' ' . $array['items'][0]['version'];
+                    $newArray->protocols = ['NFS', 'S3'];
+                    $newArray->flashblade = 'flashblade';
+
+                } catch (Exception $e) {
+                    // Log error message
+                    Log::debug('xxx Error connecting to FlashBlade® "' . $mgmtEndPoint . '"');
+                    Log::debug('    - Message: "' . $e->getMessage() . '"');
+                    Log::debug('    - File: "' . $e->getFile() . '"');
+                    Log::debug('    - Line: "' . $e->getLine() . '"');
+
+                    $newArray->name = $mgmtEndPoint;
+                    $newArray->model = 'Offline';
+                    $newArray->offline = $mgmtEndPoint;
+                    $newArray->message = 'Unable to connect to FlashBlade® (' . $e->getMessage() . ')';
+                    unset($e);
+                }
+
+                if ($nfsEndPoint == 'not set') {
+                    if (isset($flashblade->NfsEndPoint)) {
+                        $newArray->message = 'Currently using NfsEndPoint for this FlashBlade®. ' .
+                            'Please change your values.yaml to use NFSEndPoint, as NfsEndPoint is deprecated.';
+                    } else {
+                        $newArray->message = 'No NFSEndPoint was set for this FlashBlade®. ' .
+                            'Please check the PSO configurations (values.yaml).';
+                    }
+                }
+            } else {
+                if ($mgmtEndPoint !== 'not set') {
+                    $newArray = new PsoArray($mgmtEndPoint);
+                    $newArray->name = $mgmtEndPoint;
+                    $newArray->model = 'Unknown';
+                    $newArray->offline = $mgmtEndPoint;
+                    if ($apiToken == 'not set') {
+                        $newArray->message = 'No API token was set for this FlashBlade®. ' .
+                            'Please check the PSO configurations (values.yaml).';
+                    }
+                }
+            }
+        }
+
+        if (count(PsoArray::items(PsoArray::PREFIX, 'mgmtEndPoint')) == 0) {
+            // If no arrays were found, return an error
+            $this->psoFound = false;
+            $this->errorSource = 'pso';
+            $this->errorMessage = 'No arrays configured for PSO! Check the syntax of your values.yaml file.';
+            return false;
+        };
+
+        return true;
+    }
+
+    /**
      * Connect to the Pure Storage® arrays to retrieve volume information
      *
      * @return boolean
@@ -1073,433 +1602,74 @@ class Pso
         // Log function call
         Log::debug('    Call addArrayVolumeInfo()');
 
-        $totalSize = 0;
-        $totalUsed = 0;
-        $totalOrphanedUsed = 0;
-        $totalSnapshotUsed = 0;
-
-        $totalIopsRead = 0;
-        $totalIopsWrite = 0;
-        $totalBwRead = 0;
-        $totalBwWrite = 0;
-        $lowMsecRead = -1;
-        $lowMsecWrite = -1;
-        $highMsecRead = 0;
-        $highMsecWrite = 0;
-
-        $perfCount = 0;
-
         foreach (PsoArray::items(PsoArray::PREFIX, 'mgmtEndPoint') as $item) {
             $array = new PsoArray($item);
+            Log::debug('    Array: ' . $array->mgmtEndPoint);
 
             if (strpos($array->model, 'FlashArray') and ($array->offline == null)) {
-                $fa = new FlashArrayApi();
-                $fa->authenticate($array->mgmtEndPoint, $array->apiToken);
+                $this->addFlashArrayVolInfo($array, $this->psoInfo->prefix . '-*');
 
-                $vols = $fa->getVolumes(
-                    [
-                    'names' => $this->psoInfo->prefix . '-*',
-                    'space' => 'true',
-                    ]
-                );
+                $this->addFlashArrayPerfInfo($array, $this->psoInfo->prefix . '-pvc-*');
 
-                foreach (($vols ?? []) as $vol) {
-                    if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $vol['name'])) {
-                        $uid = str_ireplace($this->psoInfo->prefix . '-pvc-', '', $vol['name']);
+                $this->addFlashArrayHistInfo($array, $this->psoInfo->prefix . '-pvc-*');
 
-                        $myvol = new PsoPersistentVolumeClaim($uid);
-                        $myvol->pureName = $vol['name'] ?? '';
-                        $myvol->pureSize = $vol['size'] ?? 0;
-                        $myvol->pureSizeFormatted = $this->formatBytes($myvol->pureSize, 2);
-                        $myvol->pureUsed = $vol['size'] * (1 - $vol['thin_provisioning'] ?? 0);
-                        $myvol->pureUsedFormatted = $this->formatBytes($myvol->pureUsed, 2);
-                        $myvol->pureDrr = $vol['data_reduction'] ?? 1;
-                        $myvol->pureThinProvisioning = $vol['thin_provisioning'] ?? 0;
-                        $myvol->pureArrayName = $array->name;
-                        $myvol->pureArrayType = 'FA';
-                        $myvol->pureArrayMgmtEndPoint = $array->mgmtEndPoint;
-                        $myvol->pureSnapshots = $vol['snapshots'] ?? 0;
-                        $myvol->pureVolumes = $vol['volumes'] ?? 0;
-                        $myvol->pureSharedSpace = $vol['shared_space'] ?? 0;
-                        $myvol->pureTotalReduction = $vol['total_reduction'] ?? 1;
-                        if ($myvol->name == null) {
-                            $myvol->pureOrphaned = $uid;
-                            $myvol->pureOrphanedState = 'Unmanaged by PSO';
-                            $myvol->pureOrphanedPvcName = 'Not available for unmanaged PV\'s';
-                            $myvol->pureOrphanedPvcNamespace = 'Not available for unmanaged PV\'s';
-
-                            $totalOrphanedUsed = $totalOrphanedUsed + ($vol['size'] ?? 0) *
-                                (1 - ($vol['thin_provisioning'] ?? 0));
-                        } else {
-                            $totalUsed = $totalUsed + ($vol['size'] ?? 0)  *
-                                (1 - ($vol['thin_provisioning'] ?? 0));
-                            $totalSize = $totalSize + ($vol['size'] ?? 0);
-                        }
-                        $totalSnapshotUsed = $totalSnapshotUsed + ($vol['snapshots'] ?? 0);
-                    }
-
-                    if ($this->startsWith($this->psoInfo->prefix . '-pso-db_', $vol['name'])) {
-                        $pureArrayNameVolName = $array->name . ':' . $vol['name'];
-                        $backendVol = new PsoBackendVolume($pureArrayNameVolName);
-
-                        $backendVol->pureName = $vol['name'];
-                        $backendVol->pureSize = $vol['size'] ?? 0;
-                        $backendVol->pureSizeFormatted = $this->formatBytes($backendVol->pureSize, 2);
-                        $backendVol->pureUsed = $vol['size'] * (1 - $vol['thin_provisioning'] ?? 0);
-                        $backendVol->pureUsedFormatted = $this->formatBytes($backendVol->pureUsed, 2);
-                        $backendVol->pureDrr = $vol['data_reduction'] ?? 1;
-                        $backendVol->pureThinProvisioning = $vol['thin_provisioning'] ?? 0;
-                        $backendVol->pureArrayName = $array->name;
-                        $backendVol->pureArrayType = 'FA';
-                        $backendVol->pureArrayMgmtEndPoint = $array->mgmtEndPoint;
-                        $backendVol->pureSharedSpace = $vol['shared_space'] ?? 0;
-                        $backendVol->pureTotalReduction = $vol['total_reduction'] ?? 1;
-
-                        if (substr($pureArrayNameVolName, -2) == '-u') {
-                            $backendVol->unhealthy = true;
-                            $backendVol = new PsoBackendVolume(substr($pureArrayNameVolName, 0, -2));
-                            $backendVol->unhealthy = true;
-                        }
-                    }
-                }
-
-                $volsPerf = $fa->getVolumes(
-                    [
-                    'names' => $this->psoInfo->prefix . '-pvc-*',
-                    'action' => 'monitor',
-                    ]
-                );
-
-                foreach (($volsPerf ?? []) as $volPerf) {
-                    if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $volPerf['name'])) {
-                        $uid = str_ireplace(
-                            $this->psoInfo->prefix .
-                            '-pvc-',
-                            '',
-                            $volPerf['name']
-                        );
-
-                        $myvol = new PsoPersistentVolumeClaim($uid);
-                        $myvol->pureReadsPerSec = $volPerf['reads_per_sec'] ?? 0;
-                        $myvol->pureWritesPerSec = $volPerf['writes_per_sec'] ?? 0;
-                        $myvol->pureInputPerSec = $volPerf['input_per_sec'] ?? 0;
-                        $myvol->pureInputPerSecFormatted = $this->formatBytes(
-                            $volPerf['input_per_sec'],
-                            1,
-                            2
-                        ) . '/s';
-                        $myvol->pureOutputPerSec = $volPerf['output_per_sec'] ?? 0;
-                        $myvol->pureOutputPerSecFormatted = $this->formatBytes(
-                            $volPerf['output_per_sec'],
-                            1,
-                            2
-                        ) . '/s';
-                        $myvol->pureUsecPerReadOp = round(
-                            $volPerf['usec_per_read_op'] / 1000,
-                            2,
-                        );
-                        $myvol->pureUsecPerWriteOp = round(
-                            $volPerf['usec_per_write_op'] / 1000,
-                            2,
-                        );
-
-                        $totalIopsRead = $totalIopsRead + $volPerf['reads_per_sec'] ?? 0;
-                        $totalIopsWrite = $totalIopsWrite + $volPerf['writes_per_sec'] ?? 0;
-                        $totalBwRead = $totalBwRead + $volPerf['output_per_sec'] ?? 0;
-                        $totalBwWrite = $totalBwWrite + $volPerf['input_per_sec'] ?? 0;
-
-                        if (($volPerf['usec_per_read_op'] / 1000 < $lowMsecRead) or ($lowMsecRead = -1)) {
-                            $lowMsecRead = $volPerf['usec_per_read_op'] / 1000;
-                        }
-                        if (($volPerf['usec_per_write_op'] / 1000 < $lowMsecWrite) or ($lowMsecWrite = -1)) {
-                            $lowMsecWrite = $volPerf['usec_per_write_op'] / 1000;
-                        }
-                        if ($volPerf['usec_per_read_op'] / 1000 > $highMsecRead) {
-                            $highMsecRead = $volPerf['usec_per_read_op'] / 1000;
-                        }
-                        if ($volPerf['usec_per_write_op'] / 1000 > $highMsecWrite) {
-                            $highMsecWrite = $volPerf['usec_per_write_op'] / 1000;
-                        }
-
-                        $perfCount = $perfCount + 1;
-                    }
-                }
-
-                try {
-                    $volsPerf = $fa->getVolumes(
-                        [
-                        'names' => $this->psoInfo->prefix . '-pvc-*',
-                        'space' => 'true',
-                        'historical' => '24h',
-                        ]
-                    );
-
-                    $volHistSize = [];
-                    foreach (($volsPerf ?? []) as $volPerf) {
-                        if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $volPerf['name'])) {
-                            $uid = str_ireplace($this->psoInfo->prefix . '-pvc-', '', $volPerf['name']);
-
-                            if (
-                                isset($volHistSize[$uid]['firstDate'])
-                                and (strtotime($volPerf['time']) < $volHistSize[$uid]['firstDate'])
-                            ) {
-                                $volHistSize[$uid]['firstUsed'] = $volPerf['total'];
-                                $volHistSize[$uid]['firstDate'] = strtotime($volPerf['time']);
-                            } elseif (!isset($volHistSize[$uid]['firstDate'])) {
-                                $volHistSize[$uid]['firstUsed'] = $volPerf['total'];
-                                $volHistSize[$uid]['firstDate'] = strtotime($volPerf['time']);
-                            }
-                        }
-                    }
-
-                    foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
-                        $vol = new PsoPersistentVolumeClaim($uid);
-
-                        if (isset($volHistSize[$uid]['firstUsed']) and ($vol->pureArrayType == 'FA')) {
-                            $vol->pure24hHistoricUsed = $volHistSize[$uid]['firstUsed'];
-                        }
-                    }
-                } catch (Exception $e) {
-                    // Log error message
-                    Log::debug('xxx Error retrieving historical space usage for volumes.');
-                    Log::debug('    - Message: "' . $e->getMessage() . '"');
-                    Log::debug('    - File: "' . $e->getFile() . '"');
-                    Log::debug('    - Line: "' . $e->getLine() . '"');
-                    unset($e);
-                }
-
-                $snaps = $fa->getVolumes(
-                    [
-                    'names' => $this->psoInfo->prefix . '-pvc-*',
-                    'space' => 'true',
-                    'snap' => 'true',
-                    ]
-                );
-
-                foreach (($snaps ?? []) as $snap) {
-                    if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $snap['name'])) {
-                        $snapPrefix = '.snapshot-';
-                        $pureVolName = substr($snap['name'], 0, strpos($snap['name'], $snapPrefix));
-                        $uid = substr($snap['name'], strpos($snap['name'], $snapPrefix) + strlen($snapPrefix));
-
-                        $mysnap = new PsoVolumeSnapshot($uid);
-                        if (($mysnap->name == '') and ($mysnap->namespace == '') and ($mysnap->sourceName == '')) {
-                            $pureVolName = substr($snap['name'], 0, strpos($snap['name'], '.'));
-                            $pureSnapName = substr($snap['name'], strpos($snap['name'], '.') + 1);
-
-                            $mysnap->name = $pureVolName;
-                            $mysnap->namespace = 'Unknown';
-                            $mysnap->sourceName = $pureVolName;
-                            $mysnap->readyToUse = 'Ready';
-                            $mysnap->errorMessage = 'This snaphot is (no longer) managed by Kubernetes';
-                            $mysnap->orphaned = $uid;
-                        }
-
-                        $mysnap->pureName = $snap['name'];
-                        $mysnap->pureVolName = $pureVolName;
-                        $mysnap->pureSize = $snap['size'] ?? 0;
-                        $mysnap->pureSizeFormatted = $this->formatBytes($mysnap->pureSize, 2);
-                        ;
-                        $mysnap->pureUsed = $snap['total'] ?? 0;
-                        $mysnap->pureUsedFormatted = $this->formatBytes($mysnap->pureUsed, 2);
-                        ;
-
-                        $mysnap->pureArrayName = $array->name;
-                        $mysnap->pureArrayType = 'FA';
-                        $mysnap->pureArrayMgmtEndPoint = $array->mgmtEndPoint;
-                    }
-                }
+                $this->addFlashArraySnapInfo($array, $this->psoInfo->prefix . '-pvc-*');
             } elseif (strpos($array->model, 'FlashBlade') and ($array->offline == null)) {
-                $fb = new FlashBladeApi($array->mgmtEndPoint, $array->apiToken);
-
-                try {
-                    $fb->authenticate();
-
-                    $filesystems = $fb->getFileSystems(
-                        [
-                        'names' => $this->psoInfo->prefix . '-*',
-                        'space' => 'true',
-                        'destroyed' => false,
-                        ]
-                    );
-                } catch (Exception $e) {
-                    // Log error message
-                    Log::debug('xxx Error getting FileSystems for "' . $array->mgmtEndPoint . '"');
-                    Log::debug('    - Message: "' . $e->getMessage() . '"');
-                    Log::debug('    - File: "' . $e->getFile() . '"');
-                    Log::debug('    - Line: "' . $e->getLine() . '"');
-
-                    unset($e);
-                    $filesystems = null;
-                }
-
-                foreach (($filesystems['items'] ?? []) as $filesystem) {
-                    if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $filesystem['name'])) {
-                        $uid = str_ireplace($this->psoInfo->prefix . '-pvc-', '', $filesystem['name']);
-
-                        $myvol = new PsoPersistentVolumeClaim($uid);
-                        $myvol->pureName = $filesystem['name'] ?? '';
-                        $myvol->pureSize = $filesystem['provisioned'] ?? 0;
-                        $myvol->pureSizeFormatted = $this->formatBytes($myvol->pureSize, 2);
-                        $myvol->pureUsed = $filesystem['space']['virtual'] ?? 0;
-                        $myvol->pureUsedFormatted = $this->formatBytes($myvol->pureUsed, 2);
-                        $myvol->pureDrr = $filesystem['space']['data_reduction'] ?? 1;
-                        $myvol->pureThinProvisioning = 0;
-                        $myvol->pureArrayName = $array->name;
-                        $myvol->pureArrayType = 'FB';
-                        $myvol->pureArrayMgmtEndPoint = $array->mgmtEndPoint;
-                        $myvol->pureSnapshots = $filesystem['space']['snapshots'] ?? 0;
-                        $myvol->pureVolumes = $filesystem['space']['unique'] ?? 0;
-                        $myvol->pureSharedSpace = 0;
-                        $myvol->pureTotalReduction = $filesystem['space']['data_reduction'] ?? 1;
-                        if ($myvol->name == null) {
-                            $myvol->pureOrphaned = $uid;
-                            $myvol->pureOrphanedState = 'Unmanaged by PSO';
-                            $myvol->pureOrphanedPvcName = 'Unknown';
-                            $myvol->pureOrphanedPvcNamespace = 'Unknown';
-
-                            $totalOrphanedUsed = $totalOrphanedUsed + ($filesystem['space']['virtual'] ?? 0);
-                        } else {
-                            $totalUsed = $totalUsed + ($filesystem['space']['virtual'] ?? 0);
-                            $totalSize = $totalSize + ($filesystem['provisioned'] ?? 0);
-                        }
-                        $totalSnapshotUsed = $totalSnapshotUsed + ($filesystem['space']['snapshots'] ?? 0);
-
-                        $fsPerf = $fb->getFileSystemsPerformance(
-                            [
-                            'names' => $filesystem['name'],
-                            'protocol' => 'nfs',
-                            ]
-                        );
-
-                        foreach (($fsPerf['items'] ?? []) as $fsPerf) {
-                            $myvol->pureReadsPerSec = $fsPerf['reads_per_sec'] ?? 0;
-                            $myvol->pureWritesPerSec = $fsPerf['writes_per_sec'] ?? 0;
-                            $myvol->pureInputPerSec = $fsPerf['write_bytes_per_sec'] ?? 0;
-                            $myvol->pureInputPerSecFormatted = $this->formatBytes(
-                                $myvol->pureInputPerSec,
-                                1,
-                                2
-                            ) . '/s';
-                            $myvol->pureOutputPerSec = $fsPerf['read_bytes_per_sec'];
-                            $myvol->pureOutputPerSecFormatted = $this->formatBytes(
-                                $myvol->pureOutputPerSec,
-                                1,
-                                2
-                            ) . '/s';
-                            $myvol->pureUsecPerReadOp = round(
-                                $myvol->pureUsecPerReadOp / 1000,
-                                2
-                            );
-                            $myvol->pureUsecPerWriteOp = round(
-                                $myvol->pureUsecPerWriteOp / 1000,
-                                2
-                            );
-
-                            $totalIopsRead = $totalIopsRead + $myvol->pureReadsPerSec;
-                            $totalIopsWrite = $totalIopsWrite + $myvol->pureWritesPerSec;
-                            $totalBwRead = $totalBwRead + $myvol->pureOutputPerSec;
-                            $totalBwWrite = $totalBwWrite + $myvol->pureInputPerSec;
-
-                            $perfCount = $perfCount + 1;
-                        }
-                    }
-
-                    if ($this->startsWith($this->psoInfo->prefix . '-pso-db_', $filesystem['name'])) {
-                        $backendVol = new PsoBackendVolume($array->name . ':' . $filesystem['name']);
-
-                        $backendVol->pureName = $filesystem['name'];
-                        $backendVol->pureSize = $filesystem['provisioned'] ?? 0;
-                        $backendVol->pureSizeFormatted = $this->formatBytes($backendVol->pureSize, 2);
-                        $backendVol->pureUsed = $filesystem['space']['virtual'];
-                        $backendVol->pureUsedFormatted = $this->formatBytes($backendVol->pureUsed, 2);
-                        $backendVol->pureDrr = $filesystem['space']['data_reduction'] ?? 1;
-                        $backendVol->pureThinProvisioning = 0;
-                        $backendVol->pureArrayName = $array->name;
-                        $backendVol->pureArrayType = 'FB';
-                        $backendVol->pureArrayMgmtEndPoint = $array->mgmtEndPoint;
-                        $backendVol->pureSharedSpace = 0;
-                        $backendVol->pureTotalReduction = $filesystem['space']['data_reduction'] ?? 1;
-                    }
-                }
+                $this->addFlashBladeVolInfo($array, $this->psoInfo->prefix . '-*');
             }
         }
-
-        $this->psoInfo->totalSize = $totalSize;
-        $this->psoInfo->totalUsed = $totalUsed;
-        $this->psoInfo->totalOrphanedUsed = $totalOrphanedUsed;
-        $this->psoInfo->totalSnapshotUsed = $totalSnapshotUsed;
-
-        $this->psoInfo->totalIopsRead = $totalIopsRead;
-        $this->psoInfo->totalIopsWrite = $totalIopsWrite;
-        $this->psoInfo->totalBwRead = $totalBwRead;
-        $this->psoInfo->totalBwWrite = $totalBwWrite;
-
-        if ($lowMsecRead = -1) {
-            $this->psoInfo->lowMsecRead = 0;
-        } else {
-            $this->psoInfo->lowMsecRead = $lowMsecRead;
-        }
-
-        if ($lowMsecWrite = -1) {
-            $this->psoInfo->lowMsecWrite = 0;
-        } else {
-            $this->psoInfo->lowMsecWrite = $lowMsecWrite;
-        }
-
-        $this->psoInfo->highMsecRead = $highMsecRead;
-        $this->psoInfo->highMsecWrite = $highMsecWrite;
     }
 
     /**
-     * Connect to Kubernetes to retrieve the PersistentVolumes
+     * Connect to the Pure Storage® arrays to retrieve missing volume information
      *
      * @return boolean
      */
-    private function getPersistentVolumes()
+    private function addImportedVolumeInfo()
     {
         // Log function call
-        Log::debug('    Call getPersistentVolumes()');
+        Log::debug('    Call addImportedVolumeInfo()');
 
-        // Retrieve all Kubernetes PVC's for this cluster
-        Client::configure($this->master, $this->authentication);
-        $pv = new PersistentVolume();
-        $pvList = $pv->list();
+        $pureStorageClasses = PsoStorageClass::items(PsoStorageClass::PREFIX, 'name');
 
-        if (isset($pvList->code)) {
-            $this->psoFound = false;
-            $this->errorSource = 'k8s';
-            $this->errorMessage = 'Unable to list Persistent Volumes (PV\'s). ' .
-                'Check the ClusterRoles and ClusterRoleBindings.';
-            return false;
-        }
+        foreach (PsoPersistentVolume::items(PsoPersistentVolume::PREFIX, 'name') as $name) {
+            $myPv = new PsoPersistentVolume($name);
+            if (($myPv->pureName == null) and ($myPv->storageClassName !== null)) {
+                if (in_array($myPv->storageClassName, $pureStorageClasses)) {
+                    $myStorageClass = new PsoStorageClass($myPv->storageClassName);
 
-        foreach (($pvList->items ?? []) as $item) {
-            if (
-                in_array(
-                    $item->spec->storageClassName,
-                    PsoStorageClass::items(
-                        PsoStorageClass::PREFIX,
-                        'name'
-                    )
-                )
-                and ($item->status->phase == 'Released')
-            ) {
-                $uid = str_replace('pvc-', '', ($item->metadata->name ?? 'Unknown'));
+                    if ($myStorageClass->backend == 'block') {
+                        foreach (PsoArray::items(PsoArray::PREFIX, 'mgmtEndPoint') as $mgmtEndPoint) {
+                            $array = new PsoArray($mgmtEndPoint);
 
-                $orphanedList = PsoPersistentVolumeClaim::items(
-                    PsoPersistentVolumeClaim::PREFIX,
-                    'pureOrphaned'
-                );
-                if (in_array($uid, $orphanedList)) {
-                    $vol = new PsoPersistentVolumeClaim($uid);
-                    $vol->pureOrphanedState = 'Released PV';
-                    $vol->pureOrphanedPvcName = $item->spec->claimRef->name ?? 'Unknown';
-                    $vol->pureOrphanedPvcNamespace = $item->spec->claimRef->namespace ?? 'Unknown';
+                            if ($array->flasharray !== null) {
+                                if ($this->addFlashArrayVolInfo($array, $myPv->csi_volumeHandle)) {
+
+                                    $this->addFlashArrayPerfInfo($array, $myPv->csi_volumeHandle);
+
+                                    $this->addFlashArrayHistInfo($array, $myPv->csi_volumeHandle);
+
+                                    $this->addFlashArraySnapInfo($array, $myPv->csi_volumeHandle);
+
+                                    break;
+                                }
+                            }
+                        }
+
+                    } elseif ($myStorageClass->backend == 'file') {
+                        foreach (PsoArray::items(PsoArray::PREFIX, 'mgmtEndPoint') as $mgmtEndPoint) {
+                            $array = new PsoArray($mgmtEndPoint);
+
+                            if ($array->flashblade !== null) {
+                                if ($this->addFlashBladeVolInfo($array, $myPv->csi_volumeHandle)) {
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
-        return true;
     }
 
     /**
@@ -1565,6 +1735,7 @@ class Pso
         PsoInformation::deleteAll(PsoInformation::PREFIX);
         PsoLabels::deleteAll(PsoLabels::PREFIX);
         PsoNamespace::deleteAll(PsoNamespace::PREFIX);
+        PsoPersistentVolume::deleteAll(PsoPersistentVolume::PREFIX);
         PsoPersistentVolumeClaim::deleteAll(PsoPersistentVolumeClaim::PREFIX);
         PsoPod::deleteAll(PsoPod::PREFIX);
         PsoJob::deleteAll(PsoJob::PREFIX);
@@ -1587,19 +1758,18 @@ class Pso
             return false;
         }
 
-        // Get FlashArray™ and FlashBlade®
-        if (!$this->getArrayInfo()) {
-            Redis::del(self::PSO_UPDATE_KEY);
-            return false;
-        }
-
         // Get the storageclasses that use PSO
         if (!$this->getStorageClasses()) {
             Redis::del(self::PSO_UPDATE_KEY);
             return false;
         }
 
-        // Get the persistent volume claims
+        // Get the persistent volume provisioned by PSO
+        if (!$this->getPersistentVolumes()) {
+            return false;
+        }
+
+        // Get the persistent volume claims provisioned by PSO
         if (!$this->getPersistentVolumeClaims()) {
             Redis::del(self::PSO_UPDATE_KEY);
             return false;
@@ -1629,14 +1799,19 @@ class Pso
         // Get the VolumeSnapshots
         $this->getVolumeSnapshots();
 
-        // Get Pure Storage® array information
-        $this->addArrayVolumeInfo();
-
-        // Check for released PV's
-        if (!$this->getPersistentVolumes()) {
+        // Get FlashArray™ and FlashBlade®
+        if (!$this->getArrayInfo()) {
+            Redis::del(self::PSO_UPDATE_KEY);
             return false;
         }
 
+        // Get Pure Storage® array information
+        $this->addArrayVolumeInfo();
+
+        // Get Pure Storage® array information
+        $this->addImportedVolumeInfo();
+
+        // Check for released PV's
         Redis::set(self::VALID_PSO_DATA_KEY, time());
         Redis::expire(self::VALID_PSO_DATA_KEY, $this->refreshTimeout);
 
@@ -1656,9 +1831,15 @@ class Pso
 
         $dashboard['volumeCount'] = count(PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid'));
         $dashboard['orphanedCount'] = count(
-            PsoPersistentVolumeClaim::items(
-                PsoPersistentVolumeClaim::PREFIX,
-                'pureOrphaned'
+            PsoPersistentVolume::items(
+                PsoPersistentVolume::PREFIX,
+                'isOrphaned'
+            )
+        );
+        $dashboard['releasedCount'] = count(
+            PsoPersistentVolume::items(
+                PsoPersistentVolume::PREFIX,
+                'isReleased'
             )
         );
         $dashboard['storageclassCount'] = count(PsoStorageClass::items(PsoStorageClass::PREFIX, 'name'));
@@ -1672,28 +1853,29 @@ class Pso
 
         $vols = [];
         foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
-            $volume = new PsoPersistentVolumeClaim($uid);
+            $pvc = new PsoPersistentVolumeClaim($uid);
+            $pv = new PsoPersistentVolume($pvc->volumeName);
 
-            if (($volume->pureOrphaned == null) and ($volume->pureArrayType == 'FA')) {
+            if (($pv->isOrphaned == null) and ($pv->isReleased == null) and ($pv->pureArrayType == 'FA')) {
                 $vol['uid'] = $uid;
-                $vol['name'] = $volume->name;
-                $vol['namespace'] = $volume->namespace;
-                $vol['pureName'] = $volume->pureName;
-                $vol['size'] = $volume->pureSize;
-                $vol['sizeFormatted'] = $volume->pureSizeFormatted;
-                $vol['used'] = $volume->pureUsed;
-                $vol['usedFormatted'] = $volume->pureUsedFormatted;
-                $vol['growth'] = $volume->pureUsed - $volume->pure24hHistoricUsed;
+                $vol['name'] = $pvc->name;
+                $vol['namespace'] = $pvc->namespace;
+                $vol['pureName'] = $pv->pureName;
+                $vol['size'] = $pv->pureSize;
+                $vol['sizeFormatted'] = $pv->pureSizeFormatted;
+                $vol['used'] = $pv->pureUsed;
+                $vol['usedFormatted'] = $pv->pureUsedFormatted;
+                $vol['growth'] = $pv->pureTotal - $pv->pure24hHistoricTotal;
                 $vol['growthFormatted'] = $this->formatBytes(
-                    $volume->pureUsed -
-                    $volume->pure24hHistoricUsed,
+                    $pv->pureTotal -
+                    $pv->pure24hHistoricTotal,
                     2
                 );
-                $vol['status'] = $volume->status;
+                $vol['status'] = $pv->status_phase;
 
-                if ($volume->pureSize !== null) {
-                    $vol['growthPercentage'] = ($volume->pureUsed - $volume->pure24hHistoricUsed) /
-                        $volume->pureSize * 100;
+                if ($pv->pureSize !== null) {
+                    $vol['growthPercentage'] = ($pv->pureTotal - $pv->pure24hHistoricTotal) * $pv->pureDrr /
+                        $pv->pureSize * 100;
                 } else {
                     $vol['growthPercentage'] = 0;
                 }
@@ -1718,9 +1900,7 @@ class Pso
         $volumes = [];
         foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
             $volume = new PsoPersistentVolumeClaim($uid);
-            if ($volume->pureOrphaned == null) {
-                array_push($volumes, $volume->asArray());
-            }
+            array_push($volumes, $volume->asArray());
         }
         return $volumes;
     }
@@ -1730,8 +1910,12 @@ class Pso
         $this->RefreshData();
 
         $volumes = [];
-        foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'pureOrphaned') as $uid) {
-            $volume = new PsoPersistentVolumeClaim($uid);
+        foreach (PsoPersistentVolume::items(PsoPersistentVolume::PREFIX, 'isOrphaned') as $name) {
+            $volume = new PsoPersistentVolume($name);
+            array_push($volumes, $volume->asArray());
+        }
+        foreach (PsoPersistentVolume::items(PsoPersistentVolume::PREFIX, 'isReleased') as $name) {
+            $volume = new PsoPersistentVolume($name);
             array_push($volumes, $volume->asArray());
         }
         return $volumes;
@@ -1753,14 +1937,16 @@ class Pso
                 $storageClasses = [];
 
                 foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
-                    $myvol = new PsoPersistentVolumeClaim($uid);
+                    $myPvc = new PsoPersistentVolumeClaim($uid);
+                    $myPv = new PsoPersistentVolume($myPvc->volumeName);
 
-                    if ($myvol->pureArrayMgmtEndPoint == $item) {
-                        $size = $size + $myvol->pureSize;
-                        $used = $used + $myvol->pureUsed;
+                    if ($myPv->pureArrayMgmtEndPoint == $item) {
+                        $size = $size + $myPv->pureSize;
+                        $used = $used + $myPv->pureUsed;
                         $volumeCount = $volumeCount + 1;
-                        if (!in_array($myvol->storageClass, $storageClasses) and ($myvol->storageClass !== null)) {
-                            array_push($storageClasses, $myvol->storageClass);
+                        if (!in_array($myPvc->storageClassName, $storageClasses) and
+                            ($myPvc->storageClassName !== null)) {
+                            array_push($storageClasses, $myPvc->storageClassName);
                         }
                     }
                 }
@@ -1792,14 +1978,15 @@ class Pso
             $storageclasses = [];
 
             foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
-                $myvol = new PsoPersistentVolumeClaim($uid);
+                $myPvc = new PsoPersistentVolumeClaim($uid);
+                $myPv = new PsoPersistentVolume($myPvc->volumeName);
 
-                if (($myvol->namespace == $item) and in_array($myvol->storageClass, $pureStorageClasses)) {
-                    $pureSize = $pureSize + $myvol->pureSize;
-                    $pureUsed = $pureUsed + $myvol->pureUsed;
+                if (($myPvc->namespace == $item) and in_array($myPvc->storageClassName, $pureStorageClasses)) {
+                    $pureSize = $pureSize + $myPv->pureSize;
+                    $pureUsed = $pureUsed + $myPv->pureUsed;
                     $pureVolumes = $pureVolumes + 1;
-                    if (!in_array($myvol->storageClass, $storageclasses)) {
-                        array_push($storageclasses, $myvol->storageClass);
+                    if (!in_array($myPvc->storageClassName, $storageclasses)) {
+                        array_push($storageclasses, $myPvc->storageClassName);
                     }
                 }
             }
@@ -1829,11 +2016,12 @@ class Pso
             $pureVolumes = 0;
 
             foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
-                $myvol = new PsoPersistentVolumeClaim($uid);
+                $myPvc = new PsoPersistentVolumeClaim($uid);
+                $myPv = new PsoPersistentVolume($myPvc->volumeName);
 
-                if ($myvol->storageClass == $storageclass) {
-                    $pureSize = $pureSize + $myvol->pureSize;
-                    $pureUsed = $pureUsed + $myvol->pureUsed;
+                if ($myPvc->storageClassName == $storageclass) {
+                    $pureSize = $pureSize + $myPv->pureSize;
+                    $pureUsed = $pureUsed + $myPv->pureUsed;
                     $pureVolumes = $pureVolumes + 1;
                 }
             }
@@ -1921,15 +2109,16 @@ class Pso
             $storageclasses = [];
 
             foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
-                $myvol = new PsoPersistentVolumeClaim($uid);
+                $myPvc = new PsoPersistentVolumeClaim($uid);
+                $myPv = new PsoPersistentVolume($myPvc->volumeName);
 
-                if (is_array($myvol->labels)) {
-                    if (in_array($label, $myvol->labels) and in_array($myvol->storageClass, $pureStorageClasses)) {
-                        $pureSize = $pureSize + $myvol->pureSize;
-                        $pureUsed = $pureUsed + $myvol->pureUsed;
+                if (is_array($myPvc->labels)) {
+                    if (in_array($label, $myPvc->labels) and in_array($myPvc->storageClassName, $pureStorageClasses)) {
+                        $pureSize = $pureSize + $myPv->pureSize;
+                        $pureUsed = $pureUsed + $myPv->pureUsed;
                         $pureVolumes = $pureVolumes + 1;
-                        if (!in_array($myvol->storageClass, $storageclasses)) {
-                            array_push($storageclasses, $myvol->storageClass);
+                        if (!in_array($myPvc->storageClassName, $storageclasses)) {
+                            array_push($storageclasses, $myPvc->storageClassName);
                         }
                     }
                 }
@@ -1985,13 +2174,14 @@ class Pso
 
                     $uid = PsoPersistentVolumeClaim::getUidByNamespaceName($namespace, $name);
                     $myPvc = new PsoPersistentVolumeClaim($uid);
+                    $myPv = new PsoPersistentVolume($myPvc->volumeName);
 
                     array_push($pvcs, $item);
                     $volumeCount = $volumeCount + 1;
-                    $pureSize = $pureSize + $myPvc->pureSize;
-                    $pureUsed = $pureUsed + $myPvc->pureUsed;
-                    if (!in_array($myPvc->storageClass, $storageClasses)) {
-                        array_push($storageClasses, $myPvc->storageClass);
+                    $pureSize = $pureSize + $myPv->pureSize;
+                    $pureUsed = $pureUsed + $myPv->pureUsed;
+                    if (!in_array($myPvc->storageClassName, $storageClasses)) {
+                        array_push($storageClasses, $myPvc->storageClassName);
                     }
 
                     array_push(
@@ -2040,13 +2230,14 @@ class Pso
 
                 $uid = PsoPersistentVolumeClaim::getUidByNamespaceName($namespace, $name);
                 $myPvc = new PsoPersistentVolumeClaim($uid);
+                $myPv = new PsoPersistentVolume($myPvc->volumeName);
 
                 array_push($pvcs, $item);
                 $volumeCount = $volumeCount + 1;
-                $pureSize = $pureSize + $myPvc->pureSize;
-                $pureUsed = $pureUsed + $myPvc->pureUsed;
-                if (!in_array($myPvc->storageClass, $storageClasses)) {
-                    array_push($storageClasses, $myPvc->storageClass);
+                $pureSize = $pureSize + $myPv->pureSize;
+                $pureUsed = $pureUsed + $myPv->pureUsed;
+                if (!in_array($myPvc->storageClassName, $storageClasses)) {
+                    array_push($storageClasses, $myPvc->storageClassName);
                 }
 
                 array_push(
@@ -2099,14 +2290,15 @@ class Pso
             $storageclasses = [];
 
             foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
-                $myvol = new PsoPersistentVolumeClaim($uid);
+                $myPvc = new PsoPersistentVolumeClaim($uid);
+                $myPv = new PsoPersistentVolume($myPvc->volumeName);
 
-                if ((in_array($myvol->namespace . ':' . $myvol->name, $deployment->namespaceNames))) {
-                    $pureSize = $pureSize + $myvol->pureSize;
-                    $pureUsed = $pureUsed + $myvol->pureUsed;
+                if ((in_array($myPvc->namespace . ':' . $myPvc->name, $deployment->namespaceNames))) {
+                    $pureSize = $pureSize + $myPv->pureSize;
+                    $pureUsed = $pureUsed + $myPv->pureUsed;
                     $pureVolumes = $pureVolumes + 1;
-                    if (!in_array($myvol->storageClass, $storageclasses)) {
-                        array_push($storageclasses, $myvol->storageClass);
+                    if (!in_array($myPvc->storageClassName, $storageclasses)) {
+                        array_push($storageclasses, $myPvc->storageClassName);
                     }
                 }
             }
@@ -2138,14 +2330,15 @@ class Pso
             $storageclasses = [];
 
             foreach (PsoPersistentVolumeClaim::items(PsoPersistentVolumeClaim::PREFIX, 'uid') as $uid) {
-                $myvol = new PsoPersistentVolumeClaim($uid);
+                $myPvc = new PsoPersistentVolumeClaim($uid);
+                $myPv = new PsoPersistentVolume($myPvc->volumeName);
 
-                if ((in_array($myvol->namespace . ':' . $myvol->name, $myset->namespaceNames))) {
-                    $pureSize = $pureSize + $myvol->pureSize;
-                    $pureUsed = $pureUsed + $myvol->pureUsed;
+                if ((in_array($myPvc->namespace . ':' . $myPvc->name, $myset->namespaceNames))) {
+                    $pureSize = $pureSize + $myPv->pureSize;
+                    $pureUsed = $pureUsed + $myPv->pureUsed;
                     $pureVolumes = $pureVolumes + 1;
-                    if (!in_array($myvol->storageClass, $storageclasses)) {
-                        array_push($storageclasses, $myvol->storageClass);
+                    if (!in_array($myPvc->storageClassName, $storageclasses)) {
+                        array_push($storageclasses, $myPvc->storageClassName);
                     }
                 }
             }
@@ -2206,7 +2399,6 @@ class Pso
                 array_push($settings['dbvols'], $backendvol->asArray());
             }
         }
-
         return $settings;
     }
 
@@ -2215,11 +2407,17 @@ class Pso
         Client::configure($this->master, $this->authentication, ['timeout' => 10]);
         $podLog = new PodLog();
 
-        return $podLog->readLog(
-            $this->psoInfo->namespace,
-            $this->psoInfo->provisionerPod,
-            ['container' => $this->psoInfo->provisionerContainer,
-                'tailLines' => '1000']
-        );
+        try {
+            $log = $podLog->readLog(
+                $this->psoInfo->namespace,
+                $this->psoInfo->provisionerPod,
+                ['container' => $this->psoInfo->provisionerContainer,
+                    'tailLines' => '1000']
+            );
+        } catch (Exception $e) {
+            unset($e);
+            $log = 'Unable to get access log';
+        }
+        return $log;
     }
 }

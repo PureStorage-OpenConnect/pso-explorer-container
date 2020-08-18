@@ -45,7 +45,7 @@
                                             <tr>
                                                 <td>{{ $volsnap['namespace'] ?? '' }}</td>
 
-                                                <td><a href="{{ route('Storage-Volumes', ['volume_keyword' => $volsnap['pureVolName']]) }}">{{ $volsnap['sourceName'] ?? '' }}</a></td>
+                                                <td><a href="{{ route('Storage-Volumes', ['volume_keyword' => $volsnap['namespace'] . ' ' . $volsnap['sourceName']]) }}">{{ $volsnap['sourceName'] ?? '' }}</a></td>
 
                                                 <td>{{ $volsnap['name'] ?? '' }}</td>
 

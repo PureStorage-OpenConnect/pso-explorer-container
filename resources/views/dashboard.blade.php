@@ -15,9 +15,9 @@
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <span>Volumes</span>
-                                @if($dashboard['orphanedCount'] > 0)
+                                @if(($dashboard['orphanedCount'] > 0) or ($dashboard['releasedCount'] > 0))
                                 <a href="{{ route('Storage-Volumes') . '#orphaned'}}" >
-                                    <span class="label label-warning float-right">{{ $dashboard['orphanedCount'] }} unclaimed</span>
+                                    <span class="label label-warning float-right">{{ $dashboard['orphanedCount'] + $dashboard['releasedCount'] }} unclaimed</span>
                                 </a>
                                 @endif
                             </div>
