@@ -646,7 +646,7 @@ class Pso
             $conditionMessages = [];
             foreach (($item->status->conditions ?? []) as $condition) {
                 $type = $condition->type ?? 'Status';
-                $message = $condition->message ?? 'No message available')
+                $message = $condition->message ?? 'No message available';
 
                 if ($condition->status == 'True') {
                     if (!in_array($type, $conditions)) {
