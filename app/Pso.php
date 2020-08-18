@@ -645,16 +645,26 @@ class Pso
             $conditions = [];
             $conditionMessages = [];
             foreach (($item->status->conditions ?? []) as $condition) {
+                $type = $condition->type ?? 'Status';
+                $message = $condition->message ?? 'No message available')
+
                 if ($condition->status == 'True') {
-                    array_push($conditions, ($condition->type ?? ''));
-                    array_push($conditionMessages, ($condition->type ?? 'Status') . ': ' . ($condition->message ?? 'No message available'));
-                } elseif ($condition->status == 'Unknown') {
-                    if ($condition->type == 'Ready') {
-                        array_push($conditions, 'Not Ready');
-                    } else {
-                        array_push($conditions, ($condition->type ?? ''));
+                    if (!in_array($type, $conditions)) {
+                        array_push($conditions, $type);
+                        array_push($conditionMessages, $type . ': ' . $message);
                     }
-                    array_push($conditionMessages, ($condition->type ?? 'Status') . ': ' . ($condition->message ?? 'No message available'));
+                } elseif ($condition->status == 'Unknown') {
+                    if ($type == 'Ready') {
+                        if (!in_array('Not Ready', $conditions)) {
+                            array_push($conditions, 'Not Ready');
+                            array_push($conditionMessages, $type . ': ' . $message);
+                        }
+                    } else {
+                        if (!in_array($type, $conditions)) {
+                            array_push($conditions, $type);
+                            array_push($conditionMessages, $type . ': ' . $message);
+                        }
+                    }
                 }
             }
             $mynode->conditions = $conditions;
