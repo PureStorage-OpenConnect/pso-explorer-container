@@ -817,6 +817,14 @@ class Pso
                     if ($myContainerName == 'liveness-probe') {
                         array_push($images, $container->name . ': ' . $container->image);
                     }
+                } elseif ($this->startsWith('pso-csi-node', $myPodName)) {
+                    $line = $container->name . ': ' . $container->image;
+                    if (!in_array($line,$images))
+                    array_push($images, $line);
+                } elseif ($this->startsWith('pso-db-', $myPodName)) {
+                    $line = $container->name . ': ' . $container->image;
+                    if (!in_array($line, $images))
+                        array_push($images, $line);
                 }
             }
         }
@@ -916,6 +924,17 @@ class Pso
                         $mystorageclass->isDefaultClass = true;
                     }
                 }
+
+                $terms = [];
+                foreach (($item->allowedTopologies ?? []) as $index1 => $allowedTopology) {
+                    $expressions = [];
+                    foreach (($allowedTopology->matchLabelExpressions ?? []) as $index2 => $matchLabelExpression) {
+                        $expressions[$index2] = $matchLabelExpression->key . ' in [' .
+                            implode(',', $matchLabelExpression->values) . ']';
+                    }
+                    $terms[$index1] = 'Term ' . $index1 . ': ' . implode(', ', $expressions);
+                }
+                $mystorageclass->allowedTopologies = $terms;
             }
         }
         return true;

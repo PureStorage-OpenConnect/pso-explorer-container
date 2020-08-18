@@ -27,12 +27,13 @@
                                         <th data-toggle="true">Storageclass</th>
                                         <th>Number of volumes</th>
                                         <th>Provisioned size</th>
+                                        <th data-hide="all">Is default class</th>
                                         <th data-hide="all">Parameters</th>
                                         <th data-hide="all">Mount options</th>
                                         <th data-hide="all">Allow Volume Expansion</th>
                                         <th data-hide="all">Volume Binding Mode</th>
                                         <th data-hide="all">Reclaim Policy</th>
-                                        <th data-hide="all">Is default class</th>
+                                        <th data-hide="all">Allowed Topologies</th>
                                         <th>Used capacity</th>
                                     </tr>
                                     </thead>
@@ -43,18 +44,24 @@
                                                 <td>{{ $pso_storageclass['name'] ?? '<unknown>' }} @if($pso_storageclass['isDefaultClass'] == 1)(default)@endif</td>
                                                 <td>{{ $pso_storageclass['volumeCount'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_storageclass['sizeFormatted'] ?? '<unknown>' }}</td>
+                                                <td>@if($pso_storageclass['isDefaultClass'] == 1)True @else False @endif</td>
                                                 <td>@isset($pso_storageclass['parameters']){{ implode(', ', $pso_storageclass['parameters']) }}@endisset </td>
                                                 <td>@isset($pso_storageclass['mountOptions']){{ implode(', ', $pso_storageclass['mountOptions']) }}@endisset </td>
                                                 <td>@if($pso_storageclass['allowVolumeExpansion'] == 1)True @else False @endif</td>
                                                 <td>{{ $pso_storageclass['volumeBindingMode'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_storageclass['reclaimPolicy'] ?? '<unknown>' }}</td>
-                                                <td>@if($pso_storageclass['isDefaultClass'] == 1)True @else False @endif</td>
+                                                <td>
+                                                    @foreach(($pso_storageclass['allowedTopologies'] ?? []) as $topology)
+                                                        {{ $topology }}<br>
+                                                    @endforeach
+                                                </td>
                                                 <td>{{ $pso_storageclass['usedFormatted'] ?? '<unknown>' }}</td>
                                             </tr>
                                         @endforeach
                                         @if(count($psoStorageClasses) == 0)
                                             <tr>
                                                 <td><i>No StorageClasses found</i></td>
+                                                <td> </td>
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>

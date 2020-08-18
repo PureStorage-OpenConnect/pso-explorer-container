@@ -20,6 +20,7 @@ class PsoStorageClass extends RedisModel
         'reclaimPolicy',
         'isDefaultClass',
         'backend',
+        'allowedTopologies',
     ];
 
     protected $indexes = [
