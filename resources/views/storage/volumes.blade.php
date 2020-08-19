@@ -143,8 +143,8 @@
                                         <th>Provisioned size</th>
                                         <th>Used capacity</th>
                                         <th>Data reduction</th>
-                                        <th data-hide="all">Original claim name</th>
-                                        <th data-hide="all">Original claim namespace</th>
+                                        <th data-hide="all">Claim reference name</th>
+                                        <th data-hide="all">Claim reference namespace</th>
                                         <th>State</th>
                                     </tr>
                                     </thead>
