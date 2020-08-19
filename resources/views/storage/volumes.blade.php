@@ -164,7 +164,7 @@
                                                 <td>{{ $vol['claimRef_name'] ?? ' ' }}</td>
                                                 <td>{{ $vol['claimRef_namespace'] ?? ' ' }}</td>
 
-                                                @if($vol['status_phase'] == 'Released')
+                                                @if($vol['isReleased'])
                                                     <td><span class="label label-success">{{ $vol['status_phase'] }}</span></td>
                                                 @else
                                                     <td><span class="label label-warning">Unmanaged by PSO</span></td>

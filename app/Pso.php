@@ -1018,7 +1018,7 @@ class Pso
                     $newPv->claimRef_uid = $item->spec->claimRef->uid;
 
                     // Calculated data fields
-                    if ($newPv->status_phase == 'Released') {
+                    if (($newPv->status_phase == 'Released') or ($newPv->status_phase == 'Available')) {
                         $newPv->isReleased = $name;
                     }
                 }
