@@ -2451,7 +2451,6 @@ class Pso
                 ['container' => $this->psoInfo->provisionerContainer,
                     'tailLines' => '1000']
             );
-            var_dump($this->psoInfo->asArray());
             if (isset($log->code)) {
                 $log = 'Unable to get access log';
             }
