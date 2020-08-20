@@ -332,10 +332,10 @@
         </div>
     </div>
     <div class="footer fixed" id="page-footer">
-        @ISSET($portalInfo['total_used'])
+        @ISSET($portalInfo['totalUsed'])
             <div class="pull-right">
-                Currently <strong>{{ $portalInfo['total_used'] ?? 'unknown' }}</strong> of capacity is used out of
-                <strong>{{ $portalInfo['total_size'] ?? 'unknown' }}</strong> provisioned capacity
+                Currently <strong>{{ $portalInfo['totalUsed'] ?? 'unknown' }}</strong> of capacity is used out of
+                <strong>{{ $portalInfo['totalSize'] ?? 'unknown' }}</strong> provisioned capacity
             </div>
         @ENDISSET
         <div>
@@ -435,7 +435,7 @@
 {{-- Show localized refresh time --}}
 <script>
     function settime() {
-        var timestamp = {{ $portalInfo['last_refesh'] ?? 0 }}
+        var timestamp = {{ $portalInfo['lastRefesh'] ?? 0 }}
         var date = new Date(timestamp * 1000);
 
         if (document.getElementById("wrapper").classList.contains("toggled")) {

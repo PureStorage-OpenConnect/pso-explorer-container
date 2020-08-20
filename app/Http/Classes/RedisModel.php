@@ -1,9 +1,8 @@
 <?php
 
-
 namespace App\Http\Classes;
 
-
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
 class RedisModel
@@ -38,6 +37,8 @@ class RedisModel
                 }
             }
             $this->data[$name] = $value;
+        } else {
+            Log::debug('    Error trying to save field "' . $name . '" since it\'s not in fillable');
         }
     }
 
@@ -52,22 +53,21 @@ class RedisModel
                     return Redis::lrange($this->redisPrefix . ':' . $this->redisUid . ':' . $name, 0, -1);
                     break;
             }
-
+        } else {
+            Log::debug('    Error trying to access field "' . $name . '" since it\'s not in fillable');
         }
     }
 
     public function delete()
     {
         // TODO: Ideally I'd use SCAN here instead of KEYS, since KEYS blocks redis
-        foreach (Redis::keys($this->redisPrefix . ':' . $this->redisUid . ':*') as $key)
-        {
+        foreach (Redis::keys($this->redisPrefix . ':' . $this->redisUid . ':*') as $key) {
             $keyname = str_replace(config('database.redis.options.prefix'), '', $key);
             Redis::del($keyname);
         }
-        foreach ($this->indexes as $index)
-        {
+        foreach ($this->indexes as $index) {
             if (is_array($this->data[$index])) {
-                foreach ( $this->data[$index]as $item) {
+                foreach ($this->data[$index] as $item) {
                     Redis::srem($this->redisPrefix . ':__index:' . $index, $item);
                 }
             } else {
@@ -76,10 +76,10 @@ class RedisModel
         }
     }
 
-    public static function items(string $redisPrefix, string $name)
+    public static function items(string $redisPrefix, string $index)
     {
-        if (Redis::exists($redisPrefix . ':__index:' . $name)) {
-            return Redis::sort($redisPrefix . ':__index:' . $name, ['ALPHA' => true, 'sort' => 'ASC']);
+        if (Redis::exists($redisPrefix . ':__index:' . $index)) {
+            return Redis::sort($redisPrefix . ':__index:' . $index, ['ALPHA' => true, 'sort' => 'ASC']);
         } else {
             return [];
         }
@@ -88,14 +88,13 @@ class RedisModel
     public static function deleteAll(string $redisPrefix)
     {
         // TODO: Ideally I'd use SCAN here instead of KEYS, since KEYS blocks redis
-        foreach (Redis::keys($redisPrefix . ':*') as $key)
-        {
+        foreach (Redis::keys($redisPrefix . ':*') as $key) {
             $keyname = str_replace(config('database.redis.options.prefix'), '', $key);
             Redis::del($keyname);
         }
     }
 
-    public function array_push($name, $value)
+    public function arrayPush($name, $value)
     {
         if (!isset($this->data[$name])) {
             $this->data[$name] = [];
@@ -124,7 +123,9 @@ class RedisModel
     {
         $array = [];
         foreach ($this->fillable as $item) {
-            if ($item !== 'uid') $array[$item] = $this->__get($item);
+            if ($item !== 'uid') {
+                $array[$item] = $this->__get($item);
+            }
         }
         return $array;
     }

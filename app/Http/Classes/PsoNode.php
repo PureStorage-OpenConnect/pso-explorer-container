@@ -1,12 +1,10 @@
 <?php
 
-
 namespace App\Http\Classes;
-
 
 class PsoNode extends RedisModel
 {
-    public const PREFIX='pso_node';
+    public const PREFIX = 'pso_node';
 
     protected $fillable = [
         'uid',
@@ -24,8 +22,9 @@ class PsoNode extends RedisModel
         'osImage',
         'operatingSystem',
         'hostname',
-        'InternalIP',
-        'condition',
+        'internalIP',
+        'conditions',
+        'conditionMessages',
     ];
 
     protected $indexes = [
@@ -36,8 +35,10 @@ class PsoNode extends RedisModel
 
     public function __construct(string $uid)
     {
-        parent::__construct(SELF::PREFIX, $uid);
+        parent::__construct(self::PREFIX, $uid);
 
-        if ($uid !== '') $this->uid = $uid;
+        if ($uid !== '') {
+            $this->uid = $uid;
+        }
     }
 }

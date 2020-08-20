@@ -14,7 +14,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>PSO StorageClasses ({{ count($pso_storageclasses ?? []) }})</span>
+                            <span>PSO StorageClasses ({{ count($psoStorageClasses ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -27,34 +27,41 @@
                                         <th data-toggle="true">Storageclass</th>
                                         <th>Number of volumes</th>
                                         <th>Provisioned size</th>
+                                        <th data-hide="all">Is default class</th>
                                         <th data-hide="all">Parameters</th>
                                         <th data-hide="all">Mount options</th>
                                         <th data-hide="all">Allow Volume Expansion</th>
                                         <th data-hide="all">Volume Binding Mode</th>
                                         <th data-hide="all">Reclaim Policy</th>
-                                        <th data-hide="all">Is default class</th>
+                                        <th data-hide="all">Allowed Topologies</th>
                                         <th>Used capacity</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @isset($pso_storageclasses)
-                                        @foreach($pso_storageclasses as $pso_storageclass)
+                                    @isset($psoStorageClasses)
+                                        @foreach($psoStorageClasses as $pso_storageclass)
                                             <tr>
                                                 <td>{{ $pso_storageclass['name'] ?? '<unknown>' }} @if($pso_storageclass['isDefaultClass'] == 1)(default)@endif</td>
                                                 <td>{{ $pso_storageclass['volumeCount'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_storageclass['sizeFormatted'] ?? '<unknown>' }}</td>
+                                                <td>@if($pso_storageclass['isDefaultClass'] == 1)True @else False @endif</td>
                                                 <td>@isset($pso_storageclass['parameters']){{ implode(', ', $pso_storageclass['parameters']) }}@endisset </td>
                                                 <td>@isset($pso_storageclass['mountOptions']){{ implode(', ', $pso_storageclass['mountOptions']) }}@endisset </td>
                                                 <td>@if($pso_storageclass['allowVolumeExpansion'] == 1)True @else False @endif</td>
                                                 <td>{{ $pso_storageclass['volumeBindingMode'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_storageclass['reclaimPolicy'] ?? '<unknown>' }}</td>
-                                                <td>@if($pso_storageclass['isDefaultClass'] == 1)True @else False @endif</td>
+                                                <td>
+                                                    @foreach(($pso_storageclass['allowedTopologies'] ?? []) as $topology)
+                                                        {{ $topology }}<br>
+                                                    @endforeach
+                                                </td>
                                                 <td>{{ $pso_storageclass['usedFormatted'] ?? '<unknown>' }}</td>
                                             </tr>
                                         @endforeach
-                                        @if(count($pso_storageclasses) == 0)
+                                        @if(count($psoStorageClasses) == 0)
                                             <tr>
                                                 <td><i>No StorageClasses found</i></td>
+                                                <td> </td>
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>
@@ -93,7 +100,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>PSO VolumeSnapshotClasses ({{ count($pso_volumesnapshotclasses ?? []) }})</span>
+                            <span>PSO VolumeSnapshotClasses ({{ count($psoVolumeSnapshotClasses ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -113,8 +120,8 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @isset($pso_volumesnapshotclasses)
-                                        @foreach($pso_volumesnapshotclasses as $pso_volumesnapshotclass)
+                                    @isset($psoVolumeSnapshotClasses)
+                                        @foreach($psoVolumeSnapshotClasses as $pso_volumesnapshotclass)
                                             <tr>
                                                 <td>{{ $pso_volumesnapshotclass['name'] ?? '<unknown>' }} @if($pso_volumesnapshotclass['isDefaultClass'] == 1)(default)@endif</td>
                                                 <td>{{ $pso_volumesnapshotclass['volumeCount'] ?? '<unknown>' }}</td>
@@ -125,7 +132,7 @@
                                                 <td>{{ $pso_volumesnapshotclass['usedFormatted'] ?? '<unknown>' }}</td>
                                             </tr>
                                         @endforeach
-                                        @if(count($pso_volumesnapshotclasses) == 0)
+                                        @if(count($psoVolumeSnapshotClasses) == 0)
                                             <tr>
                                                 <td><i>No VolumeSnapshotClasses found</i></td>
                                                 <td> </td>

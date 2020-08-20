@@ -13,7 +13,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Volume Snapshots ({{ count($pso_volsnaps ?? []) - count($orphaned_snaps ?? []) }})</span>
+                            <span>Volume Snapshots ({{ count($psoVolsnaps ?? []) - count($orphanedSnaps ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -39,18 +39,18 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @isset($pso_volsnaps)
-                                        @foreach($pso_volsnaps as $volsnap)
+                                    @isset($psoVolsnaps)
+                                        @foreach($psoVolsnaps as $volsnap)
                                             @if($volsnap['orphaned'] == null)
                                             <tr>
                                                 <td>{{ $volsnap['namespace'] ?? '' }}</td>
 
-                                                <td><a href="{{ route('Storage-Volumes', ['volume_keyword' => $volsnap['pure_volname']]) }}">{{ $volsnap['sourceName'] ?? '' }}</a></td>
+                                                <td><a href="{{ route('Storage-Volumes', ['volume_keyword' => $volsnap['namespace'] . ' ' . $volsnap['sourceName']]) }}">{{ $volsnap['sourceName'] ?? '' }}</a></td>
 
                                                 <td>{{ $volsnap['name'] ?? '' }}</td>
 
-                                                <td>{{ $volsnap['pure_sizeFormatted'] ?? '' }}</td>
-                                                <td>{{ $volsnap['pure_usedFormatted'] ?? '' }}</td>
+                                                <td>{{ $volsnap['pureSizeFormatted'] ?? '' }}</td>
+                                                <td>{{ $volsnap['pureUsedFormatted'] ?? '' }}</td>
 
                                                 <td>{{ $volsnap['creationTimestamp'] ?? '' }}</td>
                                                 <td>
@@ -64,11 +64,11 @@
                                                 <td>{{ $volsnap['snapshotContentName'] ?? '' }}</td>
                                                 <td>{{ $volsnap['sourceKind'] ?? '' }}</td>
 
-                                                <td><a href="https://{{ $volsnap['pure_arrayMgmtEndPoint'] }}" target="_blank">{{ $volsnap['pure_arrayName'] }}</a></td>
-                                                @if ($volsnap['pure_arrayType'] == 'FA')
-                                                    <td><a href="https://{{ $volsnap['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $volsnap['pure_volname'] }}" target="_blank">{{ $volsnap['pure_name'] }}</a></td>
+                                                <td><a href="https://{{ $volsnap['pureArrayMgmtEndPoint'] }}" target="_blank">{{ $volsnap['pureArrayName'] }}</a></td>
+                                                @if ($volsnap['pureArrayType'] == 'FA')
+                                                    <td><a href="https://{{ $volsnap['pureArrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $volsnap['pureVolName'] }}" target="_blank">{{ $volsnap['pureName'] }}</a></td>
                                                 @else
-                                                    <td><a href="https://{{ $volsnap['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $volsnap['pure_volname'] }}" target="_blank">{{ $volsnap['pure_name'] }}</a></td>
+                                                    <td><a href="https://{{ $volsnap['pureArrayMgmtEndPoint'] }}/storage/filesystems/{{ $volsnap['pureVolName'] }}" target="_blank">{{ $volsnap['pureName'] }}</a></td>
                                                 @endif
 
                                                 @if($volsnap['readyToUse'] == 1)
@@ -81,7 +81,7 @@
                                             </tr>
                                             @endif
                                         @endforeach
-                                        @if(count($pso_volsnaps) == 0)
+                                        @if(count($psoVolsnaps) == 0)
                                             <tr>
                                                 <td><i>No Volume Snaphots found</i></td>
                                                 <td> </td>
@@ -121,7 +121,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12" id="orphaned">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Unmanaged Volume Snapshots ({{ count($orphaned_snaps ?? []) }})</span>
+                            <span>Unmanaged Volume Snapshots ({{ count($orphanedSnaps ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -141,14 +141,14 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @isset($orphaned_snaps)
-                                        @foreach($orphaned_snaps as $volsnap)
+                                    @isset($orphanedSnaps)
+                                        @foreach($orphanedSnaps as $volsnap)
                                             @if($volsnap['orphaned'] !== null)
                                                 <tr>
-                                                    <td><a href="{{ route('Storage-Volumes', ['volume_keyword' => $volsnap['pure_volname']]) }}">{{ $volsnap['pure_volname'] ?? '' }}</a></td>
+                                                    <td><a href="{{ route('Storage-Volumes', ['volume_keyword' => $volsnap['pureVolName']]) }}">{{ $volsnap['pureVolName'] ?? '' }}</a></td>
 
-                                                    <td>{{ $volsnap['pure_sizeFormatted'] ?? '' }}</td>
-                                                    <td>{{ $volsnap['pure_usedFormatted'] ?? '' }}</td>
+                                                    <td>{{ $volsnap['pureSizeFormatted'] ?? '' }}</td>
+                                                    <td>{{ $volsnap['pureUsedFormatted'] ?? '' }}</td>
 
                                                     <td>
                                                         @if($volsnap['errorMessage'] !== null)
@@ -157,11 +157,11 @@
                                                             &nbsp;
                                                         @endif
                                                     </td>
-                                                    <td><a href="https://{{ $volsnap['pure_arrayMgmtEndPoint'] }}" target="_blank">{{ $volsnap['pure_arrayName'] }}</a></td>
-                                                    @if ($volsnap['pure_arrayType'] == 'FA')
-                                                        <td><a href="https://{{ $volsnap['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $volsnap['pure_volname'] }}" target="_blank">{{ $volsnap['pure_name'] }}</a></td>
+                                                    <td><a href="https://{{ $volsnap['pureArrayMgmtEndPoint'] }}" target="_blank">{{ $volsnap['pureArrayName'] }}</a></td>
+                                                    @if ($volsnap['pureArrayType'] == 'FA')
+                                                        <td><a href="https://{{ $volsnap['pureArrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $volsnap['pureVolName'] }}" target="_blank">{{ $volsnap['pureName'] }}</a></td>
                                                     @else
-                                                        <td><a href="https://{{ $volsnap['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $volsnap['pure_volname'] }}" target="_blank">{{ $volsnap['pure_name'] }}</a></td>
+                                                        <td><a href="https://{{ $volsnap['pureArrayMgmtEndPoint'] }}/storage/filesystems/{{ $volsnap['pureVolName'] }}" target="_blank">{{ $volsnap['pureName'] }}</a></td>
                                                     @endif
 
                                                     @if($volsnap['readyToUse'] == 1)
@@ -174,7 +174,7 @@
                                                 </tr>
                                             @endif
                                         @endforeach
-                                        @if(count($pso_volsnaps) == 0)
+                                        @if(count($psoVolsnaps) == 0)
                                             <tr>
                                                 <td><i>No Volume Snaphots found</i></td>
                                                 <td> </td>

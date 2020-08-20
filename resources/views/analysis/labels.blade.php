@@ -13,7 +13,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Managed persistent volume claims per label ({{ count($pso_labels ?? []) }})</span>
+                            <span>Managed persistent volume claims per label ({{ count($psoLabels ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -31,8 +31,8 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @isset($pso_labels)
-                                        @foreach($pso_labels as $pso_label)
+                                    @isset($psoLabels)
+                                        @foreach($psoLabels as $pso_label)
                                             <tr>
                                                 <td>@if($pso_label['label'] == '') - no label - @else{{ $pso_label['label'] ?? '<unknown>' }}@endif</td>
                                                 <td>{{ $pso_label['volumeCount'] ?? '<unknown>' }}</td>
@@ -41,7 +41,7 @@
                                                 <td>{{ $pso_label['storageClasses'] ?? '<unknown>' }}</td>
                                             </tr>
                                         @endforeach
-                                        @if(count($pso_labels) == 0)
+                                        @if(count($psoLabels) == 0)
                                             <tr>
                                                 <td><i>No persistent volume claims found with labels</i></td>
                                                 <td> </td>

@@ -13,7 +13,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Namespaces with managed persistent volume claims ({{ count($pso_namespaces ?? []) }})</span>
+                            <span>Namespaces with managed persistent volume claims ({{ count($psoNamespaces ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -31,8 +31,8 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @isset($pso_namespaces)
-                                        @foreach($pso_namespaces as $pso_namespace)
+                                    @isset($psoNamespaces)
+                                        @foreach($psoNamespaces as $pso_namespace)
                                             <tr>
                                                 <td>{{ $pso_namespace['namespace']  ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_namespace['volumeCount'] ?? '<unknown>' }}</td>
@@ -41,7 +41,7 @@
                                                 <td>{{ $pso_namespace['storageClasses'] ?? '<unknown>' }}</td>
                                             </tr>
                                         @endforeach
-                                        @if(count($pso_namespaces) == 0)
+                                        @if(count($psoNamespaces) == 0)
                                             <tr>
                                                 <td><i>No persistent volume claims found in any namespace</i></td>
                                                 <td> </td>

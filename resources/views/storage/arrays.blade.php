@@ -13,7 +13,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Pure Storage® systems configured for this cluster ({{ count($pso_arrays ?? []) }})</span>
+                            <span>Pure Storage® systems configured for this cluster ({{ count($psoArrays ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -38,8 +38,8 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @isset($pso_arrays)
-                                        @foreach($pso_arrays as $pso_array)
+                                    @isset($psoArrays)
+                                        @foreach($psoArrays as $pso_array)
                                             <tr>
                                                 <td>
                                                     @isset($pso_array['message'])
@@ -64,7 +64,7 @@
                                                 @endif
                                             </tr>
                                         @endforeach
-                                        @if(count($pso_arrays) == 0)
+                                        @if(count($psoArrays) == 0)
                                             <tr>
                                                 <td><i>No arrays found</i></td>
                                                 <td> </td>
