@@ -98,7 +98,7 @@ class Pso
         }
 
         // Set the expiration time for the collected data
-        $this->refreshTimeout = env('PSO_REFRESH_TIMEOUT', '300');
+        $this->refreshTimeout = getenv('PSOX_CACHE_TIMEOUT') ?: env('PSOX_CACHE_TIMEOUT', '300');
 
         // Initialize the psoInfo variable
         $this->psoInfo = new PsoInformation();
@@ -795,6 +795,7 @@ class Pso
                     ($myPodName == 'pso-csi-controller-0')
                     or ($this->startsWith('pure-provisioner', $myPodName))
                 ) {
+
                     $this->psoInfo->provisionerPod = $myPodName;
                     $this->psoInfo->provisionerContainer = $item->spec->containers[0]->name ?? 'Unknown';
 
@@ -1418,8 +1419,10 @@ class Pso
                         $volumeSnapshot->namespace,
                         $volumeSnapshot->sourceName
                     );
-                    $myPvc = new PsoPersistentVolumeClaim($uid);
-                    $myPvc->hasSnaps = true;
+                    if ($uid !== null) {
+                        $myPvc = new PsoPersistentVolumeClaim($uid);
+                        $myPvc->hasSnaps = true;
+                    }
                 }
             }
         } catch (Exception $e) {
@@ -2448,6 +2451,10 @@ class Pso
                 ['container' => $this->psoInfo->provisionerContainer,
                     'tailLines' => '1000']
             );
+            var_dump($this->psoInfo->asArray());
+            if (isset($log->code)) {
+                $log = 'Unable to get access log';
+            }
         } catch (Exception $e) {
             unset($e);
             $log = 'Unable to get access log';

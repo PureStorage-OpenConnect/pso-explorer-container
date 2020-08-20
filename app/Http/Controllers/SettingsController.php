@@ -57,7 +57,10 @@ class SettingsController extends Controller
         // If $pso is false, an error was returned
         $nodes = $pso->nodes();
         $portalInfo = $pso->portalInfo();
-
+        if (!$pso) {
+            // Do not show errors for Nodes page, since it's available before PSO is installed
+            $request->session()->forget(['alert-class', 'message', 'source', 'yaml']);
+        }
         return view('settings/nodes', ['nodes' => $nodes, 'portalInfo' => $portalInfo]);
     }
 }

@@ -1,7 +1,7 @@
 @extends('layouts.portal')
 
 @section('css')
-    <meta http-equiv="refresh" content="300">
+    <meta http-equiv="refresh" content={{ getenv('PSOX_DASHBOARD_REFRESH') ?: env('PSOX_DASHBOARD_REFRESH', '60')}}>
 @endsection
 
 @section('content')
