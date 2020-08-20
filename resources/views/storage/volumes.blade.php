@@ -13,7 +13,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Managed Persistent Volume Claims ({{ count($pso_vols ?? []) }})</span>
+                            <span>Managed Persistent Volume Claims ({{ count($psoVols ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -44,44 +44,44 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @isset($pso_vols)
-                                        @foreach($pso_vols as $vol)
-                                            <tr @if (($vol['pure_name'] == $volume_keyword) and ($volume_keyword !== '')) class="footable-detail-show"@endif>
+                                    @isset($psoVols)
+                                        @foreach($psoVols as $vol)
+                                            <tr @if (($vol['pv']['pureName'] == $volume_keyword) and ($volume_keyword !== '')) class="footable-detail-show"@endif>
                                                 <td>{{ $vol['namespace'] ?? ' ' }}</td>
                                                 <td>{{ $vol['name'] ?? ' ' }}</td>
-                                                <td>{{ $vol['size'] ?? ' ' }}</td>
-                                                <td>{{ $vol['pure_usedFormatted'] ?? ' '}}</td>
-                                                <td>@if($vol['pure_reads_per_sec'] !== null){{ number_format($vol['pure_reads_per_sec'], 0) }} / {{ number_format($vol['pure_writes_per_sec'], 0) }}@endif </td>
-                                                <td>@if($vol['pure_output_per_sec_formatted'] !== null){{ $vol['pure_output_per_sec_formatted'] }} / {{ $vol['pure_input_per_sec_formatted'] }}@endif </td>
+                                                <td>{{ $vol['pv']['pureSizeFormatted'] ?? ' ' }}</td>
+                                                <td>{{ $vol['pv']['pureUsedFormatted'] ?? ' '}}</td>
+                                                <td>@if($vol['pv']['pureReadsPerSec'] !== null){{ number_format($vol['pv']['pureReadsPerSec'], 0) }} / {{ number_format($vol['pv']['pureWritesPerSec'], 0) }}@endif </td>
+                                                <td>@if($vol['pv']['pureOutputPerSecFormatted'] !== null){{ $vol['pv']['pureOutputPerSecFormatted'] }} / {{ $vol['pv']['pureInputPerSecFormatted'] }}@endif </td>
 
                                                 <td>{{ $vol['creationTimestamp'] ?? ' ' }}</td>
-                                                <td>{{ $vol['storageClass'] ?? ' ' }}</td>
-                                                <td>{{ $vol['pv_name'] ?? ' ' }}</td>
+                                                <td>{{ $vol['storageClassName'] ?? ' ' }}</td>
+                                                <td>{{ $vol['volumeName'] ?? ' ' }}</td>
                                                 <td>@isset($vol['labels']){{ implode(', ', $vol['labels']) }}@endisset </td>
-                                                <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}" target="_blank">{{ $vol['pure_arrayName'] }}</a> </td>
-                                                @if ($vol['pure_arrayType'] == 'FA')
-                                                    <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a> </td>
+                                                <td><a href="https://{{ $vol['pv']['pureArrayMgmtEndPoint'] }}" target="_blank">{{ $vol['pv']['pureArrayName'] }}</a> </td>
+                                                @if ($vol['pv']['pureArrayType'] == 'FA')
+                                                    <td><a href="https://{{ $vol['pv']['pureArrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $vol['pv']['pureName'] }}" target="_blank">{{ $vol['pv']['pureName'] }}</a> </td>
                                                 @else
-                                                    <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a> </td>
+                                                    <td><a href="https://{{ $vol['pv']['pureArrayMgmtEndPoint'] }}/storage/filesystems/{{ $vol['pv']['pureName'] }}" target="_blank">{{ $vol['pv']['pureName'] }}</a> </td>
                                                 @endif
-                                                <td>{{ number_format($vol['pure_drr'] ?? 1 , 1) }}:1 </td>
-                                                <td>{{ number_format($vol['pure_reads_per_sec' ?? 0], 0) }} / {{ number_format($vol['pure_writes_per_sec'] ?? 0, 0) }}</td>
-                                                <td>{{ $vol['pure_output_per_sec_formatted'] ?? 0 }} / {{ $vol['pure_input_per_sec_formatted'] ?? 0 }}</td>
-                                                <td>{{ $vol['pure_usec_per_read_op'] ?? 0 }} / {{ $vol['pure_usec_per_write_op'] ?? 0 }} ms </td>
+                                                <td>{{ number_format($vol['pv']['pureDrr'] ?? 1 , 1) }}:1 </td>
+                                                <td>{{ number_format($vol['pv']['pureReadsPerSec' ?? 0], 0) }} / {{ number_format($vol['pv']['pureWritesPerSec'] ?? 0, 0) }}</td>
+                                                <td>{{ $vol['pv']['pureOutputPerSecFormatted'] ?? 0 }} / {{ $vol['pv']['pureInputPerSecFormatted'] ?? 0 }}</td>
+                                                <td>{{ $vol['pv']['pureUsecPerReadOp'] ?? 0 }} / {{ $vol['pv']['pureUsecPerWriteOp'] ?? 0 }} ms </td>
 
-                                                @if($vol['has_snaps'])
-                                                    <td><a href="{{ route('Storage-Snapshots', ['volume_keyword' => $vol['pure_name']]) }}">View snapshots</a> </td>
+                                                @if($vol['hasSnaps'])
+                                                    <td><a href="{{ route('Storage-Snapshots', ['volume_keyword' => $vol['namespace'] . ' ' . $vol['name']]) }}">View snapshots</a> </td>
                                                 @else
                                                     <td><i>No Volume Snapshots</i> </td>
                                                 @endif
-                                                @if($vol['status'] == 'Bound')
-                                                    <td><span class="label label-success">{{ $vol['status'] }}</span> </td>
+                                                @if($vol['status_phase'] == 'Bound')
+                                                    <td><span class="label label-success">{{ $vol['status_phase'] }}</span> </td>
                                                 @else
-                                                    <td><span class="label label-warning">{{ $vol['status'] }}</span> </td>
+                                                    <td><span class="label label-warning">{{ $vol['status_phase'] }}</span> </td>
                                                 @endif
                                             </tr>
                                         @endforeach
-                                        @if(count($pso_vols) == 0)
+                                        @if(count($psoVols) == 0)
                                             <tr>
                                                 <td><i>No Volumes found</i></td>
                                                 <td> </td>
@@ -128,7 +128,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12" id="orphaned">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Unclaimed or Orphaned Volumes ({{ count($orphaned_vols ?? []) }})</span>
+                            <span>Unclaimed or Orphaned Volumes ({{ count($orphanedVols ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -143,35 +143,35 @@
                                         <th>Provisioned size</th>
                                         <th>Used capacity</th>
                                         <th>Data reduction</th>
-                                        <th data-hide="all">Original claim name</th>
-                                        <th data-hide="all">Original claim namespace</th>
+                                        <th data-hide="all">Claim reference name</th>
+                                        <th data-hide="all">Claim reference namespace</th>
                                         <th>State</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @isset($orphaned_vols)
-                                        @foreach($orphaned_vols as $vol)
+                                    @isset($orphanedVols)
+                                        @foreach($orphanedVols as $vol)
                                             <tr>
-                                                <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}" target="_blank">{{ $vol['pure_arrayName'] }}</a></td>
-                                                @if ($vol['pure_arrayType'] == 'FA')
-                                                    <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a></td>
+                                                <td><a href="https://{{ $vol['pureArrayMgmtEndPoint'] }}" target="_blank">{{ $vol['pureArrayName'] }}</a></td>
+                                                @if ($vol['pureArrayType'] == 'FA')
+                                                    <td><a href="https://{{ $vol['pureArrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $vol['pureName'] }}" target="_blank">{{ $vol['pureName'] }}</a></td>
                                                 @else
-                                                    <td><a href="https://{{ $vol['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $vol['pure_name'] }}" target="_blank">{{ $vol['pure_name'] }}</a></td>
+                                                    <td><a href="https://{{ $vol['pureArrayMgmtEndPoint'] }}/storage/filesystems/{{ $vol['pureName'] }}" target="_blank">{{ $vol['pureName'] }}</a></td>
                                                 @endif
-                                                <td>{{ $vol['pure_sizeFormatted'] }}</td>
-                                                <td>{{ $vol['pure_usedFormatted'] }}</td>
-                                                <td>{{ number_format($vol['pure_drr'], 1) }}:1</td>
-                                                <td>{{ $vol['pure_orphaned_pvc_name'] ?? ' ' }}</td>
-                                                <td>{{ $vol['pure_orphaned_pvc_namespace'] ?? ' ' }}</td>
+                                                <td>{{ $vol['pureSizeFormatted'] }}</td>
+                                                <td>{{ $vol['pureUsedFormatted'] }}</td>
+                                                <td>{{ number_format($vol['pureDrr'], 1) }}:1</td>
+                                                <td>{{ $vol['claimRef_name'] ?? ' ' }}</td>
+                                                <td>{{ $vol['claimRef_namespace'] ?? ' ' }}</td>
 
-                                                @if($vol['pure_orphaned_state'] == 'Released PV')
-                                                    <td><span class="label label-success">{{ $vol['pure_orphaned_state'] }}</span></td>
+                                                @if($vol['isReleased'])
+                                                    <td><span class="label label-success">{{ $vol['status_phase'] }}</span></td>
                                                 @else
-                                                    <td><span class="label label-warning">{{ $vol['pure_orphaned_state'] }}</span></td>
+                                                    <td><span class="label label-warning">Unmanaged by PSO</span></td>
                                                 @endif
                                             </tr>
                                         @endforeach
-                                        @if(count($orphaned_vols) == 0)
+                                        @if(count($orphanedVols) == 0)
                                             <tr>
                                                 <td><i>No orphaned or released volumes found</i></td>
                                                 <td> </td>

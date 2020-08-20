@@ -23,7 +23,7 @@ class FlashBladeApi
     protected $header;
     protected $username;
     protected $authenticated;
-    protected $api_versions;
+    protected $apiVersions;
 
     // Request method
     private function getRequest($request, $filter = [])
@@ -32,9 +32,10 @@ class FlashBladeApi
             throw new ConnectionException('Unauthenticated API call. You need to authenticate to the API first.');
         }
 
-        try
-        {
-            $response = Http::withOptions(['connect_timeout' => 20, 'verify' => false])->withHeaders($this->header)->get($this->url . $request, $filter);
+        try {
+            $response = Http::withOptions(
+                ['connect_timeout' => 20, 'verify' => false]
+            )->withHeaders($this->header)->get($this->url . $request, $filter);
 
             // If request is successful, return the body
             if ($response->successful()) {
@@ -54,10 +55,14 @@ class FlashBladeApi
     }
 
     // Construct method
-    public function __construct ($mgmtEndPoint, $apitoken)
+    public function __construct($mgmtEndPoint, $apitoken)
     {
         // Initialize ALSO MarketPlace API class
-        $this->header			= array('accept' => 'application/json', 'Content-Type' => 'application/json', 'User-Agent' => 'pso-explorer/' . config('app.version', 'unknown-version'));
+        $this->header           = array(
+            'accept' => 'application/json',
+            'Content-Type' => 'application/json',
+            'User-Agent' => 'pso-explorer/' . config('app.version', 'unknown-version')
+        );
         $this->apitoken         = null;
         $this->cookieJar        = null;
         $this->username         = null;
@@ -67,7 +72,7 @@ class FlashBladeApi
     }
 
     // Authentication method
-    public function authenticate ()
+    public function authenticate()
     {
         // Set default result to false
         $this->authenticated = false;
@@ -75,19 +80,27 @@ class FlashBladeApi
 
         try {
             // Try to authenticate to API
-            $response = Http::withOptions(['connect_timeout' => 20, 'verify' => false])->withHeaders($myheader)->post($this->url . '/api/login');
+            $response = Http::withOptions(
+                ['connect_timeout' => 20, 'verify' => false]
+            )->withHeaders($myheader)->post($this->url . '/api/login');
             $result = json_decode($response->body(), true);
 
             if (isset($response->headers()['x-auth-token']) and empty($result['error'])) {
-                // If a x-auth-token is returned and there are no 'error's, we're logged in to FlashBlade® and we're good to continue
+                // If a x-auth-token is returned and there are no 'error's, we're logged in to FlashBlade®
+                // and we're good to continue
                 $this->username = json_decode($response->body())->username;
-                $this->header = array_merge($this->header, array('x-auth-token' => $response->headers()['x-auth-token'][0]));
+                $this->header = array_merge(
+                    $this->header,
+                    array('x-auth-token' => $response->headers()['x-auth-token'][0])
+                );
 
-                $response = Http::withOptions(['connect_timeout' => 20, 'verify' => false])->withHeaders($myheader)->get($this->url . '/api/api_version');
+                $response = Http::withOptions(
+                    ['connect_timeout' => 20, 'verify' => false]
+                )->withHeaders($myheader)->get($this->url . '/api/api_version');
 
                 $result = json_decode($response->body(), true);
-                $this->api_versions = end($result['versions']);
-                $this->url = $this->url . '/api/' . $this->api_versions . '/';
+                $this->apiVersions = end($result['versions']);
+                $this->url = $this->url . '/api/' . $this->apiVersions . '/';
                 $this->authenticated = true;
             } else {
                 Log::debug('xxx Unable to authenticate to FlashBlade® at "' . $this->url . '"');
@@ -107,17 +120,17 @@ class FlashBladeApi
         return $this->authenticated;
     }
 
-    public function GetFileSystems($filter = [])
+    public function getFileSystems($filter = [])
     {
         return $this->getRequest('file-systems', $filter);
     }
 
-    public function GetFileSystemsPerformance($filter = [])
+    public function getFileSystemsPerformance($filter = [])
     {
         return $this->getRequest('file-systems/performance', $filter);
     }
 
-    public function GetArray($filter = [])
+    public function getArray($filter = [])
     {
         return $this->getRequest('arrays', $filter);
     }

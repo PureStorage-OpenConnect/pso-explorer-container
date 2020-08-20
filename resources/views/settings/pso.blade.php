@@ -47,15 +47,15 @@
                                                     <td>
                                                         <b>Healthy volumes</b><br>
                                                         @foreach($settings['dbvols'] ?? [] as $item)
-                                                            @if(!isset($item['unhealthy']))
+                                                            @if($item['unhealthy'] == null)
                                                                 <span>
-                                                                    @if ($item['pure_arrayType'] == 'FA')
-                                                                        <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
-                                                                            {{ $item['pure_name'] }}
+                                                                    @if ($item['pureArrayType'] == 'FA')
+                                                                        <a href="https://{{ $item['pureArrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pureName'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pureArrayName'] }}, Size: {{ $item['pureSizeFormatted'] }}, Used: {{ $item['pureUsedFormatted'] }}">
+                                                                            {{ $item['pureName'] }}
                                                                         </a>
                                                                     @else
-                                                                        <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
-                                                                            {{ $item['pure_name'] }}
+                                                                        <a href="https://{{ $item['pureArrayMgmtEndPoint'] }}/storage/filesystems/{{ $item['pureName'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pureArrayName'] }}, Size: {{ $item['pureSizeFormatted'] }}, Used: {{ $item['pureUsedFormatted'] }}">
+                                                                            {{ $item['pureName'] }}
                                                                         </a>
                                                                     @endif
                                                                 </span>
@@ -66,20 +66,20 @@
                                                     <td>
                                                         <b>Stale volumes</b><br>
                                                     @foreach($settings['dbvols'] ?? [] as $item)
-                                                            @if(isset($item['unhealthy']))
+                                                            @if($item['unhealthy'])
                                                                 <span>
-                                                            <img src="/images/warning.svg" style="height: 13px; vertical-align: text-top;" data-toggle="tooltip" data-placement="top" title="This volume is parked by PSO since the replica was marked unhealthy.">
+                                                                    <img src="/images/warning.svg" style="height: 13px; vertical-align: text-top;" data-toggle="tooltip" data-placement="top" title="This volume is parked by PSO since the replica was marked unhealthy.">
 
-                                                            @if ($item['pure_arrayType'] == 'FA')
-                                                                        <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
-                                                                {{ $item['pure_name'] }}
-                                                            </a>
+                                                                    @if ($item['pureArrayType'] == 'FA')
+                                                                        <a href="https://{{ $item['pureArrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pureName'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pureArrayName'] }}, Size: {{ $item['pureSizeFormatted'] }}, Used: {{ $item['pureUsedFormatted'] }}">
+                                                                            {{ $item['pureName'] }}
+                                                                        </a>
                                                                     @else
-                                                                        <a href="https://{{ $item['pure_arrayMgmtEndPoint'] }}/storage/filesystems/{{ $item['pure_name'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pure_arrayName'] }}, Size: {{ $item['pure_sizeFormatted'] }}, Used: {{ $item['pure_usedFormatted'] }}">
-                                                                {{ $item['pure_name'] }}
-                                                            </a>
+                                                                        <a href="https://{{ $item['pureArrayMgmtEndPoint'] }}/storage/filesystems/{{ $item['pureName'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pureArrayName'] }}, Size: {{ $item['pureSizeFormatted'] }}, Used: {{ $item['pureUsedFormatted'] }}">
+                                                                            {{ $item['pureName'] }}
+                                                                        </a>
                                                                     @endif
-                                                    </span><br>
+                                                                </span><br>
                                                             @endif
                                                         @endforeach
                                                     </td>
@@ -102,7 +102,7 @@
                                     </tr><tr>
                                         <td class="col-xs-4 left"><span>PSO Arguments</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{!! implode('<br>', ($settings['pso_args'] ?? []))  !!} </span>
+                                            <span>{!! implode('<br>', ($settings['psoArgs'] ?? []))  !!} </span>
                                         </td>
                                     </tr>
                                     </tbody>
@@ -143,25 +143,25 @@
                                     <tr>
                                         <td class="col-xs-4 left"><span>Block storage SAN protocol</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['san_type'] ?? '' }}</span><br>
+                                            <span>{{ $settings['sanType'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Default block storage File System type</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['block_fs_type'] ?? '' }}</span><br>
+                                            <span>{{ $settings['blockFsType'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Default block storage File System options</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['block_fs_opt'] ?? '' }}</span><br>
+                                            <span>{{ $settings['blockFsOpt'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Default block storage mount options</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['block_mnt_opt'] ?? '' }}</span><br>
+                                            <span>{{ $settings['blockMntOpt'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     </tbody>
@@ -202,13 +202,13 @@
                                     <tr>
                                         <td class="col-xs-4 left"><span>iSCSI login timeout</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['iscsi_login_timeout'] ?? '' }}</span><br>
+                                            <span>{{ $settings['iscsiLoginTimeout'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>iSCSI allowed CIDRs</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['iscsi_allowed_cidrs'] ?? '' }}</span><br>
+                                            <span>{{ $settings['iscsiAllowedCidrs'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     </tbody>
@@ -249,13 +249,13 @@
                                     <tr>
                                         <td class="col-xs-4 left"><span>Snapshot directory enabled</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>false</span><br>
+                                            <span>{{ $settings['enableFbNfsSnapshot'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Export rules</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>*(rw,no_root_squash)</span><br>
+                                            <span>{{ $settings['nfsExportRules'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     </tbody>

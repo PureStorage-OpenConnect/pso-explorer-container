@@ -1,20 +1,18 @@
 <?php
 
-
 namespace App\Http\Classes;
-
 
 use Illuminate\Support\Facades\Redis;
 
 class PsoDeployment extends RedisModel
 {
-    public const PREFIX='pso_deployment';
+    public const PREFIX = 'pso_deployment';
 
     protected $fillable = [
         'uid',
         'name',
         'namespace',
-        'namespace_names',
+        'namespaceNames',
         'creationTimestamp',
         'replicas',
         'labels',
@@ -34,8 +32,10 @@ class PsoDeployment extends RedisModel
 
     public function __construct(string $uid)
     {
-        parent::__construct(SELF::PREFIX, $uid);
+        parent::__construct(self::PREFIX, $uid);
 
-        if ($uid !== '') $this->uid = $uid;
+        if ($uid !== '') {
+            $this->uid = $uid;
+        }
     }
 }

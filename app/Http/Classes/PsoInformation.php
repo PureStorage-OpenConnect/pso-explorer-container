@@ -1,45 +1,45 @@
 <?php
 
-
 namespace App\Http\Classes;
-
 
 class PsoInformation extends RedisModel
 {
-    public const PREFIX='psoInformation';
+    public const PREFIX = 'psoInformation';
 
     protected $fillable = [
         'prefix',
         'namespace',
         'images',
-        'provisioner_pod',
-        'provisioner_container',
-        'san_type',
-        'block_fs_type',
-        'block_fs_opt',
-        'block_mnt_opt',
-        'iscsi_login_timeout',
-        'iscsi_allowed_cidrs',
-        'totalused',
-        'total_orphaned_used',
-        'total_snapshot_used',
-        'totalsize',
+        'provisionerPod',
+        'provisionerContainer',
+        'sanType',
+        'blockFsType',
+        'enableFbNfsSnapshot',
+        'nfsExportRules',
+        'blockFsOpt',
+        'blockMntOpt',
+        'iscsiLoginTimeout',
+        'iscsiAllowedCidrs',
+        'totalUsed',
+        'totalOrphanedUsed',
+        'totalSnapshotUsed',
+        'totalSize',
         'yaml',
-        'pso_args',
-        'snapshot_api_version',
-        'total_iops_read',
-        'total_iops_write',
-        'total_bw_read',
-        'total_bw_write',
-        'low_msec_read',
-        'low_msec_write',
-        'high_msec_read',
-        'high_msec_write',
+        'psoArgs',
+        'snapshotApiVersion',
+        'totalIopsRead',
+        'totalIopsWrite',
+        'totalBwRead',
+        'totalBwWrite',
+        'lowMsecRead',
+        'lowMsecWrite',
+        'highMsecRead',
+        'highMsecWrite',
     ];
 
     public function __construct()
     {
-        $prefix = SELF::PREFIX;
+        $prefix = self::PREFIX;
         $uid = 'global';
         parent::__construct($prefix, $uid);
     }

@@ -8,141 +8,141 @@ use Illuminate\Support\Facades\Session;
 
 class ApiController extends Controller
 {
-    public const PSO_NOTFOUND='The Pure Storage® - Pure Service Orchestrator™ (PSO) was not found';
+    public const PSO_NOTFOUND = 'The Pure Storage® - Pure Service Orchestrator™ (PSO) was not found';
 
-    public function Dashboard (Request $request)
+    public function dashboard(Request $request)
     {
         $pso = new Pso();
 
-        if (!$pso->psoFound) {
+        if ($pso->psoFound) {
             return $pso->dashboard();
         } else {
-            $response = array('Error' => SELF::PSO_NOTFOUND);
+            $response = array('Error' => self::PSO_NOTFOUND);
             return $response;
         }
     }
 
-    public function StorageArrays (Request $request)
+    public function storageArrays(Request $request)
     {
         $pso = new Pso();
 
         if ($pso->psoFound) {
             return $pso->arrays();
         } else {
-            $response = array('Error' => SELF::PSO_NOTFOUND);
+            $response = array('Error' => self::PSO_NOTFOUND);
             return $response;
         }
     }
 
-    public function Namespaces (Request $request)
+    public function namespaces(Request $request)
     {
         $pso = new Pso();
 
         if ($pso->psoFound) {
             return $pso->namespaces();
         } else {
-            $response = array('Error' => SELF::PSO_NOTFOUND);
+            $response = array('Error' => self::PSO_NOTFOUND);
             return $response;
         }
     }
 
-    public function StorageClasses (Request $request)
+    public function storageClasses(Request $request)
     {
         $pso = new Pso();
 
         if ($pso->psoFound) {
             return $pso->storageclasses();
         } else {
-            $response = array('Error' => SELF::PSO_NOTFOUND);
+            $response = array('Error' => self::PSO_NOTFOUND);
             return $response;
         }
     }
 
-    public function Labels (Request $request)
+    public function labels(Request $request)
     {
         $pso = new Pso();
 
         if ($pso->psoFound) {
             return $pso->labels();
         } else {
-            $response = array('Error' => SELF::PSO_NOTFOUND);
+            $response = array('Error' => self::PSO_NOTFOUND);
             return $response;
         }
     }
 
-    public function Pods (Request $request)
+    public function pods(Request $request)
     {
         $pso = new Pso();
 
         if ($pso->psoFound) {
             return $pso->pods();
         } else {
-            $response = array('Error' => SELF::PSO_NOTFOUND);
+            $response = array('Error' => self::PSO_NOTFOUND);
             return $response;
         }
     }
 
-    public function Jobs (Request $request)
+    public function jobs(Request $request)
     {
         $pso = new Pso();
 
         if ($pso->psoFound) {
             return $pso->jobs();
         } else {
-            $response = array('Error' => SELF::PSO_NOTFOUND);
+            $response = array('Error' => self::PSO_NOTFOUND);
             return $response;
         }
     }
 
-    public function Deployments (Request $request)
+    public function deployments(Request $request)
     {
         $pso = new Pso();
 
         if ($pso->psoFound) {
             return $pso->deployments();
         } else {
-            $response = array('Error' => SELF::PSO_NOTFOUND);
+            $response = array('Error' => self::PSO_NOTFOUND);
             return $response;
         }
     }
 
-    public function StatefulSets (Request $request)
+    public function statefulSets(Request $request)
     {
         $pso = new Pso();
 
         if ($pso->psoFound) {
             return $pso->statefulsets();
         } else {
-            $response = array('Error' => SELF::PSO_NOTFOUND);
+            $response = array('Error' => self::PSO_NOTFOUND);
             return $response;
         }
     }
 
-    public function Snapshots (Request $request)
+    public function snapshots(Request $request)
     {
         $pso = new Pso();
 
         if ($pso->psoFound) {
             return ['volumes' => $pso->volumesnapshots()];
         } else {
-            $response = array('Error' => SELF::PSO_NOTFOUND);
+            $response = array('Error' => self::PSO_NOTFOUND);
             return $response;
         }
     }
 
-    public function Volumes (Request $request)
+    public function volumes(Request $request)
     {
         $pso = new Pso();
 
         if ($pso->psoFound) {
             return ['volumes' => $pso->volumes(), 'orphaned' => $pso->orphaned()];
         } else {
-            $response = array('Error' => SELF::PSO_NOTFOUND);
+            $response = array('Error' => self::PSO_NOTFOUND);
             return $response;
         }
     }
 
-    public function SettingsPso (Request $request)
+    public function settingsPso(Request $request)
     {
         $pso = new Pso();
 
@@ -152,19 +152,19 @@ class ApiController extends Controller
             unset($settings['yaml']);
             return ['settings' => $settings, 'log' => $pso->log()];
         } else {
-            $response = array('Error' => SELF::PSO_NOTFOUND);
+            $response = array('Error' => self::PSO_NOTFOUND);
             return $response;
         }
     }
 
-    public function SettingsNodes (Request $request)
+    public function settingsNodes(Request $request)
     {
         $pso = new Pso();
 
         if ($pso->psoFound) {
             return ['nodes' => $pso->nodes()];
         } else {
-            $response = array('Error' => SELF::PSO_NOTFOUND);
+            $response = array('Error' => self::PSO_NOTFOUND);
             return $response;
         }
     }

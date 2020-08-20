@@ -1,14 +1,12 @@
 <?php
 
-
 namespace App\Http\Classes;
-
 
 use Illuminate\Support\Facades\Redis;
 
 class PsoArray extends RedisModel
 {
-    public const PREFIX='pso_array';
+    public const PREFIX = 'pso_array';
 
     protected $fillable = [
         'uid',
@@ -40,8 +38,10 @@ class PsoArray extends RedisModel
 
     public function __construct(string $mgmtEndPoint)
     {
-        parent::__construct(SELF::PREFIX, $mgmtEndPoint);
+        parent::__construct(self::PREFIX, $mgmtEndPoint);
 
-        if ($mgmtEndPoint !== '') $this->mgmtEndPoint = $mgmtEndPoint;
+        if ($mgmtEndPoint !== '') {
+            $this->mgmtEndPoint = $mgmtEndPoint;
+        }
     }
 }

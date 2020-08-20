@@ -34,7 +34,7 @@ class DashboardController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function index(Request $request)
     {
@@ -51,7 +51,7 @@ class DashboardController extends Controller
         }
     }
 
-    public function refreshdata(Request $request)
+    public function refreshData(Request $request)
     {
         // Check if a return route was included in the request
         if ($request->input('route') !== 'RefreshData') {

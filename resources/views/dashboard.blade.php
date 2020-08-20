@@ -1,7 +1,7 @@
 @extends('layouts.portal')
 
 @section('css')
-    <meta http-equiv="refresh" content="300">
+    <meta http-equiv="refresh" content={{ getenv('PSOX_DASHBOARD_REFRESH') ?: env('PSOX_DASHBOARD_REFRESH', '60')}}>
 @endsection
 
 @section('content')
@@ -15,16 +15,16 @@
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <span>Volumes</span>
-                                @if($dashboard['orphaned_count'] > 0)
+                                @if(($dashboard['orphanedCount'] > 0) or ($dashboard['releasedCount'] > 0))
                                 <a href="{{ route('Storage-Volumes') . '#orphaned'}}" >
-                                    <span class="label label-warning float-right">{{ $dashboard['orphaned_count'] }} unclaimed</span>
+                                    <span class="label label-warning float-right">{{ $dashboard['orphanedCount'] + $dashboard['releasedCount'] }} unclaimed</span>
                                 </a>
                                 @endif
                             </div>
                             <div class="panel-body list-container">
                                 <div class="list-section">
                                     <div class="no-padding align-middle">
-                                        <h1 class="no-margin"><a href="{{ route('Storage-Volumes') }}">{{ ($dashboard['volume_count'] - $dashboard['orphaned_count']) ?? 0 }}</a></h1>
+                                        <h1 class="no-margin"><a href="{{ route('Storage-Volumes') }}">{{ (($dashboard['volumeCount'] ?? 0) - ($dashboard['orphanedCount'] ?? 0)) }}</a></h1>
                                         <small>Persistent Volume Claims</small>
                                     </div>
                                 </div>
@@ -41,9 +41,9 @@
                             <div class="panel-body list-container">
                                 <div class="list-section">
                                     <div class="no-padding">
-                                        <h1 class="no-margin"><a href="{{ route('Storage-StorageClasses') }}">{{ $dashboard['storageclass_count'] ?? 0 }}</a> -
-                                        <a href="{{ route('Storage-StorageClasses') }}">{{ $dashboard['snapshotclass_count'] ?? 0 }}</a></h1>
-                                        <small>StorageClass - SnapshotClass</small>
+                                        <h1 class="no-margin"><a href="{{ route('Storage-StorageClasses') }}">{{ $dashboard['storageclassCount'] ?? 0 }}</a> -
+                                        <a href="{{ route('Storage-StorageClasses') }}">{{ $dashboard['snapshotclassCount'] ?? 0 }}</a></h1>
+                                        <small>StorageClasses - SnapshotClasses</small>
                                     </div>
                                 </div>
                             </div>
@@ -55,16 +55,16 @@
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <span>Snapshots</span>
-                                @if($dashboard['orphanedsnapshot_count'] > 0)
+                                @if($dashboard['orphanedSnapshotCount'] > 0)
                                     <a href="{{ route('Storage-Snapshots') . '#orphaned'}}" >
-                                        <span class="label label-warning float-right">{{ $dashboard['orphanedsnapshot_count'] }} unmanaged</span>
+                                        <span class="label label-warning float-right">{{ $dashboard['orphanedSnapshotCount'] }} unmanaged</span>
                                     </a>
                                 @endif
                             </div>
                             <div class="panel-body list-container">
                                 <div class="list-section">
                                     <div class="no-padding">
-                                        <h1 class="no-margin"><a href="{{ route('Storage-Snapshots') }}">{{ ($dashboard['snapshot_count'] ?? 0) - ($dashboard['orphanedsnapshot_count'] ?? 0) }}</a></h1>
+                                        <h1 class="no-margin"><a href="{{ route('Storage-Snapshots') }}">{{ ($dashboard['snapshotCount'] ?? 0) - ($dashboard['orphanedSnapshotCount'] ?? 0) }}</a></h1>
                                         <small>Volume Snapshots</small>
                                     </div>
                                 </div>
@@ -77,16 +77,16 @@
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <span>Arrays</span>
-                                @if ($dashboard['offline_array_count'] > 0)
+                                @if ($dashboard['offlineArrayCount'] > 0)
                                 <a href="{{ route('Storage-StorageArrays')}}" >
-                                    <span class="label label-warning float-right">{{ $dashboard['offline_array_count'] }} offline</span>
+                                    <span class="label label-warning float-right">{{ $dashboard['offlineArrayCount'] }} offline</span>
                                 </a>
                                 @endif
                             </div>
                             <div class="panel-body list-container">
                                 <div class="list-section">
                                     <div class="no-padding">
-                                        <h1 class="no-margin"><a href="{{ route('Storage-StorageArrays') }}">{{ $dashboard['array_count'] ?? 0 }}</a></h1>
+                                        <h1 class="no-margin"><a href="{{ route('Storage-StorageArrays') }}">{{ $dashboard['arrayCount'] ?? 0 }}</a></h1>
                                         <small>Configured in cluster</small>
                                     </div>
                                 </div>
@@ -123,51 +123,50 @@
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        @ISSET($dashboard['top10_growth_vols'])
-                                        @FOREACH($dashboard['top10_growth_vols'] as $vol)
-                                            <tr>
-                                                <td>
-                                                    <a href="{{ route('Storage-Volumes', ['volume_keyword' => $vol['pure_name']]) }}">{{ $vol['namespace'] }}/{{ $vol['name'] }}</a>
-                                                </td>
-                                                @IF($vol['status'] == 'Bound')
-                                                <td>{{ $vol['sizeFormatted']}}</td>
-                                                @ELSE
-                                                    <td><i>{{ $vol['status']}}</i></td>
-                                                @ENDIF
+                                        @isset($dashboard['top10GrowthVols'])
+                                            @foreach($dashboard['top10GrowthVols'] as $vol)
+                                                <tr>
+                                                    <td>
+                                                        <a href="{{ route('Storage-Volumes', ['volume_keyword' => $vol['pureName']]) }}">{{ $vol['namespace'] }}/{{ $vol['name'] }}</a>
+                                                    </td>
+                                                    @if($vol['status'] == 'Bound')
+                                                        <td>{{ $vol['sizeFormatted']}}</td>
+                                                    @else
+                                                        <td><i>{{ $vol['status']}}</i></td>
+                                                    @endif
 
-                                                @if(($vol['used'] !== null) and ($vol['size'] !== null))
-                                                    <td>{{ number_format($vol['used']/$vol['size'] * 100, 1) }}%</td>
-                                                @else
-                                                    <td> </td>
-                                                @endif
-                                                @if ($vol['growthPercentage'] > 0)
-                                                    <td class="text-navy text-danger">
-                                                        ↑
-                                                        @if($vol['status'] == 'Bound')
-                                                            {{ number_format($vol['growthPercentage'], 2) }}%
-                                                        @endif
-                                                    </td>
-                                                @elseif (($vol['growthPercentage'] < 0))
-                                                    <td class="text-navy text-success">
-                                                        ↓
-                                                        @if($vol['status'] == 'Bound')
-                                                            {{ number_format($vol['growthPercentage'], 2) }}%
-                                                        @endif
-                                                    </td>
-                                                @else
-                                                    <td> </td>
-                                                @endif
-                                                </td>
+                                                    @if(($vol['used'] !== null) and ($vol['size'] !== null))
+                                                        <td>{{ number_format($vol['used']/$vol['size'] * 100, 1) }}%</td>
+                                                    @else
+                                                        <td> </td>
+                                                    @endif
+                                                    @if ($vol['growthPercentage'] > 0)
+                                                        <td class="text-navy text-danger">
+                                                            ↑
+                                                            @if($vol['status'] == 'Bound')
+                                                                {{ number_format($vol['growthPercentage'], 2) }}%
+                                                            @endif
+                                                        </td>
+                                                    @elseif (($vol['growthPercentage'] < 0))
+                                                        <td class="text-navy text-success">
+                                                            ↓
+                                                            @if($vol['status'] == 'Bound')
+                                                                {{ number_format($vol['growthPercentage'], 2) }}%
+                                                            @endif
+                                                        </td>
+                                                    @else
+                                                        <td> </td>
+                                                    @endif
+                                                </tr>
+                                            @endforeach
+                                        @else
+                                            <tr>
+                                                <td><i>No historic volume data</i></td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
                                             </tr>
-                                        @ENDFOREACH
-                                        @ELSE
-                                        <tr>
-                                            <td><i>No historic volume data</i></td>
-                                            <td> </td>
-                                            <td> </td>
-                                            <td> </td>
-                                        </tr>
-                                        @ENDISSET
+                                        @endisset
                                         </tbody>
                                     </table>
                                 </div>
@@ -183,15 +182,15 @@
                                         </div>
                                         <div class="col-4">
                                             <small class="stats-label">Total</small>
-                                            <h4>{{ number_format($portalInfo['total_iops_read'] + $portalInfo['total_iops_write'], 0) }}</h4>
+                                            <h4>{{ number_format($portalInfo['totalIopsRead'] + $portalInfo['totalIopsWrite'], 0) }}</h4>
                                         </div>
                                         <div class="col-4">
                                             <small class="stats-label">Read</small>
-                                            <h4>{{ number_format($portalInfo['total_iops_read'], 0) }}</h4>
+                                            <h4>{{ number_format($portalInfo['totalIopsRead'], 0) }}</h4>
                                         </div>
                                         <div class="col-4">
                                             <small class="stats-label">Write</small>
-                                            <h4>{{ number_format($portalInfo['total_iops_write'], 0) }}</h4>
+                                            <h4>{{ number_format($portalInfo['totalIopsWrite'], 0) }}</h4>
                                         </div>
                                     </div>
                                     <div class="row border-bottom">
@@ -200,16 +199,16 @@
                                         </div>
                                         <div class="col-4">
                                             <small class="stats-label">Total</small>
-                                            <h4>{{ $portalInfo['total_bw'] }}/s</h4>
+                                            <h4>{{ $portalInfo['totalBw'] ?? 0 }}/s</h4>
                                         </div>
 
                                         <div class="col-4">
                                             <small class="stats-label">Read</small>
-                                            <h4>{{ $portalInfo['total_bw_read'] }}/s</h4>
+                                            <h4>{{ $portalInfo['totalBwRead'] ?? 0 }}/s</h4>
                                         </div>
                                         <div class="col-4">
                                             <small class="stats-label">Write</small>
-                                            <h4>{{ $portalInfo['total_bw_write'] }}/s</h4>
+                                            <h4>{{ $portalInfo['totalBwWrite'] ?? 0 }}/s</h4>
                                         </div>
                                     </div>
                                     <div class="row">
@@ -218,11 +217,11 @@
                                         </div>
                                         <div class="col-6">
                                             <small class="stats-label">Range for reads</small>
-                                            <h4>{{ $portalInfo['low_msec_read'] }} ms - {{ $portalInfo['high_msec_read'] }} ms</h4>
+                                            <h4>{{ $portalInfo['lowMsecRead'] ?? 0 }} ms - {{ $portalInfo['highMsecRead'] ?? 0 }} ms</h4>
                                         </div>
                                         <div class="col-6">
                                             <small class="stats-label">Range for writes</small>
-                                            <h4>{{ $portalInfo['low_msec_write'] }} ms - {{ $portalInfo['high_msec_write'] }} ms</h4>
+                                            <h4>{{ $portalInfo['lowMsecWrite'] ?? 0 }} ms - {{ $portalInfo['highMsecWrite'] ?? 0 }} ms</h4>
                                         </div>
                                     </div>
                                 </div>
@@ -244,7 +243,7 @@
             var doughnutData = {
                 labels: ["Used (Gi)", "Snapshots (Gi)", "Provisioned (Gi)", "Unclaimed (Gi)" ],
                 datasets: [{
-                    data: [{{ $portalInfo['total_used_raw']/1024/1024/1024 }}, {{ $portalInfo['total_snapshot_raw']/1024/1024/1024 }}, {{ ($portalInfo['total_size_raw'] - $portalInfo['total_used_raw'])/1024/1024/1024 }}, {{ $portalInfo['total_orphaned_raw']/1024/1024/1024 }}],
+                    data: [{{ ($portalInfo['totalUsedRaw'] ?? 0)/1024/1024/1024 }}, {{ ($portalInfo['totalSnapshotRaw'] ?? 0)/1024/1024/1024 ?? 0 }}, {{ (($portalInfo['totalSizeRaw'] ?? 0) - ($portalInfo['totalUsedRaw'] ?? 0))/1024/1024/1024 }}, {{ ($portalInfo['totalOrphanedRaw'] ?? 0)/1024/1024/1024 }}],
                     backgroundColor: ["#52c8fd", "#b5a1dd", "#f4f2f3","#b8bebe"]
                 }]
             } ;

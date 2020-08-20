@@ -1,12 +1,10 @@
 <?php
 
-
 namespace App\Http\Classes;
-
 
 class PsoNamespace extends RedisModel
 {
-    public const PREFIX='pso_namespace';
+    public const PREFIX = 'pso_namespace';
 
     protected $fillable = [
         'namespace',
@@ -25,8 +23,10 @@ class PsoNamespace extends RedisModel
 
     public function __construct(string $namespace)
     {
-        parent::__construct(SELF::PREFIX, $namespace);
+        parent::__construct(self::PREFIX, $namespace);
 
-        if ($namespace !== '') $this->namespace = $namespace;
+        if ($namespace !== '') {
+            $this->namespace = $namespace;
+        }
     }
 }

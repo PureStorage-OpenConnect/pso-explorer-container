@@ -1,88 +1,87 @@
 <?php
 
-
 namespace App\Http\Classes;
 
 use Illuminate\Support\Facades\Redis;
 
 class PsoPersistentVolumeClaim extends RedisModel
 {
-    public const PREFIX='pso_pvc';
+    public const PREFIX = 'pso_pvc';
+    public $pv = null;
 
     protected $fillable = [
+        // Primary index
         'uid',
+
+        // metadata fields
+        'annotations',
+        'creationTimestamp',
+        'finalizers',
+        'labels',
         'name',
         'namespace',
-        'namespace_name',
-        'size',
-        'storageClass',
-        'labels',
-        'status',
-        'creationTimestamp',
+        'resourceVersion',
 
-        'pv_name',
-        'has_snaps',
+        // spec fields
+        'accessModes',
+        'storageClassName',
+        'volumeMode',
+        'volumeName',
 
-        'pure_name',
-        'pure_size',
-        'pure_sizeFormatted',
-        'pure_used',
-        'pure_usedFormatted',
-        'pure_drr',
-        'pure_thinProvisioning',
-        'pure_arrayName',
-        'pure_arrayType',
-        'pure_arrayMgmtEndPoint',
-        'pure_snapshots',
-        'pure_volumes',
-        'pure_sharedSpace',
-        'pure_totalReduction',
-        'pure_orphaned',
-        'pure_orphaned_state',
-        'pure_orphaned_pvc_name',
-        'pure_orphaned_pvc_namespace',
+        // spec->status fields
+        'status_accessModes',
+        'status_capacity',
+        'status_conditions',
+        'status_phase',
 
-        'pure_reads_per_sec',
-        'pure_writes_per_sec',
-        'pure_input_per_sec',
-        'pure_input_per_sec_formatted',
-        'pure_output_per_sec',
-        'pure_output_per_sec_formatted',
-        'pure_usec_per_read_op',
-        'pure_usec_per_write_op',
-        'pure_24h_historic_used',
+        // Calculated data fields
+        'namespaceName',
+        'hasSnaps',
     ];
 
     protected $indexes = [
         'uid',
-        'namespace',
-        'namespace_name',
-        'pure_orphaned',
         'labels',
+        'namespace',
+        'namespaceName',
+        'pureOrphaned',
+        'volumeName',
     ];
-
 
     public function __construct(string $uid)
     {
-        parent::__construct(SELF::PREFIX, $uid);
-        if ($uid !== '') $this->uid = $uid;
+        parent::__construct(self::PREFIX, $uid);
+        if ($uid !== '') {
+            $this->uid = $uid;
+        }
     }
 
     public static function getUidByNamespaceName(string $namespace, string $name)
     {
         $namespaceName = $namespace . ':' . $name;
 
-        $keys = Redis::keys(self::PREFIX . ':*:namespace_name');
+        $keys = Redis::keys(self::PREFIX . ':*:namespaceName');
         foreach ($keys as $key) {
             if (!strpos($key, '__index')) {
                 $keyname = str_replace(config('database.redis.options.prefix'), '', $key);
 
                 if (Redis::get($keyname) == $namespaceName) {
-                    $keyname = str_replace(':namespace_name', ':uid', $keyname);
+                    $keyname = str_replace(':namespaceName', ':uid', $keyname);
                     $uid = Redis::get($keyname);
                     return $uid;
                 }
             }
         }
+    }
+
+    public function asArray()
+    {
+        $array = parent::asArray();
+        if ($this->volumeName !== null) {
+            $pv = new PsoPersistentVolume($this->volumeName);
+            $array['pv'] = $pv->asArray();
+        }
+
+        return $array;
     }
 }

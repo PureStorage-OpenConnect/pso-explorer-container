@@ -1,12 +1,10 @@
 <?php
 
-
 namespace App\Http\Classes;
-
 
 class PsoStorageClass extends RedisModel
 {
-    public const PREFIX='pso_storageclass';
+    public const PREFIX = 'pso_storageclass';
 
     protected $fillable = [
         'name',
@@ -21,6 +19,8 @@ class PsoStorageClass extends RedisModel
         'volumeBindingMode',
         'reclaimPolicy',
         'isDefaultClass',
+        'backend',
+        'allowedTopologies',
     ];
 
     protected $indexes = [
@@ -30,8 +30,10 @@ class PsoStorageClass extends RedisModel
 
     public function __construct(string $name)
     {
-        parent::__construct(SELF::PREFIX, $name);
+        parent::__construct(self::PREFIX, $name);
 
-        if ($name !== '') $this->name = $name;
+        if ($name !== '') {
+            $this->name = $name;
+        }
     }
 }

@@ -13,7 +13,7 @@
                 <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>Pods with managed persistent volume claims ({{ count($pso_pods ?? []) }})</span>
+                            <span>Pods with managed persistent volume claims ({{ count($psoPods ?? []) }})</span>
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
@@ -37,8 +37,8 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @isset($pso_pods)
-                                        @foreach($pso_pods as $pso_pod)
+                                    @isset($psoPods)
+                                        @foreach($psoPods as $pso_pod)
                                             <tr>
                                                 <td>{{ $pso_pod['namespace'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_pod['name'] ?? '<unknown>' }}</td>
@@ -55,9 +55,9 @@
                                                 </td>
                                                 <td>{{ $pso_pod['status'] ?? '<unknown>' }}</td>
                                                 <td>
-                                                    @isset($pso_pod['pvc_link'])
-                                                    @foreach($pso_pod['pvc_link'] as $pvc_link)
-                                                        {!! $pvc_link !!}<br>
+                                                    @isset($pso_pod['pvcLink'])
+                                                    @foreach($pso_pod['pvcLink'] as $pvcLink)
+                                                        {!! $pvcLink !!}<br>
                                                     @endforeach
                                                     @endisset
                                                 </td>
@@ -65,7 +65,7 @@
                                                 <td>{{ implode(', ', $pso_pod['storageClasses'] ?? []) }}</td>
                                             </tr>
                                         @endforeach
-                                        @if(count($pso_pods) == 0)
+                                        @if(count($psoPods) == 0)
                                             <tr>
                                                 <td><i>No pods with PVC's managed by PSO were found</i></td>
                                                 <td> </td>

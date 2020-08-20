@@ -1,12 +1,10 @@
 <?php
 
-
 namespace App\Http\Classes;
-
 
 class PsoJob extends RedisModel
 {
-    public const PREFIX='pso_job';
+    public const PREFIX = 'pso_job';
 
     protected $fillable = [
         'uid',
@@ -14,8 +12,8 @@ class PsoJob extends RedisModel
         'namespace',
         'creationTimestamp',
         'pvc_name',
-        'pvc_namespace_name',
-        'pvc_link',
+        'pvcNamespaceName',
+        'pvcLink',
         'labels',
         'status',
         'size',
@@ -28,14 +26,16 @@ class PsoJob extends RedisModel
 
     protected $indexes = [
         'uid',
-        'pvc_namespace_name',
+        'pvcNamespaceName',
     ];
 
 
     public function __construct(string $uid)
     {
-        parent::__construct(SELF::PREFIX, $uid);
+        parent::__construct(self::PREFIX, $uid);
 
-        if ($uid !== '') $this->uid = $uid;
+        if ($uid !== '') {
+            $this->uid = $uid;
+        }
     }
 }
