@@ -67,19 +67,21 @@
                                                         <b>Stale volumes</b><br>
                                                     @foreach($settings['dbvols'] ?? [] as $item)
                                                             @if($item['unhealthy'])
-                                                                <span>
-                                                                    <img src="/images/warning.svg" style="height: 13px; vertical-align: text-top;" data-toggle="tooltip" data-placement="top" title="This volume is parked by PSO since the replica was marked unhealthy.">
+                                                                @if($item['pureName'] !== null)
+                                                                    <span>
+                                                                        <img src="/images/warning.svg" style="height: 13px; vertical-align: text-top;" data-toggle="tooltip" data-placement="top" title="This volume is parked by PSO since the replica was marked unhealthy.">
 
-                                                                    @if ($item['pureArrayType'] == 'FA')
-                                                                        <a href="https://{{ $item['pureArrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pureName'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pureArrayName'] }}, Size: {{ $item['pureSizeFormatted'] }}, Used: {{ $item['pureUsedFormatted'] }}">
-                                                                            {{ $item['pureName'] }}
-                                                                        </a>
-                                                                    @else
-                                                                        <a href="https://{{ $item['pureArrayMgmtEndPoint'] }}/storage/filesystems/{{ $item['pureName'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pureArrayName'] }}, Size: {{ $item['pureSizeFormatted'] }}, Used: {{ $item['pureUsedFormatted'] }}">
-                                                                            {{ $item['pureName'] }}
-                                                                        </a>
-                                                                    @endif
+                                                                        @if ($item['pureArrayType'] == 'FA')
+                                                                            <a href="https://{{ $item['pureArrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pureName'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pureArrayName'] }}, Size: {{ $item['pureSizeFormatted'] }}, Used: {{ $item['pureUsedFormatted'] }}">
+                                                                                {{ $item['pureName'] }}
+                                                                            </a>
+                                                                        @else
+                                                                            <a href="https://{{ $item['pureArrayMgmtEndPoint'] }}/storage/filesystems/{{ $item['pureName'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pureArrayName'] }}, Size: {{ $item['pureSizeFormatted'] }}, Used: {{ $item['pureUsedFormatted'] }}">
+                                                                                {{ $item['pureName'] }}
+                                                                            </a>
+                                                                        @endif
                                                                 </span><br>
+                                                                @endif
                                                             @endif
                                                         @endforeach
                                                     </td>
