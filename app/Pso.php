@@ -596,10 +596,25 @@ class Pso
         // Log function call
         Log::debug('    Call getNodes()');
 
-        // Retrieve all Kubernetes StatefulSets for this cluster
-        Client::configure($this->master, $this->authentication);
-        $node = new Node();
-        $nodeList = $node->list();
+        try {
+            // Retrieve all Kubernetes StatefulSets for this cluster
+            Client::configure($this->master, $this->authentication);
+            $node = new Node();
+
+            $nodeList = $node->list();
+        } catch (Exception $e) {
+            // Log error message
+            Log::debug('xxx Error connecting to Kubernetes API at "' . $this->master . '"');
+            Log::debug('    - Message: "' . $e->getMessage() . '"');
+            Log::debug('    - File: "' . $e->getFile() . '"');
+            Log::debug('    - Line: "' . $e->getLine() . '"');
+
+            $this->psoFound = false;
+            $this->errorSource = 'k8s';
+            $this->errorMessage = $e->getMessage();
+            unset($e);
+            return false;
+        }
 
         if (isset($nodeList->code)) {
             $this->psoFound = false;
