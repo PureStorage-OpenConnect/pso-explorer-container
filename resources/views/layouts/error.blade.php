@@ -36,6 +36,8 @@
 
                                     For installation instruction of PSO, please visit<br>
                                     <a href="https://github.com/purestorage/helm-charts" target="_blank">https://github.com/purestorage/helm-charts</a>
+                                    For installation instruction of PSO v6, please visit<br>
+                                    <a href="https://github.com/purestorage/pso-csi" target="_blank">https://github.com/purestorage/pso-csi</a>
 
                                     <strong>Validation of values.yaml syntax:</strong>
                                     Also make sure your values.yaml file is formatted as shown below. Please note that YAML is case sensitive
