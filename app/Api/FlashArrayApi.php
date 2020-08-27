@@ -65,7 +65,6 @@ class FlashArrayApi
     // Construct method
     public function __construct()
     {
-        // Initialize ALSO MarketPlace API class
         $this->header           = array(
             'accept' => 'application/json',
             'Content-Type' => 'application/json',

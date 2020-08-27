@@ -57,7 +57,6 @@ class FlashBladeApi
     // Construct method
     public function __construct($mgmtEndPoint, $apitoken)
     {
-        // Initialize ALSO MarketPlace API class
         $this->header           = array(
             'accept' => 'application/json',
             'Content-Type' => 'application/json',

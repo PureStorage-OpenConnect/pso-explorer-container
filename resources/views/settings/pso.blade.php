@@ -16,17 +16,13 @@
                             </div>
                             <div class="panel-body table-no-filter">
                                 <table class="table pure-table ps-table">
-                                    <thead>
-                                    <tr class="ps-table-heading"><!---->
-                                        <th class="col-xs-4 left" title="Parameter">
-                                            <span class="ps-table-header-text" title="">Parameter</span>
-                                        </th>
-                                        <th class="col-xs-8 left" title="Value">
-                                            <span class="ps-table-header-text" title="">Value</span>
-                                        </th>
-                                    </tr>
-                                    </thead>
                                     <tbody>
+                                    <tr>
+                                        <td class="col-xs-4 left"><span>PSO version</span></td>
+                                        <td class="col-xs-8 left">
+                                            <span>{{ $settings['provisionerTag'] ?? '' }} @if($settings['isCsiDriver'])(CSI driver) @else()(Flex driver)@endif</span>
+                                        </td>
+                                    </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>PSO ClusterID</span></td>
                                         <td class="col-xs-8 left">
@@ -129,20 +125,6 @@
                             </div>
                             <div class="panel-body table-no-filter">
                                 <table class="table pure-table ps-table">
-                                    <thead>
-                                    <tr class="ps-table-heading"><!---->
-                                        <th class="col-xs-4 left" title="Parameter">
-                                            <span class="ps-table-header-text" title="">
-                                                Parameter
-                                            </span>
-                                        </th>
-                                        <th class="col-xs-8 left" title="Value">
-                                            <span class="ps-table-header-text" title="">
-                                                Value
-                                            </span>
-                                        </th>
-                                    </tr>
-                                    </thead>
                                     <tbody>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Block storage SAN protocol</span></td>
@@ -188,20 +170,6 @@
                             </div>
                             <div class="panel-body table-no-filter">
                                 <table class="table pure-table ps-table">
-                                    <thead>
-                                    <tr class="ps-table-heading"><!---->
-                                        <th class="col-xs-4 left" title="Parameter">
-                                            <span class="ps-table-header-text" title="">
-                                                Parameter
-                                            </span>
-                                        </th>
-                                        <th class="col-xs-8 left" title="Value">
-                                            <span class="ps-table-header-text" title="">
-                                                Value
-                                            </span>
-                                        </th>
-                                    </tr>
-                                    </thead>
                                     <tbody>
                                     <tr>
                                         <td class="col-xs-4 left"><span>iSCSI login timeout</span></td>
@@ -235,20 +203,6 @@
                             </div>
                             <div class="panel-body table-no-filter">
                                 <table class="table pure-table ps-table">
-                                    <thead>
-                                    <tr class="ps-table-heading"><!---->
-                                        <th class="col-xs-4 left" title="Parameter">
-                                            <span class="ps-table-header-text" title="">
-                                                Parameter
-                                            </span>
-                                        </th>
-                                        <th class="col-xs-8 left" title="Value">
-                                            <span class="ps-table-header-text" title="">
-                                                Value
-                                            </span>
-                                        </th>
-                                    </tr>
-                                    </thead>
                                     <tbody>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Snapshot directory enabled</span></td>

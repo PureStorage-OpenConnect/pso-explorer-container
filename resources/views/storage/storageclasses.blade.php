@@ -45,7 +45,11 @@
                                                 <td>{{ $pso_storageclass['volumeCount'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_storageclass['sizeFormatted'] ?? '<unknown>' }}</td>
                                                 <td>@if($pso_storageclass['isDefaultClass'] == 1)True @else False @endif</td>
-                                                <td>@isset($pso_storageclass['parameters']){{ implode(', ', $pso_storageclass['parameters']) }}@endisset </td>
+                                                <td>@isset($pso_storageclass['parameters'])
+                                                        @foreach($pso_storageclass['parameters'] as $parameter)
+                                                            {{ $parameter }}<br>
+                                                        @endforeach
+                                                    @endisset </td>
                                                 <td>@isset($pso_storageclass['mountOptions']){{ implode(', ', $pso_storageclass['mountOptions']) }}@endisset </td>
                                                 <td>@if($pso_storageclass['allowVolumeExpansion'] == 1)True @else False @endif</td>
                                                 <td>{{ $pso_storageclass['volumeBindingMode'] ?? '<unknown>' }}</td>

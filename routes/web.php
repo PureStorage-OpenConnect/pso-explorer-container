@@ -37,6 +37,7 @@ Route::get('/storage/snapshots', 'StorageController@snapshots')->name('Storage-S
 Route::get('/settings/pso', 'SettingsController@pso')->name('Settings-Pso');
 Route::get('/settings/nodes', 'SettingsController@nodes')->name('Settings-Nodes');
 Route::get('/settings/config', 'SettingsController@config')->name('Settings-Config');
+Route::post('/settings/config', 'SettingsController@configPost');
 
 // *** API routes
 // --- Dashboard

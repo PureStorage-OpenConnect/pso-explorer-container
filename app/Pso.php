@@ -813,7 +813,39 @@ class Pso
 
                     $this->psoInfo->provisionerPod = $myPodName;
                     $this->psoInfo->provisionerContainer = $item->spec->containers[0]->name ?? 'Unknown';
-                    $this->psoInfo->provisionerImage = $item->spec->containers[0]->image ?? 'Unknown';
+
+                    $imageName = $item->spec->containers[0]->image;
+                    $this->psoInfo->provisionerImage = explode(':', $imageName)[0] ?? 'unknown';
+                    $this->psoInfo->provisionerTag = explode(':', $imageName)[1] ?? '0.0.0';
+
+                    $majorRelease = intval(explode('.', str_ireplace('v', '', $this->psoInfo->provisionerTag))[0]);
+
+                    if ($majorRelease < 5) {
+                        $this->psoInfo->isCsiDriver = false;
+                        $this->psoInfo->repoUri = env('FLEX_GITREPO', '/purestorage/helm-charts');
+                        $this->psoInfo->valuesUri = env(
+                            'FLEX_VALUES',
+                            '/pure-k8s-plugin/values.yaml'
+                        );
+                        $this->psoInfo->psoEdition = 'FLEX';
+                    } elseif ($majorRelease == 5) {
+                        $this->psoInfo->isCsiDriver = true;
+                        $this->psoInfo->repoUri = env('PSO5_GITREPO', '/purestorage/helm-charts');
+                        $this->psoInfo->valuesUri = env(
+                            'PSO5_VALUES',
+                            '/pure-csi/values.yaml'
+                        );
+                        $this->psoInfo->psoEdition = 'PSO5';
+                    } else {
+                        $this->psoInfo->isCsiDriver = true;
+                        $this->psoInfo->repoUri = env('PSO6_GITREPO', '/purestorage/pso-csi');
+                        $this->psoInfo->valuesUri = env(
+                            'PSO6_VALUES',
+                            '/pure-pso/values.yaml'
+                        );
+                        $this->psoInfo->psoEdition = 'PSO6';
+                    }
+
                     $myContainerName = $container->name ?? 'Unknown container name';
                     if (($myContainerName == 'pso-csi-container') or ($myContainerName == 'pure-csi-container')) {
                         array_push($images, $container->name . ': ' . $container->image);

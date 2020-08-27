@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Api\GitHubApi;
 use App\Pso;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 
 class SettingsController extends Controller
@@ -30,6 +32,25 @@ class SettingsController extends Controller
 
             return $pso;
         }
+    }
+
+    private function getReleases($edition, $repo, $values)
+    {
+        $myGit = new GitHubApi($repo, $values);
+
+        $releases = [];
+
+        foreach ($myGit->releases() as $release) {
+            $majorRelease = intval(explode('.', str_ireplace('v', '', $release['tag_name']))[0]);
+            if (($edition == 'FLEX') and ($majorRelease < 5)) {
+                $releases['releases'][$release['tag_name']] = $release['name'];
+                $releases['descriptions'][$release['tag_name']] = $release['body'];
+            } elseif (($edition !== 'FLEX') and ($majorRelease >= 5)) {
+                $releases['releases'][$release['tag_name']] = $release['name'];
+                $releases['descriptions'][$release['tag_name']] = $release['body'];
+            }
+        }
+        return $releases;
     }
 
     public function pso(Request $request)
@@ -133,20 +154,87 @@ class SettingsController extends Controller
     {
         // Get PSO instance
         $pso = new Pso();
+        $releases = [];
 
-        if (!$pso) {
-            // TODO: New install
-            echo "This is a new installation...";
+        if ($pso) {
+            $releases = $this->getReleases($pso->psoInfo->psoEdition, $pso->psoInfo->repoUri, $pso->psoInfo->valuesUri);
+            $phase = 2;
         } else {
-            // TODO: Existing install
-            echo "This is a existing installation...";
-
-            // image: purestorage/k8s
-            // tag: "5.2.0" or "2.0.0" - "2.7.0" or "v6.0.0"
-
+            $phase = 1;
         }
-        var_dump($pso->psoInfo->asArray());
 
-        return view('settings/config', ['pso' => $pso]);
+        $settings = $pso->settings();
+        return view('settings/config', [
+            'settings' => $settings,
+            'releases' => $releases,
+            'phase' => $phase
+        ]);
+    }
+
+    public function configPost(Request $request)
+    {
+        switch ($request->input('phase')) {
+            case '1':
+                $phase = 2;
+                $edition = $request->input('edition');
+                $settings['psoEdition'] = $edition;
+                $settings['provisionerTag'] = '';
+                switch ($edition) {
+                    case 'FLEX':
+                        $repoUri = env('FLEX_GITREPO');
+                        $valuesUri = env('FLEX_VALUES');
+                        break;
+                    case 'PSO5':
+                        $repoUri = env('PSO5_GITREPO');
+                        $valuesUri = env('PSO5_VALUES');
+                        break;
+                    default:
+                        $repoUri = env('PSO6_GITREPO');
+                        $valuesUri = env('PSO6_VALUES');
+                        break;
+                }
+
+                $releases = $this->getReleases($edition, $repoUri, $valuesUri);
+
+                return view('settings/config', [
+                    'settings' => $settings,
+                    'releases' => $releases,
+                    'phase' => $phase
+                ]);
+            case'2':
+                // Get PSO instance
+                $pso = new Pso();
+
+                if ($pso) {
+                    $repoUri = $pso->psoInfo->repoUri ?? '';
+                    $valuesUri = $pso->psoInfo->valuesUri ?? '';
+
+                    $myGit = new GitHubApi($repoUri, $valuesUri);
+                    $yaml = $myGit->values($request->input('release'));
+                    $yaml = yaml_parse($yaml);
+
+                    // TODO: Do all settings...
+                    $yaml['clusterID'] = 'boe';
+
+                    $yaml = yaml_emit($yaml);
+
+                    return view('settings/config-values', ['yaml' => $yaml]);
+                } else {
+                    switch ($request->input('edition')) {
+                        case 'FLEX':
+                            $repoUri = env('FLEX_GITREPO');
+                            $valuesUri = env('FLEX_VALUES');
+                            break;
+                        case 'PSO5':
+                            $repoUri = env('PSO5_GITREPO');
+                            $valuesUri = env('PSO5_VALUES');
+                            break;
+                        default:
+                            $repoUri = env('PSO6_GITREPO');
+                            $valuesUri = env('PSO6_VALUES');
+                            break;
+                    }
+                }
+        }
     }
 }
