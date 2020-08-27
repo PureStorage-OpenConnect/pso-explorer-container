@@ -63,4 +63,12 @@ class SettingsController extends Controller
         }
         return view('settings/nodes', ['nodes' => $nodes, 'portalInfo' => $portalInfo]);
     }
+
+    public function config(Request $request)
+    {
+        // Get PSO instance
+        $pso = new Pso();
+
+        return view('settings/config', ['pso' => $pso]);
+    }
 }
