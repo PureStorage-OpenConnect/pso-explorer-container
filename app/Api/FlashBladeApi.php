@@ -78,6 +78,10 @@ class FlashBladeApi
         $this->authenticated = false;
         $myheader = array_merge($this->header, array('api-token' => $this->apitoken));
 
+        if ($mgmtEndPoint == 'https://') {
+            return $result;
+        }
+
         try {
             // Try to authenticate to API
             $response = Http::withOptions(
