@@ -85,6 +85,10 @@ class FlashArrayApi
         $apiVersion = self::FA_API_URI;
         $this->apitoken = $apitoken;
 
+        if (($mgmtEndPoint == '') or ($mgmtEndPoint == null)) {
+            return $result;
+        }
+
         try {
             $this->url = 'https://' . $mgmtEndPoint . '/api/api_version';
             $response = Http::withOptions(
@@ -119,7 +123,6 @@ class FlashArrayApi
                 Log::debug('    - File: "' . $e->getFile() . '"');
                 Log::debug('    - Line: "' . $e->getLine() . '"');
 
-                echo "Connection error";
             }
         } catch (Exception $e) {
             // TO DO Should add more error handling...
