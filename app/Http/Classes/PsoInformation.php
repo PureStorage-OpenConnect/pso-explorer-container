@@ -12,6 +12,7 @@ class PsoInformation extends RedisModel
         'images',
         'provisionerPod',
         'provisionerContainer',
+        'provisionerImage',
         'sanType',
         'blockFsType',
         'enableFbNfsSnapshot',

@@ -798,7 +798,7 @@ class Pso
 
                     $this->psoInfo->provisionerPod = $myPodName;
                     $this->psoInfo->provisionerContainer = $item->spec->containers[0]->name ?? 'Unknown';
-
+                    $this->psoInfo->provisionerImage = $item->spec->containers[0]->image ?? 'Unknown';
                     $myContainerName = $container->name ?? 'Unknown container name';
                     if (($myContainerName == 'pso-csi-container') or ($myContainerName == 'pure-csi-container')) {
                         array_push($images, $container->name . ': ' . $container->image);

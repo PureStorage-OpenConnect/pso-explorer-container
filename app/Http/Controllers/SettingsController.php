@@ -69,6 +69,19 @@ class SettingsController extends Controller
         // Get PSO instance
         $pso = new Pso();
 
+        if (!$pso) {
+            // TODO: New install
+            echo "This is a new installation...";
+        } else {
+            // TODO: Existing install
+            echo "This is a existing installation...";
+
+            // image: purestorage/k8s
+            // tag: "5.2.0" or "2.0.0" - "2.7.0" or "v6.0.0"
+
+        }
+        var_dump($pso->psoInfo->asArray());
+
         return view('settings/config', ['pso' => $pso]);
     }
 }
