@@ -7,6 +7,7 @@ use App\Pso;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
+use phpDocumentor\Reflection\Types\Object_;
 
 class SettingsController extends Controller
 {
@@ -211,15 +212,101 @@ class SettingsController extends Controller
 
                     $myGit = new GitHubApi($repoUri, $valuesUri);
                     $yaml = $myGit->values($request->input('release'));
-                    $yaml = yaml_parse($yaml);
+                    $psoValues = yaml_parse($yaml);
 
                     // TODO: Do all settings...
-                    $yaml['clusterID'] = 'boe';
+                    if (($request->input('edition') == 'FLEX') or ($request->input('edition') == 'PSO5')) {
+                        //todo
+                        $psoValues['clusterID'] = 'boe';
+                    } else {
+                        // Set the clusterID or pure.namespace
+                        if (array_key_exists('clusterID', $psoValues)) {
+                            $psoValues['clusterID'] = $pso->psoInfo->prefix;
+                        } else {
+                            $psoValues['pure']['namespace'] = $pso->psoInfo->prefix;
+                        }
 
-                    $yaml = yaml_emit($yaml);
+                        // Set the orchestrator as openshift or k8s
+                        if (array_key_exists('name', ($psoValues['orchestrator'] ?? []))) {
+                            if ($pso->psoInfo->isOpenShift) {
+                                $psoValues['orchestrator']['name'] = 'openshift';
+                            } else {
+                                $psoValues['orchestrator']['name'] = 'k8s';
+                            }
+                        }
 
+                        // TODO: add the following field?:
+                        //app:
+                        //  debug: false
+
+                        // Set storagetopology
+                        if (array_key_exists('enable', ($psoValues['storagetopology'] ?? []))) {
+                            if (in_array('Topology=true', $pso->psoInfo->psoArgs)) {
+                                $psoValues['storagetopology']['enable'] = true;
+                            } else {
+                                $psoValues['storagetopology']['enable'] = false;
+                            }
+                        }
+
+                        // Set arrays section and change deprecated NfsEndPoint to NFSEndPoint
+                        $arrays = $pso->psoInfo->yaml;
+                        $arrays = str_replace('NfsEndPoint', 'NFSEndPoint', $arrays);
+                        $psoValues['arrays'] = yaml_parse($arrays)['arrays'] ?? [];
+
+                        if (array_key_exists('flasharray', $psoValues)) {
+                            if (array_key_exists('sanType', $psoValues['flasharray'])) {
+                                $psoValues['flasharray']['sanType'] = $pso->psoInfo->sanType;
+                            }
+                            if (array_key_exists('defaultFSType', $psoValues['flasharray'])) {
+                                $psoValues['flasharray']['defaultFSType'] = $pso->psoInfo->faDefaultFsType;
+                            }
+                            if (array_key_exists('defaultFSOpt', $psoValues['flasharray'])) {
+                                $psoValues['flasharray']['defaultFSOpt'] = $pso->psoInfo->faDefaultFSOpt;
+                            }
+                            if (array_key_exists('defaultMountOpt', $psoValues['flasharray'])) {
+                                if (is_array($pso->psoInfo->faDefaultMountOpt)) {
+                                    $psoValues['flasharray']['defaultMountOpt'] = $pso->psoInfo->faDefaultMountOpt;
+                                } else {
+                                    $psoValues['flasharray']['defaultMountOpt'] = [$pso->psoInfo->faDefaultMountOpt];
+                                }
+                            }
+                            if (array_key_exists('preemptAttachments', $psoValues['flasharray'])) {
+                                $psoValues['flasharray']['preemptAttachments'] = $pso->psoInfo->faPreemptAttachments;
+                            }
+                            if (array_key_exists('iSCSILoginTimeout', $psoValues['flasharray'])) {
+                                $psoValues['flasharray']['iSCSILoginTimeout'] = intval($pso->psoInfo->faIscsiLoginTimeout);
+                            }
+                        }
+
+                        $psoValues['flashblade']['snapshotDirectoryEnabled'] = $pso->psoInfo->enableFbNfsSnapshot;
+                        $psoValues['flashblade']['exportRules'] = $pso->psoInfo->nfsExportRules;
+
+                        $psoValues['database']['maxSuspectSeconds'] = intval($pso->psoInfo->dbMaxSuspectSeconds);
+                        $psoValues['database']['maxStartupSeconds'] = intval($pso->psoInfo->dbMaxStartupSeconds);
+                    }
+
+                    // Remove any (empty) sections
+                    foreach ($psoValues as $key => $value) {
+                        if ((is_array($value)) and (count($value) == 0)) {
+                            unset($psoValues[$key]);
+                        }
+
+                        if (is_array($value)) {
+                            foreach ($value as $subkey => $subvalue) {
+                                if ((is_array($subvalue)) and (count($subvalue) == 0)) {
+                                    unset($psoValues[$key][$subkey]);
+                                }
+                            }
+                            if ((isset($psoValues[$key])) and (count($psoValues[$key]) == 0)) {
+                                unset($psoValues[$key]);
+                            }
+                        }
+                    }
+
+                    $yaml = yaml_emit($psoValues);
                     return view('settings/config-values', ['yaml' => $yaml]);
                 } else {
+                    // This is when it's a new install
                     switch ($request->input('edition')) {
                         case 'FLEX':
                             $repoUri = env('FLEX_GITREPO');

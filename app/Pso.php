@@ -52,8 +52,8 @@ use Kubernetes\API\Secret;
 use Kubernetes\API\StatefulSet;
 use Kubernetes\API\StorageClass;
 use KubernetesRuntime\Client;
-
 use PhpParser\Node\Expr\PostDec;
+
 use function HighlightUtilities\splitCodeIntoArray;
 
 class Pso
@@ -73,6 +73,8 @@ class Pso
 
     public function __construct()
     {
+        $this->psoInfo = new PsoInformation();
+
         // Check if running in a container:
         // If in container, use in-cluster Kubernetes credentials to connect
         // with the Kubernetes API. For development, use local hosts file for
@@ -101,7 +103,6 @@ class Pso
         $this->refreshTimeout = getenv('PSOX_CACHE_TIMEOUT') ?: env('PSOX_CACHE_TIMEOUT', '300');
 
         // Initialize the psoInfo variable
-        $this->psoInfo = new PsoInformation();
         $this->refreshData();
     }
 
@@ -289,16 +290,16 @@ class Pso
                 $myPv->pureWritesPerSec = $volPerf['writes_per_sec'] ?? 0;
                 $myPv->pureInputPerSec = $volPerf['input_per_sec'] ?? 0;
                 $myPv->pureInputPerSecFormatted = $this->formatBytes(
-                        $volPerf['input_per_sec'],
-                        1,
-                        2
-                    ) . '/s';
+                    $volPerf['input_per_sec'],
+                    1,
+                    2
+                ) . '/s';
                 $myPv->pureOutputPerSec = $volPerf['output_per_sec'] ?? 0;
                 $myPv->pureOutputPerSecFormatted = $this->formatBytes(
-                        $volPerf['output_per_sec'],
-                        1,
-                        2
-                    ) . '/s';
+                    $volPerf['output_per_sec'],
+                    1,
+                    2
+                ) . '/s';
                 $myPv->pureUsecPerReadOp = round(
                     $volPerf['usec_per_read_op'] / 1000,
                     2
@@ -403,8 +404,10 @@ class Pso
         );
 
         foreach (($snaps ?? []) as $snap) {
-            if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $snap['name'])
-                or $this->startsWith($query, $snap['name'])) {
+            if (
+                $this->startsWith($this->psoInfo->prefix . '-pvc-', $snap['name'])
+                or $this->startsWith($query, $snap['name'])
+            ) {
                 $snapPrefix = '.snapshot-';
                 $pureVolName = substr($snap['name'], 0, strpos($snap['name'], $snapPrefix));
                 $uid = substr($snap['name'], strpos($snap['name'], $snapPrefix) + strlen($snapPrefix));
@@ -475,9 +478,10 @@ class Pso
         }
 
         foreach (($filesystems['items'] ?? []) as $filesystem) {
-            if ($this->startsWith($this->psoInfo->prefix . '-pvc-', $filesystem['name']) or
-                ($filesystem['name'] == $query)) {
-
+            if (
+                $this->startsWith($this->psoInfo->prefix . '-pvc-', $filesystem['name']) or
+                ($filesystem['name'] == $query)
+            ) {
                 if ($filesystem['name'] == $query) {
                     $name = PsoPersistentVolume::getNameBycsiVolumeHandle($query);
                 } else {
@@ -522,16 +526,16 @@ class Pso
                     $myPv->pureWritesPerSec = $fsPerf['writes_per_sec'] ?? 0;
                     $myPv->pureInputPerSec = $fsPerf['write_bytes_per_sec'] ?? 0;
                     $myPv->pureInputPerSecFormatted = $this->formatBytes(
-                            $myPv->pureInputPerSec,
-                            1,
-                            2
-                        ) . '/s';
+                        $myPv->pureInputPerSec,
+                        1,
+                        2
+                    ) . '/s';
                     $myPv->pureOutputPerSec = $fsPerf['read_bytes_per_sec'];
                     $myPv->pureOutputPerSecFormatted = $this->formatBytes(
-                            $myPv->pureOutputPerSec,
-                            1,
-                            2
-                        ) . '/s';
+                        $myPv->pureOutputPerSec,
+                        1,
+                        2
+                    ) . '/s';
                     $myPv->pureUsecPerReadOp = round(
                         $myPv->pureUsecPerReadOp / 1000,
                         2
@@ -743,6 +747,7 @@ class Pso
             $myPodName = $item->metadata->name ?? 'Unknown';
             $myPodNamespace = $item->metadata->namespace ?? 'Unknown';
 
+            // Add a PsoPod for each pod with a PVC
             foreach (($item->spec->volumes ?? []) as $volume) {
                 if ($volume->persistentVolumeClaim !== null) {
                     $myPod = new PsoPod($item->metadata->uid);
@@ -775,34 +780,52 @@ class Pso
 
             foreach (($item->spec->containers ?? []) as $container) {
                 foreach (($container->env ?? []) as $env) {
-                    switch ($env->name) {
-                        case 'PURE_K8S_NAMESPACE':
-                            // If PSO is found, set psoFound to true and store prefix and namespace in Redis
-                            $this->psoFound = true;
-                            $this->psoInfo->prefix = $env->value ?? 'Unknown';
-                            $this->psoInfo->namespace = $myPodNamespace ?? 'Unknown';
-                            break;
-                        case 'PURE_FLASHARRAY_SAN_TYPE':
-                            $this->psoInfo->sanType = $env->value ?? '';
-                            break;
-                        case 'PURE_DEFAULT_BLOCK_FS_TYPE':
-                            $this->psoInfo->blockFsType = $env->value ?? '';
-                            break;
-                        case 'PURE_DEFAULT_ENABLE_FB_NFS_SNAPSHOT':
-                            $this->psoInfo->enableFbNfsSnapshot = $env->value ?? '';
-                            break;
-                        case 'PURE_DEFAULT_BLOCK_FS_OPT':
-                            $this->psoInfo->blockFsOpt = $env->value ?? '';
-                            break;
-                        case 'PURE_DEFAULT_BLOCK_MNT_OPT':
-                            $this->psoInfo->blockMntOpt = $env->value ?? '';
-                            break;
-                        case 'PURE_ISCSI_LOGIN_TIMEOUT':
-                            $this->psoInfo->iscsiLoginTimeout = $env->value ?? '';
-                            break;
-                        case 'PURE_ISCSI_ALLOWED_CIDRS':
-                            $this->psoInfo->iscsiAllowedCidrs = $env->value ?? '';
-                            break;
+                    if (
+                        ($myPodName == 'pso-csi-controller-0')
+                        or ($this->startsWith('pure-provisioner', $myPodName))
+                        or ($this->startsWith('pso-csi-node', $myPodName))
+                    ) {
+                        switch ($env->name) {
+                            case 'PURE_K8S_NAMESPACE':
+                                // If PSO is found, set psoFound to true and store prefix and namespace in Redis
+                                $this->psoFound = true;
+                                $this->psoInfo->prefix = $env->value ?? 'Unknown';
+                                $this->psoInfo->namespace = $myPodNamespace ?? 'Unknown';
+                                break;
+                            case 'PURE_DEFAULT_ENABLE_FB_NFS_SNAPSHOT':
+                                $this->psoInfo->enableFbNfsSnapshot = $env->value ?? '';
+                                break;
+                            case 'PURE_FLASHARRAY_SAN_TYPE':
+                                $this->psoInfo->sanType = $env->value ?? '';
+                                break;
+                            case 'PURE_DEFAULT_BLOCK_FS_TYPE':
+                                $this->psoInfo->faDefaultFsType = $env->value ?? '';
+                                break;
+                            case 'PURE_DEFAULT_BLOCK_FS_OPT':
+                                $this->psoInfo->faDefaultFSOpt = $env->value ?? '';
+                                break;
+                            case 'PURE_DEFAULT_BLOCK_MNT_OPT':
+                                $this->psoInfo->faDefaultMountOpt = $env->value ?? '';
+                                break;
+                            case 'PURE_PREEMPT_RWO_ATTACHMENTS_DEFAULT':
+                                $this->psoInfo->faPreemptAttachments = $env->value ?? '';
+                                break;
+                            case 'PURE_ISCSI_ALLOWED_CIDRS':
+                                $this->psoInfo->faIscsiAllowedCidr = $env->value ?? '';
+                                break;
+                            case 'PURE_ISCSI_LOGIN_TIMEOUT':
+                                $this->psoInfo->faIscsiLoginTimeout = $env->value ?? '';
+                                break;
+                        }
+                    } elseif ($this->startsWith('pso-db-cockroach-operator', $myPodName)) {
+                        switch ($env->name) {
+                            case 'COCKROACH_MAX_STARTUP_SECONDS':
+                                $this->psoInfo->dbMaxSuspectSeconds = $env->value ?? '';
+                                break;
+                            case 'COCKROACH_MAX_SUSPECT_SECONDS':
+                                $this->psoInfo->dbMaxStartupSeconds = $env->value ?? '';
+                                break;
+                        }
                     }
                 }
 
@@ -810,7 +833,6 @@ class Pso
                     ($myPodName == 'pso-csi-controller-0')
                     or ($this->startsWith('pure-provisioner', $myPodName))
                 ) {
-
                     $this->psoInfo->provisionerPod = $myPodName;
                     $this->psoInfo->provisionerContainer = $item->spec->containers[0]->name ?? 'Unknown';
 
@@ -872,16 +894,24 @@ class Pso
                     }
                 } elseif ($this->startsWith('pso-csi-node', $myPodName)) {
                     $line = $container->name . ': ' . $container->image;
-                    if (!in_array($line,$images))
-                    array_push($images, $line);
+                    if (!in_array($line, $images)) {
+                        array_push($images, $line);
+                    }
                 } elseif ($this->startsWith('pso-db-', $myPodName)) {
                     $line = $container->name . ': ' . $container->image;
-                    if (!in_array($line, $images))
+                    if (!in_array($line, $images)) {
                         array_push($images, $line);
+                    }
                 }
             }
         }
         $this->psoInfo->images = $images;
+
+        if (file_exists('/run/secrets/rhsm')) {
+            $this->psoInfo->isOpenShift = true;
+        } else {
+            $this->psoInfo->isOpenShift = false;
+        }
 
         try {
             Client::configure($this->master, $this->authentication, ['timeout' => 10]);
@@ -1617,7 +1647,6 @@ class Pso
                     $newArray->version = $array['items'][0]['os'] . ' ' . $array['items'][0]['version'];
                     $newArray->protocols = ['NFS', 'S3'];
                     $newArray->flashblade = 'flashblade';
-
                 } catch (Exception $e) {
                     // Log error message
                     Log::debug('xxx Error connecting to FlashBlade® "' . $mgmtEndPoint . '"');
@@ -1728,7 +1757,6 @@ class Pso
 
                             if ($array->flasharray !== null) {
                                 if ($this->addFlashArrayVolInfo($array, $myPv->csi_volumeHandle)) {
-
                                     $this->addFlashArrayPerfInfo($array, $myPv->csi_volumeHandle);
 
                                     $this->addFlashArrayHistInfo($array, $myPv->csi_volumeHandle);
@@ -1739,7 +1767,6 @@ class Pso
                                 }
                             }
                         }
-
                     } elseif ($myStorageClass->backend == 'file') {
                         foreach (PsoArray::items(PsoArray::PREFIX, 'mgmtEndPoint') as $mgmtEndPoint) {
                             $array = new PsoArray($mgmtEndPoint);
@@ -2028,8 +2055,10 @@ class Pso
                         $size = $size + $myPv->pureSize;
                         $used = $used + $myPv->pureUsed;
                         $volumeCount = $volumeCount + 1;
-                        if (!in_array($myPvc->storageClassName, $storageClasses) and
-                            ($myPvc->storageClassName !== null)) {
+                        if (
+                            !in_array($myPvc->storageClassName, $storageClasses) and
+                            ($myPvc->storageClassName !== null)
+                        ) {
                             array_push($storageClasses, $myPvc->storageClassName);
                         }
                     }

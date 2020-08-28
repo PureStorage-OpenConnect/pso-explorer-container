@@ -77,7 +77,7 @@ class FlashBladeApi
         $this->authenticated = false;
         $myheader = array_merge($this->header, array('api-token' => $this->apitoken));
 
-        if ($mgmtEndPoint == 'https://') {
+        if ($this->url == 'https://') {
             return $result;
         }
 

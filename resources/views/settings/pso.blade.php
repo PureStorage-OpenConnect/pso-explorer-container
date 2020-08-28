@@ -135,19 +135,19 @@
                                     <tr>
                                         <td class="col-xs-4 left"><span>Default block storage File System type</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['blockFsType'] ?? '' }}</span><br>
+                                            <span>{{ $settings['faDefaultFsType'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Default block storage File System options</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['blockFsOpt'] ?? '' }}</span><br>
+                                            <span>{{ $settings['faDefaultFSOpt'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Default block storage mount options</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['blockMntOpt'] ?? '' }}</span><br>
+                                            <span>{{ $settings['faDefaultMountOpt'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     </tbody>
@@ -174,13 +174,13 @@
                                     <tr>
                                         <td class="col-xs-4 left"><span>iSCSI login timeout</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['iscsiLoginTimeout'] ?? '' }}</span><br>
+                                            <span>{{ $settings['faIscsiLoginTimeout'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>iSCSI allowed CIDRs</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['iscsiAllowedCidrs'] ?? '' }}</span><br>
+                                            <span>{{ $settings['faIscsiAllowedCidr'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     </tbody>

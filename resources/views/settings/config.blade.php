@@ -5,15 +5,14 @@
 @endsection
 
 @section('content')
-    {{-- @isset($portalInfo) --}}
-        {{-- Version information --}}
+    @isset($settings)
         <div class="row">
             <div class="col-xs-12 tab-container">
                 <div class="with-padding">
                     <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                         <div class="panel panel-default">
                             <div class="panel-heading">
-                                <span>PSO configuration</span>
+                                <span>PSO upgrade helper</span>
                             </div>
                             <div class="panel-body table-no-filter">
                                 <form action="/settings/config" method="post" accept-charset="utf-8">
@@ -65,11 +64,7 @@
                 </div>
             </div>
         </div>
-    <p>{{ $settings['provisionerTag'] ?? '' }}</p>
-    <p>{{ $settings['isCsiDriver'] ?? '' }}</p>
-    <p>{{ $settings['repoUri'] ?? '' }}</p>
-    <p>Let's start here!</p>
-    {{-- @endisset --}}
+    @endisset
 @endsection
 
 @section('script')

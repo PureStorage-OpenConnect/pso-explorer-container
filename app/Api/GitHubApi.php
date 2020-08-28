@@ -7,9 +7,9 @@
 
 namespace App\Api;
 
+use GuzzleHttp\Exception\ConnectException;
 use Illuminate\Support\Facades\Http;
 //use Illuminate\Support\Facades\Log;
-use Exception;
 
 class GitHubApi
 {
@@ -37,9 +37,8 @@ class GitHubApi
             $response = Http::withOptions(
                 ['connect_timeout' => 20, 'verify' => true]
             )->get($url);
-        } catch (Exception $e) {
-            // TO DO Should add more error handling...
-            throw $e;
+        } catch (ConnectException $e) {
+            return false;
         }
 
         return json_decode($response->body(), true);
@@ -53,9 +52,8 @@ class GitHubApi
             $response = Http::withOptions(
                 ['connect_timeout' => 20, 'verify' => true]
             )->get($url);
-        } catch (Exception $e) {
-            // TO DO Should add more error handling...
-            throw $e;
+        } catch (ConnectException $e) {
+            return false;
         }
 
         return $response->body();
