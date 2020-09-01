@@ -834,6 +834,7 @@ class Pso
                     or ($this->startsWith('pure-provisioner', $myPodName))
                 ) {
                     $this->psoInfo->provisionerPod = $myPodName;
+                    $this->psoInfo->provisionerLabels = $item->metadata->labels;
                     $this->psoInfo->provisionerContainer = $item->spec->containers[0]->name ?? 'Unknown';
 
                     $imageName = $item->spec->containers[0]->image;

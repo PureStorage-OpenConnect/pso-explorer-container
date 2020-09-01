@@ -1,9 +1,9 @@
 {{-- Show error message if K8S is not found --}}
-@if (session('source') !== null)
+@if ((session('source') !== null) and (session('source') !== 'generic'))
     <div class="row">
         <div class="col-xs-12 tab-container">
             <div class="with-padding">
-                <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             @if (session('source') == 'k8s')
@@ -93,7 +93,7 @@
     <div class="row">
         <div class="col-xs-12 tab-container">
             <div class="with-padding">
-                <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <span>Error message returned</span>

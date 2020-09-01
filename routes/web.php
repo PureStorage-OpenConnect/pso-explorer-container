@@ -39,6 +39,7 @@ Route::get('/settings/nodes', 'SettingsController@nodes')->name('Settings-Nodes'
 Route::get('/settings/config', 'SettingsController@config')->name('Settings-Config');
 Route::post('/settings/config', 'SettingsController@configPost');
 
+
 // *** API routes
 // --- Dashboard
 Route::get('/api/dashboard', 'ApiController@dashboard')->name('Dashboard-Api');
@@ -60,3 +61,4 @@ Route::get('/api/storage/snapshots', 'ApiController@snapshots')->name('Storage-S
 // *** Settings routes
 Route::get('/api/settings/pso', 'ApiController@settingsPso')->name('Settings-Pso-Api');
 Route::get('/api/settings/nodes', 'ApiController@settingsNodes')->name('Settings-Nodes-Api');
+

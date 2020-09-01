@@ -12,9 +12,65 @@
                     <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                         <div class="panel panel-default">
                             <div class="panel-heading">
-                                <span>PSO upgrade helper</span>
+                                <span>PSO {{ $isUpgrade ? 'upgrade' : 'installation' }} helper</span>
                             </div>
                             <div class="panel-body table-no-filter">
+                                <div class="with-padding">
+                                    <div class="heading">
+                                        <strong>How to {{ $isUpgrade ? 'upgrade' : 'install' }} Pure Storage® Pure Service Orchestrator™</strong>
+                                    </div>
+                                    <div>
+                                        Please follow the steps below to {{ $isUpgrade ? 'upgrade' : 'install' }} the Pure Service Orchestrator™.
+                                    </div>
+                                    <hr>
+                                    <ul>
+                                        @if(! $isUpgrade)
+                                        <li>
+                                            Make sure the namespace you wish to install PSO to is created.
+                                            <div class="pre-scrollable">
+                                                <pre>kubectl create namespace {{ $psoNamespace ?? 'pure-pso' }}</pre>
+                                            </div>
+                                        </li>
+                                        @endif
+                                        @if(($psoEdition !== 'FLEX') and ($psoEdition !== 'PSO5'))
+                                        <li>
+                                            (Optional) If you want to use Snapshots, make sure you install the Snapshot Beta CRDs:
+                                            <pre>kubectl create -f  https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-2.0/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml
+kubectl create -f  https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-2.0/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml
+kubectl create -f  https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-2.0/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml</pre>
+                                        </li>
+                                        <li>
+                                            (Optional) To use Snapshots, you also need to install the Snapshot Controller:
+                                            <pre>kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-2.0/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-2.0/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml</pre>
+                                        </li>
+                                        @endif
+                                        <li>
+                                            Download the <code>values.yaml</code> file you've created below.
+                                        </li>
+                                        <li>
+                                            Run the following commands from the directory where you've saved the <code>values.yaml</code> file.
+                                            <div class="pre-scrollable">
+                                                @if(($psoEdition == 'FLEX') or ($psoEdition == 'PSO5'))
+                                                    <pre>helm repo add pure https://purestorage.github.io/helm-charts
+helm repo update
+helm {{ $isUpgrade ? 'upgrade' : 'install' }} pure-storage-driver pure/pure-csi --version {{ $psoRelease ?? '' }} --namespace {{ $psoNamespace ?? 'pure-pso' }} -f values.yaml</pre>
+                                                @else
+                                                    @if(substr(str_replace('v', '', $psoRelease), 0, 5) == '6.0.0')
+                                                        <pre>helm repo add pure https://purestorage.github.io/pso-csi
+helm repo update
+helm {{ $isUpgrade ? 'upgrade' : 'install' }} pure-pso pure/pureStorageDriver --version 6.0.0 --namespace {{ $psoNamespace ?? 'pure-pso' }} -f values.yaml</pre>
+                                                    @else
+                                                    <pre>helm repo add pure https://purestorage.github.io/pso-csi
+helm repo update
+helm {{ $isUpgrade ? 'upgrade' : 'install' }} pure-pso pure/pure-pso --version {{ $psoRelease ?? '' }} --namespace {{ $psoNamespace ?? 'pure-pso' }} -f values.yaml</pre>
+                                                    @endif
+                                                @endif
+                                            </div>
+                                        </li>
+                                        </li>
+                                    </ul>
+                                </div>
                                 <button class="btn btn-pure btn-block" type="button" value="save" id="save">Download <b>values.yaml</b></button>
                                 <pre id="values_yaml">{!! $yaml !!}</pre>
                                 <br><br>
