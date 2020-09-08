@@ -89,32 +89,34 @@
 @endif
 
 {{-- Show error messages if set --}}
-@if (session('message') or $errors->any())
-    <div class="row">
-        <div class="col-xs-12 tab-container">
-            <div class="with-padding">
-                <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <span>Error message returned</span>
-                        </div>
-                        <div class="panel-body list-container">
-                            <div class="row with-padding margin-left">
-                                @if(session('message') !== null)
-                                    <div class="alert alert-message {{ Session::get('alert-class', 'alert-info') }}">{{ session('message') }}</div>
-                                @endif
-                                @if ($errors->any())
-                                    @foreach ($errors->all() as $error)
-                                        <div class="ibox-content" style="">
-                                            <div class="alert alert-danger alert-message">{{ $error }}</div>
-                                        </div>
-                                    @endforeach
-                                @endif
+@if (! Request::is('login'))
+    @if (session('message') or $errors->any())
+        <div class="row">
+            <div class="col-xs-12 tab-container">
+                <div class="with-padding">
+                    <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <span>Error message returned</span>
+                            </div>
+                            <div class="panel-body list-container">
+                                <div class="row with-padding margin-left">
+                                    @if(session('message') !== null)
+                                        <div class="alert alert-message {{ Session::get('alert-class', 'alert-info') }}">{{ session('message') }}</div>
+                                    @endif
+                                    @if ($errors->any())
+                                        @foreach ($errors->all() as $error)
+                                            <div class="ibox-content" style="">
+                                                <div class="alert alert-danger alert-message">{{ $error }}</div>
+                                            </div>
+                                        @endforeach
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 @endif
