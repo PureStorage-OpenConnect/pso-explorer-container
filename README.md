@@ -8,7 +8,7 @@ A unified view into storage, empowering Kubernetes admins and storage admins wit
 
 ## What is PSO Explorer?
 
-Pure Service Orchestrator™ Explorer (or PSO Explorer) provides a web based user interface for [Pure Service Orchestrator™](https://github.com/purestorage/helm-charts). It shows details of the persistent volumes and snapshots that have been provisioned using PSO, showing provisioned space, actual used space, performance and growth characteristics. The PSO Explorer dashboard provides a quick overview of the number of volumes, snapshots, storageclasses and arrays in the cluster, in addition to the volume usage, the volume growth over the last 24 hours and cluster-level performance statistics.
+Pure Service Orchestrator™ Explorer (or PSO eXplorer) provides a web based user interface for [Pure Service Orchestrator™](https://github.com/purestorage/helm-charts). It shows details of the persistent volumes and snapshots that have been provisioned using PSO, showing provisioned space, actual used space, performance and growth characteristics. The PSO eXplorer dashboard provides a quick overview of the number of volumes, snapshots, storageclasses and arrays in the cluster, in addition to the volume usage, the volume growth over the last 24 hours and cluster-level performance statistics.
 
 ## How to use?
 
@@ -16,7 +16,7 @@ For instructions on how to deploy and use Pure Service Orchestrator™ Explorer,
 
 ## About this repo
 
-This repository contains the PHP web application for PSO Explorer. 
+This repository contains the PHP web application for PSO eXplorer. 
 The application is: 
 - developed using the [Laravel](https://laravel.com/) Framework. 
 - distributed as a Docker container hosted on the [Pure Storage® Quay.io repo](https://quay.io/repository/purestorage/pso-explorer).
@@ -24,7 +24,7 @@ The application is:
 
 # How to get started?
 
-We are welcoming pull request (PR's) for further development of PSO Explorer. 
+We are welcoming pull request (PR's) for further development of PSO eXplorer. 
 
 ## Download source code
 
@@ -55,7 +55,7 @@ Now you can access the application by browsing to [http://pso-explorer-comntaine
 
 ## Configure the Kubernetes secrets
 
-You are now almost ready to get started, however the application still needs access to your Kubernetes cluster, since it cannot use the in-cluster credentials. If you have PSO Explorer running on your Kubernetes environment, you can get the Kubernetes credentials by login into the container.
+You are now almost ready to get started, however the application still needs access to your Kubernetes cluster, since it cannot use the in-cluster credentials. If you have PSO eXplorer running on your Kubernetes environment, you can get the Kubernetes credentials by login into the container.
 
 ```
 kubectl get pod -n pso-explorer

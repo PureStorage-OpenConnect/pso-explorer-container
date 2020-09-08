@@ -9,7 +9,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Title -->
-    <title>{{ config('app.name', 'PSO Explorer') . ' - ' . config('app.version', 'v0.0.1')}}</title>
+    <title>{{ config('app.name', 'PSO eXplorer') . ' - ' . config('app.version', 'v0.0.1')}}</title>
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}">
@@ -236,6 +236,20 @@
                         @csrf
                         <input value="{{ Route::current()->getName() }}" name="route" id="frm1_submit"/>
                     </form>
+
+                    @guest
+                        <a class="sidebar-info sidebar-link" href="{{ route('login') }}">Login</a>
+                    @else
+                        <a class="sidebar-info sidebar-link" href="{{ route('logout') }}"
+                           onclick="event.preventDefault();
+                                                         document.getElementById('logout-form').submit();">
+                            Logout
+                        </a>
+
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                            @csrf
+                        </form>
+                    @endguest
                 </div>
 
                 <!-- Sidebar footer -->
@@ -243,7 +257,7 @@
                     <div class="sidebar-nav-divider"></div>
                     <div class="sidebar-text">
                         <div class="sidebar-info">
-                            <span><strong> {{ config('app.name', 'PSO Explorer') }} </strong></span><br>
+                            <span><strong> {{ config('app.name', 'PSO eXplorer') }} </strong></span><br>
                         </div>
                         <div class="sidebar-info">
                             Version
@@ -363,7 +377,7 @@
                 <div class="modal-body">
                     <div>
                         <h4>About {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }}</h4>
-                        <span class="pager">Pure Service Orchestrator™ Explorer (or PSO Explorer) provides a web based user interface for Pure Service Orchestrator™ PSO. It shows details of the persistent volumes and snapshots that have been provisioned using PSO, showing provisioned space, actual used space, performance and growth characteristics.</span><br>
+                        <span class="pager">Pure Service Orchestrator™ Explorer (or PSO eXplorer) provides a web based user interface for Pure Service Orchestrator™ PSO. It shows details of the persistent volumes and snapshots that have been provisioned using PSO, showing provisioned space, actual used space, performance and growth characteristics.</span><br>
                         <span class="pager">{{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} is maintainced at:<br><a href="{{ env('PSO_EXPLORER_REPO', 'https://code.purestorage.com/') }}" target="_blank">{{ env('PSO_EXPLORER_REPO', 'https://code.purestorage.com/') }}</a></span><br>
                     </div>
                     <div class="dropdown-divider"></div>
