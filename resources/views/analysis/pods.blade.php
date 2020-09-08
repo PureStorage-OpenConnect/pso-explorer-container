@@ -25,15 +25,14 @@
                                     <tr>
                                         <th data-toggle="true">Namespace</th>
                                         <th>Name</th>
-                                        <th>Volumes</th>
                                         <th>Provisioned size</th>
                                         <th>Used capacity</th>
+                                        <th>StorageClasses</th>
                                         <th data-hide="all">Creation time</th>
                                         <th data-hide="all">Containers</th>
-                                        <th data-hide="all">Pod status</th>
-                                        <th data-hide="all">Volumes</th>
+                                        <th data-hide="all">Volume names</th>
                                         <th data-hide="all">Labels</th>
-                                        <th>StorageClasses</th>
+                                        <th>Pod status</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -42,9 +41,9 @@
                                             <tr>
                                                 <td>{{ $pso_pod['namespace'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_pod['name'] ?? '<unknown>' }}</td>
-                                                <td>{{ $pso_pod['volumeCount'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_pod['sizeFormatted'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_pod['usedFormatted'] ?? '<unknown>' }}</td>
+                                                <td>{{ implode(', ', $pso_pod['storageClasses'] ?? []) }}</td>
                                                 <td>{{ $pso_pod['creationTimestamp'] ?? '<unknown>' }}</td>
                                                 <td>
                                                     @isset($pso_pod['containers'])
@@ -53,7 +52,6 @@
                                                         @endforeach
                                                     @endisset
                                                 </td>
-                                                <td>{{ $pso_pod['status'] ?? '<unknown>' }}</td>
                                                 <td>
                                                     @isset($pso_pod['pvcLink'])
                                                     @foreach($pso_pod['pvcLink'] as $pvcLink)
@@ -62,7 +60,12 @@
                                                     @endisset
                                                 </td>
                                                 <td>{{ implode(', ', $pso_pod['labels'] ?? []) }}</td>
-                                                <td>{{ implode(', ', $pso_pod['storageClasses'] ?? []) }}</td>
+
+                                                @if($pso_pod['status'] == 'Running')
+                                                    <td><span class="label label-success">{{ $pso_pod['status'] ?? '<unknown>' }}</span></td>
+                                                @else
+                                                    <td><span class="label label-warning">{{ $pso_pod['status'] ?? '<unknown>' }}</span></td>
+                                                @endif
                                             </tr>
                                         @endforeach
                                         @if(count($psoPods) == 0)

@@ -25,14 +25,13 @@
                                     <tr>
                                         <th data-toggle="true">Namespace</th>
                                         <th>Name</th>
-                                        <th>Volumes</th>
                                         <th>Provisioned size</th>
                                         <th>Used capacity</th>
+                                        <th>StorageClasses</th>
                                         <th data-hide="all">Creation time</th>
-                                        <th data-hide="all">Job status</th>
                                         <th data-hide="all">Volumes</th>
                                         <th data-hide="all">Labels</th>
-                                        <th>StorageClasses</th>
+                                        <th>Job status</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -41,11 +40,10 @@
                                             <tr>
                                                 <td>{{ $pso_job['namespace'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_job['name'] ?? '<unknown>' }}</td>
-                                                <td>{{ $pso_job['volumeCount'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_job['sizeFormatted'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_job['usedFormatted'] ?? '<unknown>' }}</td>
+                                                <td>{{ implode(', ', $pso_job['storageClasses'] ?? []) }}</td>
                                                 <td>{{ $pso_job['creationTimestamp'] ?? '<unknown>' }}</td>
-                                                <td>{{ $pso_job['status'] ?? '<unknown>' }}</td>
                                                 <td>
                                                     @isset($pso_job['pvcLink'])
                                                     @foreach($pso_job['pvcLink'] as $pvcLink)
@@ -54,7 +52,12 @@
                                                     @endisset
                                                 </td>
                                                 <td>{{ implode(', ', $pso_job['labels'] ?? []) }}</td>
-                                                <td>{{ implode(', ', $pso_job['storageClasses'] ?? []) }}</td>
+
+                                                @if($pso_job['status'] == 'Running')
+                                                    <td><span class="label label-success">{{ $pso_job['status'] ?? '<unknown>' }}</span></td>
+                                                @else
+                                                    <td><span class="label label-warning">{{ $pso_job['status'] ?? '<unknown>' }}</span></td>
+                                                @endif
                                             </tr>
                                         @endforeach
                                         @if(count($psoJobs) == 0)
