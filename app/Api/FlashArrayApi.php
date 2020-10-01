@@ -121,7 +121,6 @@ class FlashArrayApi
                 Log::debug('    - Message: "' . $e->getMessage() . '"');
                 Log::debug('    - File: "' . $e->getFile() . '"');
                 Log::debug('    - Line: "' . $e->getLine() . '"');
-
             }
         } catch (Exception $e) {
             // TO DO Should add more error handling...

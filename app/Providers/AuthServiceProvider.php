@@ -26,7 +26,7 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        Auth::provider('file_password', function($app, array $config) {
+        Auth::provider('file_password', function ($app, array $config) {
             return new FilePasswordProvider();
         });
     }

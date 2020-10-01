@@ -68,4 +68,3 @@ Route::get('/api/storage/snapshots', 'ApiController@snapshots')->name('Storage-S
 // *** Settings routes
 Route::get('/api/settings/pso', 'ApiController@settingsPso')->name('Settings-Pso-Api');
 Route::get('/api/settings/nodes', 'ApiController@settingsNodes')->name('Settings-Nodes-Api');
-

@@ -65,8 +65,6 @@ class ConfigController extends Controller
             }
             return $releases;
         } catch (ConnectionException $e) {
-
-
             unset($e);
             return null;
         }
@@ -135,7 +133,7 @@ class ConfigController extends Controller
                     'psoRelease' => '',
                     'phase' => $phase
                 ]);
-            case'2':
+            case '2':
                 // Could be a new install or upgrade
                 $pso = new Pso();
 
@@ -203,26 +201,32 @@ class ConfigController extends Controller
                     $psoValues['arrays'] = yaml_parse($arrays)['arrays'] ?? [];
 
                     if (array_key_exists('flasharray', $psoValues)) {
-                        if (array_key_exists('sanType', $psoValues['flasharray']) and ($pso->psoInfo->sanType !== null)) {
+                        if (array_key_exists('sanType', $psoValues['flasharray'])
+                            and ($pso->psoInfo->sanType !== null)) {
                             $psoValues['flasharray']['sanType'] = $pso->psoInfo->sanType;
                         }
-                        if (array_key_exists('defaultFSType', $psoValues['flasharray']) and ($pso->psoInfo->faDefaultFsType !== null)) {
+                        if (array_key_exists('defaultFSType', $psoValues['flasharray'])
+                            and ($pso->psoInfo->faDefaultFsType !== null)) {
                             $psoValues['flasharray']['defaultFSType'] = $pso->psoInfo->faDefaultFsType;
                         }
-                        if (array_key_exists('defaultFSOpt', $psoValues['flasharray']) and ($pso->psoInfo->faDefaultFSOpt !== null)) {
+                        if (array_key_exists('defaultFSOpt', $psoValues['flasharray'])
+                            and ($pso->psoInfo->faDefaultFSOpt !== null)) {
                             $psoValues['flasharray']['defaultFSOpt'] = $pso->psoInfo->faDefaultFSOpt;
                         }
-                        if (array_key_exists('defaultMountOpt', $psoValues['flasharray']) and ($pso->psoInfo->faDefaultMountOpt !== null)) {
+                        if (array_key_exists('defaultMountOpt', $psoValues['flasharray'])
+                            and ($pso->psoInfo->faDefaultMountOpt !== null)) {
                             if (is_array($pso->psoInfo->faDefaultMountOpt)) {
                                 $psoValues['flasharray']['defaultMountOpt'] = $pso->psoInfo->faDefaultMountOpt;
                             } else {
                                 $psoValues['flasharray']['defaultMountOpt'] = [$pso->psoInfo->faDefaultMountOpt];
                             }
                         }
-                        if (array_key_exists('preemptAttachments', $psoValues['flasharray']) and ($pso->psoInfo->faPreemptAttachments !== null)) {
+                        if (array_key_exists('preemptAttachments', $psoValues['flasharray'])
+                            and ($pso->psoInfo->faPreemptAttachments !== null)) {
                             $psoValues['flasharray']['preemptAttachments'] = $pso->psoInfo->faPreemptAttachments;
                         }
-                        if (array_key_exists('iSCSILoginTimeout', $psoValues['flasharray']) and ($pso->psoInfo->faIscsiLoginTimeout !== null)) {
+                        if (array_key_exists('iSCSILoginTimeout', $psoValues['flasharray'])
+                            and ($pso->psoInfo->faIscsiLoginTimeout !== null)) {
                             $psoValues['flasharray']['iSCSILoginTimeout'] = intval($pso->psoInfo->faIscsiLoginTimeout);
                         }
                     }
@@ -350,7 +354,7 @@ class ConfigController extends Controller
                             $newLabel = [];
                             foreach ($inputLabels as $inputLabel) {
                                 $input = explode(':', $inputLabel);
-                                $newLabel[trim($input[0])] = str_replace('"','', trim($input[1]));
+                                $newLabel[trim($input[0])] = str_replace('"', '', trim($input[1]));
                             }
                             $value['Labels'] = $newLabel;
                             array_push($flasharrays, $value);
@@ -364,7 +368,7 @@ class ConfigController extends Controller
                             $newLabel = [];
                             foreach ($inputLabels as $inputLabel) {
                                 $input = explode(':', $inputLabel);
-                                $newLabel[trim($input[0])] = str_replace('"','', trim($input[1]));
+                                $newLabel[trim($input[0])] = str_replace('"', '', trim($input[1]));
                             }
                             $value['Labels'] = $newLabel;
                             array_push($flashblades, $value);
