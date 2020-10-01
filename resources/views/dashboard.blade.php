@@ -24,7 +24,7 @@
                             <div class="panel-body list-container">
                                 <div class="list-section">
                                     <div class="no-padding align-middle">
-                                        <h1 class="no-margin"><a href="{{ route('Storage-Volumes') }}">{{ (($dashboard['volumeCount'] ?? 0) - ($dashboard['orphanedCount'] ?? 0)) }}</a></h1>
+                                        <h1 class="no-margin"><a href="{{ route('Storage-Volumes') }}">{{ ($dashboard['volumeCount'] ?? 0) }}</a></h1>
                                         <small>Persistent Volume Claims</small>
                                     </div>
                                 </div>
@@ -102,7 +102,7 @@
                 <div class="with-padding">
 
                     {{-- Storage Usage --}}
-                    <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                    <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <span>Storage Usage</span>
@@ -236,7 +236,7 @@
 
 @section('script')
     @isset($portalInfo)
-    <script src="{{ asset('js/plugins/chartJs/Chart.min.js') }}"></script>
+    <script src="/js/plugins/chartJs/Chart.min.js"></script>
 
     <script>
         $(function() {

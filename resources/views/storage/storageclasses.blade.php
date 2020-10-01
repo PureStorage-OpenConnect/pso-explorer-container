@@ -1,7 +1,7 @@
 @extends('layouts.portal')
 
 @section('css')
-    <link href="{{ asset('css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <link href="/css/plugins/footable/footable.core.css" rel="stylesheet">
 @endsection
 
 @section('content')
@@ -11,7 +11,7 @@
             <div class="with-padding">
 
                 {{-- Storage Usage --}}
-                <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <span>PSO StorageClasses ({{ count($psoStorageClasses ?? []) }})</span>
@@ -45,7 +45,11 @@
                                                 <td>{{ $pso_storageclass['volumeCount'] ?? '<unknown>' }}</td>
                                                 <td>{{ $pso_storageclass['sizeFormatted'] ?? '<unknown>' }}</td>
                                                 <td>@if($pso_storageclass['isDefaultClass'] == 1)True @else False @endif</td>
-                                                <td>@isset($pso_storageclass['parameters']){{ implode(', ', $pso_storageclass['parameters']) }}@endisset </td>
+                                                <td>@isset($pso_storageclass['parameters'])
+                                                        @foreach($pso_storageclass['parameters'] as $parameter)
+                                                            {{ $parameter }}<br>
+                                                        @endforeach
+                                                    @endisset </td>
                                                 <td>@isset($pso_storageclass['mountOptions']){{ implode(', ', $pso_storageclass['mountOptions']) }}@endisset </td>
                                                 <td>@if($pso_storageclass['allowVolumeExpansion'] == 1)True @else False @endif</td>
                                                 <td>{{ $pso_storageclass['volumeBindingMode'] ?? '<unknown>' }}</td>
@@ -97,7 +101,7 @@
             <div class="with-padding">
 
                 {{-- Storage Usage --}}
-                <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <span>PSO VolumeSnapshotClasses ({{ count($psoVolumeSnapshotClasses ?? []) }})</span>
@@ -163,7 +167,7 @@
 @endsection
 
 @section('script')
-    <script src="{{ asset('js/plugins/footable/footable.all.min.js') }}"></script>
+    <script src="/js/plugins/footable/footable.all.min.js"></script>
 
     <script>
         $(document).ready(function() {

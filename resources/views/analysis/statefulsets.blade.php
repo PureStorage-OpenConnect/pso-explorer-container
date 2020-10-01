@@ -1,7 +1,7 @@
 @extends('layouts.portal')
 
 @section('css')
-    <link href="{{ asset('css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <link href="/css/plugins/footable/footable.core.css" rel="stylesheet">
 @endsection
 
 @section('content')
@@ -10,7 +10,7 @@
             <div class="with-padding">
 
                 {{-- Storage Usage --}}
-                <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <span>StatefulSets with managed persistent volume claims ({{ count($psoStatefulsets ?? []) }})</span>
@@ -85,7 +85,7 @@
 @endsection
 
 @section('script')
-    <script src="{{ asset('js/plugins/footable/footable.all.min.js') }}"></script>
+    <script src="/js/plugins/footable/footable.all.min.js"></script>
 
     <script>
         $(document).ready(function() {

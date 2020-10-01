@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'PSO Explorer'),
+    'name' => env('APP_NAME', 'PSO eXplorer'),
     'fullname' => env('APP_FULLNAME', 'Pure Service Orchestrator™ Explorer'),
     'version' => env('APP_VERSION', 'v0.0.1'),
 

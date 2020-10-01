@@ -37,6 +37,15 @@ Route::get('/storage/snapshots', 'StorageController@snapshots')->name('Storage-S
 Route::get('/settings/pso', 'SettingsController@pso')->name('Settings-Pso');
 Route::get('/settings/nodes', 'SettingsController@nodes')->name('Settings-Nodes');
 
+// *** Authenticated settings routes
+Route::get('login', 'Auth\LoginController@showLoginForm')->name('login');
+Route::post('login', 'Auth\LoginController@login');
+Route::post('logout', 'Auth\LoginController@logout')->name('logout');
+Route::get('/settings/config', 'ConfigController@config')->name('Settings-Config');
+Route::post('/settings/config', 'ConfigController@configPost');
+Route::get('/settings/delete-dbvols', 'ConfigController@deleteDbvols')->name('Settings-DeleteDbvols');
+
+
 // *** API routes
 // --- Dashboard
 Route::get('/api/dashboard', 'ApiController@dashboard')->name('Dashboard-Api');
@@ -58,3 +67,4 @@ Route::get('/api/storage/snapshots', 'ApiController@snapshots')->name('Storage-S
 // *** Settings routes
 Route::get('/api/settings/pso', 'ApiController@settingsPso')->name('Settings-Pso-Api');
 Route::get('/api/settings/nodes', 'ApiController@settingsNodes')->name('Settings-Nodes-Api');
+

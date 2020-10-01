@@ -16,17 +16,13 @@
                             </div>
                             <div class="panel-body table-no-filter">
                                 <table class="table pure-table ps-table">
-                                    <thead>
-                                    <tr class="ps-table-heading"><!---->
-                                        <th class="col-xs-4 left" title="Parameter">
-                                            <span class="ps-table-header-text" title="">Parameter</span>
-                                        </th>
-                                        <th class="col-xs-8 left" title="Value">
-                                            <span class="ps-table-header-text" title="">Value</span>
-                                        </th>
-                                    </tr>
-                                    </thead>
                                     <tbody>
+                                    <tr>
+                                        <td class="col-xs-4 left"><span>PSO version</span></td>
+                                        <td class="col-xs-8 left">
+                                            <span>{{ $settings['provisionerTag'] ?? '' }} @if($settings['isCsiDriver'])(CSI driver) @else()(Flex driver)@endif</span>
+                                        </td>
+                                    </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>PSO ClusterID</span></td>
                                         <td class="col-xs-8 left">
@@ -76,8 +72,10 @@
                                                         @endforeach
                                                     </td>
                                                     <td>
-                                                        <b>Stale volumes</b><br>
-                                                    @foreach($settings['dbvols'] ?? [] as $item)
+                                                        <b>Stale volumes</b>
+                                                        <sup>(<a href="{{ Route('Settings-DeleteDbvols') }}">Remove using Ansible</a>)</sup>
+                                                        <br>
+                                                        @foreach($settings['dbvols'] ?? [] as $item)
                                                             @if($item['unhealthy'])
                                                                 @if($item['pureName'] !== null)
                                                                     <span>
@@ -129,20 +127,6 @@
                             </div>
                             <div class="panel-body table-no-filter">
                                 <table class="table pure-table ps-table">
-                                    <thead>
-                                    <tr class="ps-table-heading"><!---->
-                                        <th class="col-xs-4 left" title="Parameter">
-                                            <span class="ps-table-header-text" title="">
-                                                Parameter
-                                            </span>
-                                        </th>
-                                        <th class="col-xs-8 left" title="Value">
-                                            <span class="ps-table-header-text" title="">
-                                                Value
-                                            </span>
-                                        </th>
-                                    </tr>
-                                    </thead>
                                     <tbody>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Block storage SAN protocol</span></td>
@@ -153,19 +137,19 @@
                                     <tr>
                                         <td class="col-xs-4 left"><span>Default block storage File System type</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['blockFsType'] ?? '' }}</span><br>
+                                            <span>{{ $settings['faDefaultFsType'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Default block storage File System options</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['blockFsOpt'] ?? '' }}</span><br>
+                                            <span>{{ $settings['faDefaultFSOpt'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Default block storage mount options</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['blockMntOpt'] ?? '' }}</span><br>
+                                            <span>{{ $settings['faDefaultMountOpt'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     </tbody>
@@ -188,31 +172,17 @@
                             </div>
                             <div class="panel-body table-no-filter">
                                 <table class="table pure-table ps-table">
-                                    <thead>
-                                    <tr class="ps-table-heading"><!---->
-                                        <th class="col-xs-4 left" title="Parameter">
-                                            <span class="ps-table-header-text" title="">
-                                                Parameter
-                                            </span>
-                                        </th>
-                                        <th class="col-xs-8 left" title="Value">
-                                            <span class="ps-table-header-text" title="">
-                                                Value
-                                            </span>
-                                        </th>
-                                    </tr>
-                                    </thead>
                                     <tbody>
                                     <tr>
                                         <td class="col-xs-4 left"><span>iSCSI login timeout</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['iscsiLoginTimeout'] ?? '' }}</span><br>
+                                            <span>{{ $settings['faIscsiLoginTimeout'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>iSCSI allowed CIDRs</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['iscsiAllowedCidrs'] ?? '' }}</span><br>
+                                            <span>{{ $settings['faIscsiAllowedCidr'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     </tbody>
@@ -235,20 +205,6 @@
                             </div>
                             <div class="panel-body table-no-filter">
                                 <table class="table pure-table ps-table">
-                                    <thead>
-                                    <tr class="ps-table-heading"><!---->
-                                        <th class="col-xs-4 left" title="Parameter">
-                                            <span class="ps-table-header-text" title="">
-                                                Parameter
-                                            </span>
-                                        </th>
-                                        <th class="col-xs-8 left" title="Value">
-                                            <span class="ps-table-header-text" title="">
-                                                Value
-                                            </span>
-                                        </th>
-                                    </tr>
-                                    </thead>
                                     <tbody>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Snapshot directory enabled</span></td>
@@ -291,40 +247,6 @@
                                     <pre class="pre-scrollable filter-log-lines">{{ $log ?? 'no logs found' }}</pre>
                                 </div>
                                 <br><br>&nbsp;
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endisset
-    @isset($ansible_yaml)
-        <div class="row">
-            <div class="col-xs-12 tab-container">
-                <div class="with-padding">
-                    <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <span>Ansible playbook to remove unhealthy PSO DB volumes</span>
-                            </div>
-                            <div class="panel-body list-container">
-                                <div class="row no-padding no-margin">
-                                    You can use the following Ansible Playbook to remove any unhealthy CochraochDB volumes from your Pure Storage FlashArray / FlashBlade systems.<br><br>
-                                </div>
-                                <div class="row no-padding no-margin">To use the playbook make sure that you:</div>
-                                <div class="row no-padding no-margin">- Set the API tokens in the <code>vars:</code> section for each array listed</div>
-                                <div class="row no-padding no-margin">- Copy the playbook below and save it as <code>delete-volumes.yaml</code></div>
-                                <div class="row no-padding no-margin">- Have ansible version 2.9+ installed (<a href="https://docs.ansible.com/" target="_blank">https://docs.ansible.com/</a>)</div>
-                                <div class="row no-padding no-margin">- Have the FlashArray and FlashBlade Ansible collections installed, the following will make sure you have the latest relerase installed:</div>
-                                <pre>ansible-galaxy collection install purestorage.flasharray --force
-ansible-galaxy collection install purestorage.flashblade --force</pre>
-
-                                <div class="row no-padding no-margin">To run the playbook execute</div>
-                                <pre>ansible-playbook delete-volumes.yaml</pre>
-
-                                <div class="row no-padding no-margin">The playbook (save as <code>delete-volumes.yaml</code></div>
-                                <pre style="width: 100%;">{!! $ansible_yaml !!}</pre>
-                                <br><br>
                             </div>
                         </div>
                     </div>

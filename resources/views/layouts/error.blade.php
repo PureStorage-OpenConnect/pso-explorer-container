@@ -1,15 +1,15 @@
 {{-- Show error message if K8S is not found --}}
-@if (session('source') !== null)
+@if ((session('source') !== null) and (session('source') !== 'generic'))
     <div class="row">
         <div class="col-xs-12 tab-container">
             <div class="with-padding">
-                <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             @if (session('source') == 'k8s')
                                 <span>Error while connecting to Kubernetes</span>
                             @elseif (session('source') == 'refresh')
-                                <span>{{ config('app.name', 'PSO Explorer') }} is currently collecting data</span>
+                                <span>{{ config('app.name', 'PSO eXplorer') }} is currently collecting data</span>
                             @else
                                 <span>Pure Service Orchestrator™ not found</span>
                             @endif
@@ -17,9 +17,9 @@
                         <div class="panel-body list-container">
                             <div class="row with-padding margin-left">
                                 @if (session('source') == 'k8s')
-                                    <div class="alert alert-danger alert-message">We ran into an error while connecting to the Kubernetes API service. To resolve this issue, make sure {{ config('app.name', 'PSO Explorer') }} has access to the Kubernetes API services and that the roles and rolebindings are configured correctly.
+                                    <div class="alert alert-danger alert-message">We ran into an error while connecting to the Kubernetes API service. To resolve this issue, make sure {{ config('app.name', 'PSO eXplorer') }} has access to the Kubernetes API services and that the roles and rolebindings are configured correctly.
 
-                                        For more information on how to install and configure {{ config('app.name', 'PSO Explorer') }} correctly, please visit: <br><a href="https://github.com/PureStorage-OpenConnect/pure-container-explorer" target="_blank">https://github.com/PureStorage-OpenConnect/pure-container-explorer</a>
+                                        For more information on how to install and configure {{ config('app.name', 'PSO eXplorer') }} correctly, please visit: <br><a href="https://github.com/PureStorage-OpenConnect/pure-container-explorer" target="_blank">https://github.com/PureStorage-OpenConnect/pure-container-explorer</a>
                                     </div>
                                 @elseif (session('source') == 'refresh')
                                     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 text-center">
@@ -89,32 +89,34 @@
 @endif
 
 {{-- Show error messages if set --}}
-@if (session('message') or $errors->any())
-    <div class="row">
-        <div class="col-xs-12 tab-container">
-            <div class="with-padding">
-                <div class="no-left-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <span>Error message returned</span>
-                        </div>
-                        <div class="panel-body list-container">
-                            <div class="row with-padding margin-left">
-                                @if(session('message') !== null)
-                                    <div class="alert alert-message {{ Session::get('alert-class', 'alert-info') }}">{{ session('message') }}</div>
-                                @endif
-                                @if ($errors->any())
-                                    @foreach ($errors->all() as $error)
-                                        <div class="ibox-content" style="">
-                                            <div class="alert alert-danger alert-message">{{ $error }}</div>
-                                        </div>
-                                    @endforeach
-                                @endif
+@if (! Request::is('login'))
+    @if (session('message') or $errors->any())
+        <div class="row">
+            <div class="col-xs-12 tab-container">
+                <div class="with-padding">
+                    <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <span>Error message returned</span>
+                            </div>
+                            <div class="panel-body list-container">
+                                <div class="row with-padding margin-left">
+                                    @if(session('message') !== null)
+                                        <div class="alert alert-message {{ Session::get('alert-class', 'alert-info') }}">{{ session('message') }}</div>
+                                    @endif
+                                    @if ($errors->any())
+                                        @foreach ($errors->all() as $error)
+                                            <div class="ibox-content" style="">
+                                                <div class="alert alert-danger alert-message">{{ $error }}</div>
+                                            </div>
+                                        @endforeach
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 @endif
