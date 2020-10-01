@@ -2,17 +2,17 @@
 [![GitHub Release](https://img.shields.io/github/v/release/PureStorage-OpenConnect/pso-explorer.svg)]()
 [![PR's Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](http://makeapullrequest.com)
 
-# Pure Service Orchestrator™ Explorer
+# Pure Service Orchestrator™ eXplorer
 
 A unified view into storage, empowering Kubernetes admins and storage admins with 360-degree container storage visibility.
 
-## What is PSO Explorer?
+## What is PSO eXplorer?
 
-Pure Service Orchestrator™ Explorer (or PSO eXplorer) provides a web based user interface for [Pure Service Orchestrator™](https://github.com/purestorage/helm-charts). It shows details of the persistent volumes and snapshots that have been provisioned using PSO, showing provisioned space, actual used space, performance and growth characteristics. The PSO eXplorer dashboard provides a quick overview of the number of volumes, snapshots, storageclasses and arrays in the cluster, in addition to the volume usage, the volume growth over the last 24 hours and cluster-level performance statistics.
+Pure Service Orchestrator™ eXplorer (or PSO eXplorer) provides a web based user interface for [Pure Service Orchestrator™](https://github.com/purestorage/helm-charts). It shows details of the persistent volumes and snapshots that have been provisioned using PSO, showing provisioned space, actual used space, performance and growth characteristics. The PSO eXplorer dashboard provides a quick overview of the number of volumes, snapshots, storageclasses and arrays in the cluster, in addition to the volume usage, the volume growth over the last 24 hours and cluster-level performance statistics.
 
 ## How to use?
 
-For instructions on how to deploy and use Pure Service Orchestrator™ Explorer, please visit [https://github.com/PureStorage-OpenConnect/pso-explorer](https://github.com/PureStorage-OpenConnect/pso-explorer).
+For instructions on how to deploy and use Pure Service Orchestrator™ eXplorer, please visit [https://github.com/PureStorage-OpenConnect/pso-explorer](https://github.com/PureStorage-OpenConnect/pso-explorer).
 
 ## About this repo
 
@@ -55,7 +55,7 @@ Now you can access the application by browsing to [http://pso-explorer-comntaine
 
 ## Configure the Kubernetes secrets
 
-You are now almost ready to get started, however the application still needs access to your Kubernetes cluster, since it cannot use the in-cluster credentials. If you have PSO eXplorer running on your Kubernetes environment, you can get the Kubernetes credentials by login into the container.
+You are now almost ready to get started, however the application still needs access to your Kubernetes cluster, since it cannot use the in-cluster credentials. If you have PSO Explorer running on your Kubernetes environment, you can get the Kubernetes credentials by login into the container.
 
 ```
 kubectl get pod -n pso-explorer
