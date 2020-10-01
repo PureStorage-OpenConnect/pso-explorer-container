@@ -24,7 +24,7 @@
                             <div class="panel-body list-container">
                                 <div class="list-section">
                                     <div class="no-padding align-middle">
-                                        <h1 class="no-margin"><a href="{{ route('Storage-Volumes') }}">{{ (($dashboard['volumeCount'] ?? 0) - ($dashboard['releasedCount'] ?? 0)) }}</a></h1>
+                                        <h1 class="no-margin"><a href="{{ route('Storage-Volumes') }}">{{ ($dashboard['volumeCount'] ?? 0) }}</a></h1>
                                         <small>Persistent Volume Claims</small>
                                     </div>
                                 </div>

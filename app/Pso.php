@@ -781,9 +781,16 @@ class Pso
             foreach (($item->spec->containers ?? []) as $container) {
                 foreach (($container->env ?? []) as $env) {
                     if (
+                        // Provisioner POD name used for PSO6+
                         ($myPodName == 'pso-csi-controller-0')
+                        // Provisioner POD name used for Flex or PSO5
                         or ($this->startsWith('pure-provisioner', $myPodName))
+                        // Daemonset POD name used for PSO6+
                         or ($this->startsWith('pso-csi-node', $myPodName))
+                        // Daemonset POD name used for PSO5
+                        or ($this->startsWith('pure-csi-', $myPodName))
+                        // Daemonset POD name used for Flex
+                        or ($this->startsWith('pure-flex-', $myPodName))
                     ) {
                         switch ($env->name) {
                             case 'PURE_K8S_NAMESPACE':
@@ -1091,10 +1098,10 @@ class Pso
                     $newPv->status_reason = $item->status->reason ?? null;
 
                     // spec->claimRef fields
-                    $newPv->claimRef_name = $item->spec->claimRef->name;
-                    $newPv->claimRef_namespace = $item->spec->claimRef->namespace;
-                    $newPv->claimRef_resourceVersion = $item->spec->claimRef->resourceVersion;
-                    $newPv->claimRef_uid = $item->spec->claimRef->uid;
+                    $newPv->claimRef_name = $item->spec->claimRef->name ?? '';
+                    $newPv->claimRef_namespace = $item->spec->claimRef->namespace ?? '';
+                    $newPv->claimRef_resourceVersion = $item->spec->claimRef->resourceVersion ?? '';
+                    $newPv->claimRef_uid = $item->spec->claimRef->uid ?? '';
 
                     // Calculated data fields
                     if (($newPv->status_phase == 'Released') or ($newPv->status_phase == 'Available')) {

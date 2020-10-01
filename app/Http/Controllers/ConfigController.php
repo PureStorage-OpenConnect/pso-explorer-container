@@ -3,12 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Api\GitHubApi;
+use App\Http\Classes\PsoArray;
 use App\Pso;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 
 class ConfigController extends Controller
 {
+    private function getPso(Request $request)
+    {
+        $pso = new Pso();
+
+        if (!$pso->psoFound) {
+            $request->session()->flash('alert-class', 'alert-danger');
+            $request->session()->flash('message', $pso->errorMessage);
+            $request->session()->flash('source', $pso->errorSource);
+            $request->session()->flash('yaml', $pso->psoInfo->yaml);
+            if ($pso->psoInfo->namespace !== null) {
+                $request->session()->flash('yaml', $pso->psoInfo->yaml);
+            }
+
+            return false;
+        } else {
+            Session::forget('alert-class');
+            Session::forget('message');
+            Session::forget('source');
+            Session::forget('yaml');
+
+            return $pso;
+        }
+    }
+
     /**
      * Create a new controller instance.
      *
@@ -388,5 +414,74 @@ class ConfigController extends Controller
                 ]);
                 break;
         }
+    }
+
+    public function deleteDbvols(Request $request)
+    {
+        $pso = $this->getPso($request);
+
+        $settings = $pso->settings();
+        $array_name = '';
+        $array_count = 0;
+        $volumes = [];
+
+        foreach ($settings['dbvols'] as $item) {
+            if ($item['unhealthy']) {
+                if (($array_name !== $item['pureArrayName']) and ($item['pureArrayName'] !== null)) {
+                    $array_name = $item['pureArrayName'];
+                    $array_count = $array_count + 1;
+                    $volumes[$array_count]['name'] = $item['pureArrayName'];
+                    $volumes[$array_count]['url'] = $item['pureArrayMgmtEndPoint'];
+                    $apiToken = new PsoArray($item['pureArrayMgmtEndPoint']);
+                    $volumes[$array_count]['api'] = $apiToken->apiToken;
+                    $volumes[$array_count]['type'] = $item['pureArrayType'];
+
+                    $volumes[$array_count]['volumes'] = [];
+                }
+                if ($item['pureName'] !== null) {
+                    array_push($volumes[$array_count]['volumes'], $item['pureName']);
+                }
+            }
+        }
+
+        if (count($volumes)) {
+            $ansible_yaml = '- name: Clean stale PSO 6.0 database backend volumes<br>';
+            $ansible_yaml = $ansible_yaml . '  hosts: localhost<br>';
+            $ansible_yaml = $ansible_yaml . '  gather_facts: no<br>';
+            $ansible_yaml = $ansible_yaml . '  collections:<br>';
+            $ansible_yaml = $ansible_yaml . '    - purestorage.flasharray<br>';
+            $ansible_yaml = $ansible_yaml . '    - purestorage.flashblade<br>';
+            $ansible_yaml = $ansible_yaml . '  vars:<br>';
+
+            foreach ($volumes as $index => $array) {
+                $ansible_yaml = $ansible_yaml . '    pure' . $index . '_name: "' . $array['name'] . '"<br>';
+                $ansible_yaml = $ansible_yaml . '    pure' . $index . '_url: "' . $array['url'] . '"<br>';
+                $ansible_yaml = $ansible_yaml . '    pure' . $index . '_api: "' . $array['api'] . '"<br>';
+            }
+
+            $ansible_yaml = $ansible_yaml . '  tasks:<br>';
+            foreach ($volumes as $index => $array) {
+                $ansible_yaml = $ansible_yaml . '  - name: Delete volumes from {{ pure' . $index . '_name }}<br>';
+                if ($array['type'] == 'FA') {
+                    $ansible_yaml = $ansible_yaml . '    purefa_volume:<br>';
+                    $ansible_yaml = $ansible_yaml . '      fa_url: "{{ pure' . $index . '_url }}"<br>';
+                } else {
+                    $ansible_yaml = $ansible_yaml . '    purefb_fs:<br>';
+                    $ansible_yaml = $ansible_yaml . '      fb_url: "{{ pure' . $index . '_url }}"<br>';
+                }
+                $ansible_yaml = $ansible_yaml . '      api_token: "{{ pure' . $index . '_api }}"<br>';
+                $ansible_yaml = $ansible_yaml . '      name: "{{ item }}"<br>';
+                $ansible_yaml = $ansible_yaml . '      state: absent<br>';
+                $ansible_yaml = $ansible_yaml . '      eradicate: true<br>';
+                $ansible_yaml = $ansible_yaml . '    loop:<br>';
+                foreach ($array['volumes'] as $volume) {
+                    $ansible_yaml = $ansible_yaml . '      - "' . $volume . '"<br>';
+                }
+            }
+        } else {
+            $ansible_yaml = '# No unhealthy volume found';
+        }
+
+        return view('settings/delete_dbvols', ['ansible_yaml' => $ansible_yaml]);
     }
 }

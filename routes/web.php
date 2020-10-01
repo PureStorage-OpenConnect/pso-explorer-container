@@ -43,6 +43,7 @@ Route::post('login', 'Auth\LoginController@login');
 Route::post('logout', 'Auth\LoginController@logout')->name('logout');
 Route::get('/settings/config', 'ConfigController@config')->name('Settings-Config');
 Route::post('/settings/config', 'ConfigController@configPost');
+Route::get('/settings/delete-dbvols', 'ConfigController@deleteDbvols')->name('Settings-DeleteDbvols');
 
 
 // *** API routes

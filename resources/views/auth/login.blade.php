@@ -3,12 +3,12 @@
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
-        <div class="with-banner">
+        <div class="mt-5">
             <p>To access this section of {{ config('app.name', 'PSO eXplorer') }} you'll need to login</p>
         </div>
     </div>
     <div class="row justify-content-center">
-        <div class="with-banner" style="width: 250px;">
+        <div class="with-banner col-md-4" style="width: 250px;">
             <form class="login-center ng-pristine ng-invalid ng-touched" method="POST" action="{{ route('login') }}">
                 @csrf
 
