@@ -236,7 +236,7 @@
 
 @section('script')
     @isset($portalInfo)
-    <script src="{{ asset('js/plugins/chartJs/Chart.min.js') }}"></script>
+    <script src="/js/plugins/chartJs/Chart.min.js"></script>
 
     <script>
         $(function() {

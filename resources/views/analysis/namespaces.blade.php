@@ -1,7 +1,7 @@
 @extends('layouts.portal')
 
 @section('css')
-    <link href="{{ asset('css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <link href="/css/plugins/footable/footable.core.css" rel="stylesheet">
 @endsection
 
 @section('content')
@@ -71,7 +71,7 @@
 @endsection
 
 @section('script')
-    <script src="{{ asset('js/plugins/footable/footable.all.min.js') }}"></script>
+    <script src="/js/plugins/footable/footable.all.min.js"></script>
 
     <script>
         $(document).ready(function() {
