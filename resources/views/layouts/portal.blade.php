@@ -209,12 +209,14 @@
                                     <span class="mm-sub-text">Nodes</span>
                                 </a>
                             </li>
-                            <li @if(Request::is('settings/config'))class="mm-active"@endif>
-                                <a href="{{ route('Settings-Config') }}">
-                                    <img class="mm-sub" src="/images/settings_icon.svg">
-                                    <span class="mm-sub-text">Configuration</span>
-                                </a>
-                            </li>
+                            @if(env('APP_DEBUG'))
+                                <li @if(Request::is('settings/config'))class="mm-active"@endif>
+                                    <a href="{{ route('Settings-Config') }}">
+                                        <img class="mm-sub" src="/images/settings_icon.svg">
+                                        <span class="mm-sub-text">Configuration</span>
+                                    </a>
+                                </li>
+                            @endif
                         </ul>
                     </li>
                 </ul>
@@ -237,19 +239,21 @@
                         <input value="{{ Route::current()->getName() }}" name="route" id="frm1_submit"/>
                     </form>
 
-                    @guest
-                        <a class="sidebar-info sidebar-link" href="{{ route('login') }}">Login</a>
-                    @else
-                        <a class="sidebar-info sidebar-link" href="{{ route('logout') }}"
-                           onclick="event.preventDefault();
-                                                         document.getElementById('logout-form').submit();">
-                            Logout
-                        </a>
+                    @if(env('APP_DEBUG'))
+                        @guest
+                            <a class="sidebar-info sidebar-link" href="{{ route('login') }}">Login</a>
+                        @else
+                            <a class="sidebar-info sidebar-link" href="{{ route('logout') }}"
+                               onclick="event.preventDefault();
+                                                             document.getElementById('logout-form').submit();">
+                                Logout
+                            </a>
 
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                            @csrf
-                        </form>
-                    @endguest
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                @csrf
+                            </form>
+                        @endguest
+                    @endif
                 </div>
 
                 <!-- Sidebar footer -->
