@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Classes\PsoArray;
 use App\Pso;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
@@ -57,7 +58,7 @@ class SettingsController extends Controller
         // If $pso is false, an error was returned
         $nodes = $pso->nodes();
         $portalInfo = $pso->portalInfo();
-        if (!$pso) {
+        if (!$pso->psoFound) {
             // Do not show errors for Nodes page, since it's available before PSO is installed
             $request->session()->forget(['alert-class', 'message', 'source', 'yaml']);
         }

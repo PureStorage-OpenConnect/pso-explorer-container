@@ -66,8 +66,8 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 COPY . /var/www
 
 RUN cd /var/www && composer update
+RUN cd /var/www && php artisan config:clear
 RUN cd /var/www && php artisan key:generate
-RUN cd /var/www && php artisan config:cache
 RUN rm -f /var/www/storage/logs/laravel.log
 RUN touch /var/www/storage/logs/laravel.log
 RUN chown -R 1001:0 /var/www

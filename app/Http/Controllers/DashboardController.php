@@ -71,7 +71,11 @@ class DashboardController extends Controller
         if (!$pso) {
             return view('dashboard');
         } else {
-            return redirect()->route($redirectTo);
+            if (\Illuminate\Support\Facades\Route::has($redirectTo)) {
+                return redirect()->route($redirectTo);
+            } else {
+                return redirect()->route('Dashboard');
+            }
         }
     }
 }

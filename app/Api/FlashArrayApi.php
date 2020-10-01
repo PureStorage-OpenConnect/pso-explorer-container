@@ -65,7 +65,6 @@ class FlashArrayApi
     // Construct method
     public function __construct()
     {
-        // Initialize ALSO MarketPlace API class
         $this->header           = array(
             'accept' => 'application/json',
             'Content-Type' => 'application/json',
@@ -84,6 +83,10 @@ class FlashArrayApi
         $result = false;
         $apiVersion = self::FA_API_URI;
         $this->apitoken = $apitoken;
+
+        if (($mgmtEndPoint == '') or ($mgmtEndPoint == null)) {
+            return $result;
+        }
 
         try {
             $this->url = 'https://' . $mgmtEndPoint . '/api/api_version';
@@ -118,8 +121,6 @@ class FlashArrayApi
                 Log::debug('    - Message: "' . $e->getMessage() . '"');
                 Log::debug('    - File: "' . $e->getFile() . '"');
                 Log::debug('    - Line: "' . $e->getLine() . '"');
-
-                echo "Connection error";
             }
         } catch (Exception $e) {
             // TO DO Should add more error handling...

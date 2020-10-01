@@ -57,7 +57,6 @@ class FlashBladeApi
     // Construct method
     public function __construct($mgmtEndPoint, $apitoken)
     {
-        // Initialize ALSO MarketPlace API class
         $this->header           = array(
             'accept' => 'application/json',
             'Content-Type' => 'application/json',
@@ -77,6 +76,10 @@ class FlashBladeApi
         // Set default result to false
         $this->authenticated = false;
         $myheader = array_merge($this->header, array('api-token' => $this->apitoken));
+
+        if ($this->url == 'https://') {
+            return $result;
+        }
 
         try {
             // Try to authenticate to API

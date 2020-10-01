@@ -16,17 +16,25 @@
                             </div>
                             <div class="panel-body table-no-filter">
                                 <table class="table pure-table ps-table">
-                                    <thead>
-                                    <tr class="ps-table-heading"><!---->
-                                        <th class="col-xs-4 left" title="Parameter">
-                                            <span class="ps-table-header-text" title="">Parameter</span>
-                                        </th>
-                                        <th class="col-xs-8 left" title="Value">
-                                            <span class="ps-table-header-text" title="">Value</span>
-                                        </th>
-                                    </tr>
-                                    </thead>
                                     <tbody>
+                                    <tr>
+                                        <td class="col-xs-4 left"><span>PSO version</span></td>
+                                        <td class="col-xs-8 left">
+                                            <span>{{ $settings['provisionerTag'] ?? '' }} @if($settings['isCsiDriver'])(CSI driver) @else()(Flex driver)@endif</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-xs-4 left"><span>PSO ClusterID</span></td>
+                                        <td class="col-xs-8 left">
+                                            <span>{{ $settings['prefix'] ?? '' }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-xs-4 left"><span>Kubernetes namespace</span></td>
+                                        <td class="col-xs-8 left">
+                                            <span>{{ $settings['namespace'] ?? '' }}</span>
+                                        </td>
+                                    </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>PSO container versions</span></td>
                                         <td class="col-xs-8 left">
@@ -64,22 +72,26 @@
                                                         @endforeach
                                                     </td>
                                                     <td>
-                                                        <b>Stale volumes</b><br>
-                                                    @foreach($settings['dbvols'] ?? [] as $item)
+                                                        <b>Stale volumes</b>
+                                                        <sup>(<a href="{{ Route('Settings-DeleteDbvols') }}">Remove using Ansible</a>)</sup>
+                                                        <br>
+                                                        @foreach($settings['dbvols'] ?? [] as $item)
                                                             @if($item['unhealthy'])
-                                                                <span>
-                                                                    <img src="/images/warning.svg" style="height: 13px; vertical-align: text-top;" data-toggle="tooltip" data-placement="top" title="This volume is parked by PSO since the replica was marked unhealthy.">
+                                                                @if($item['pureName'] !== null)
+                                                                    <span>
+                                                                        <img src="/images/warning.svg" style="height: 13px; vertical-align: text-top;" data-toggle="tooltip" data-placement="top" title="This volume is parked by PSO since the replica was marked unhealthy.">
 
-                                                                    @if ($item['pureArrayType'] == 'FA')
-                                                                        <a href="https://{{ $item['pureArrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pureName'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pureArrayName'] }}, Size: {{ $item['pureSizeFormatted'] }}, Used: {{ $item['pureUsedFormatted'] }}">
-                                                                            {{ $item['pureName'] }}
-                                                                        </a>
-                                                                    @else
-                                                                        <a href="https://{{ $item['pureArrayMgmtEndPoint'] }}/storage/filesystems/{{ $item['pureName'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pureArrayName'] }}, Size: {{ $item['pureSizeFormatted'] }}, Used: {{ $item['pureUsedFormatted'] }}">
-                                                                            {{ $item['pureName'] }}
-                                                                        </a>
-                                                                    @endif
+                                                                        @if ($item['pureArrayType'] == 'FA')
+                                                                            <a href="https://{{ $item['pureArrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $item['pureName'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pureArrayName'] }}, Size: {{ $item['pureSizeFormatted'] }}, Used: {{ $item['pureUsedFormatted'] }}">
+                                                                                {{ $item['pureName'] }}
+                                                                            </a>
+                                                                        @else
+                                                                            <a href="https://{{ $item['pureArrayMgmtEndPoint'] }}/storage/filesystems/{{ $item['pureName'] }}" target="_blank" data-toggle="tooltip" data-placement="top" title="Array: {{ $item['pureArrayName'] }}, Size: {{ $item['pureSizeFormatted'] }}, Used: {{ $item['pureUsedFormatted'] }}">
+                                                                                {{ $item['pureName'] }}
+                                                                            </a>
+                                                                        @endif
                                                                 </span><br>
+                                                                @endif
                                                             @endif
                                                         @endforeach
                                                     </td>
@@ -90,16 +102,6 @@
                                     @endif
 
                                     <tr>
-                                        <td class="col-xs-4 left"><span>Kubernetes namespace</span></td>
-                                        <td class="col-xs-8 left">
-                                            <span>{{ $settings['namespace'] ?? '' }}</span>
-                                        </td>
-                                    </tr><tr>
-                                        <td class="col-xs-4 left"><span>PSO ClusterID</span></td>
-                                        <td class="col-xs-8 left">
-                                            <span>{{ $settings['prefix'] ?? '' }}</span>
-                                        </td>
-                                    </tr><tr>
                                         <td class="col-xs-4 left"><span>PSO Arguments</span></td>
                                         <td class="col-xs-8 left">
                                             <span>{!! implode('<br>', ($settings['psoArgs'] ?? []))  !!} </span>
@@ -125,20 +127,6 @@
                             </div>
                             <div class="panel-body table-no-filter">
                                 <table class="table pure-table ps-table">
-                                    <thead>
-                                    <tr class="ps-table-heading"><!---->
-                                        <th class="col-xs-4 left" title="Parameter">
-                                            <span class="ps-table-header-text" title="">
-                                                Parameter
-                                            </span>
-                                        </th>
-                                        <th class="col-xs-8 left" title="Value">
-                                            <span class="ps-table-header-text" title="">
-                                                Value
-                                            </span>
-                                        </th>
-                                    </tr>
-                                    </thead>
                                     <tbody>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Block storage SAN protocol</span></td>
@@ -149,19 +137,19 @@
                                     <tr>
                                         <td class="col-xs-4 left"><span>Default block storage File System type</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['blockFsType'] ?? '' }}</span><br>
+                                            <span>{{ $settings['faDefaultFsType'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Default block storage File System options</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['blockFsOpt'] ?? '' }}</span><br>
+                                            <span>{{ $settings['faDefaultFSOpt'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Default block storage mount options</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['blockMntOpt'] ?? '' }}</span><br>
+                                            <span>{{ $settings['faDefaultMountOpt'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     </tbody>
@@ -184,31 +172,17 @@
                             </div>
                             <div class="panel-body table-no-filter">
                                 <table class="table pure-table ps-table">
-                                    <thead>
-                                    <tr class="ps-table-heading"><!---->
-                                        <th class="col-xs-4 left" title="Parameter">
-                                            <span class="ps-table-header-text" title="">
-                                                Parameter
-                                            </span>
-                                        </th>
-                                        <th class="col-xs-8 left" title="Value">
-                                            <span class="ps-table-header-text" title="">
-                                                Value
-                                            </span>
-                                        </th>
-                                    </tr>
-                                    </thead>
                                     <tbody>
                                     <tr>
                                         <td class="col-xs-4 left"><span>iSCSI login timeout</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['iscsiLoginTimeout'] ?? '' }}</span><br>
+                                            <span>{{ $settings['faIscsiLoginTimeout'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="col-xs-4 left"><span>iSCSI allowed CIDRs</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{{ $settings['iscsiAllowedCidrs'] ?? '' }}</span><br>
+                                            <span>{{ $settings['faIscsiAllowedCidr'] ?? '' }}</span><br>
                                         </td>
                                     </tr>
                                     </tbody>
@@ -231,20 +205,6 @@
                             </div>
                             <div class="panel-body table-no-filter">
                                 <table class="table pure-table ps-table">
-                                    <thead>
-                                    <tr class="ps-table-heading"><!---->
-                                        <th class="col-xs-4 left" title="Parameter">
-                                            <span class="ps-table-header-text" title="">
-                                                Parameter
-                                            </span>
-                                        </th>
-                                        <th class="col-xs-8 left" title="Value">
-                                            <span class="ps-table-header-text" title="">
-                                                Value
-                                            </span>
-                                        </th>
-                                    </tr>
-                                    </thead>
                                     <tbody>
                                     <tr>
                                         <td class="col-xs-4 left"><span>Snapshot directory enabled</span></td>
