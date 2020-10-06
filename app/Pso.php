@@ -2309,8 +2309,8 @@ class Pso
                         $pvcLinks,
                         '<a href="' . route(
                             'Storage-Volumes',
-                            ['volume_keyword' => $myPvc->uid]
-                        ) . '">' . $myPvc->name . '</a>'
+                            ['volume_keyword' => $myPvc->uid],
+                        false) . '">' . $myPvc->name . '</a>'
                     );
                 }
             }
@@ -2365,8 +2365,8 @@ class Pso
                     $pvcLinks,
                     '<a href="' . route(
                         'Storage-Volumes',
-                        ['volume_keyword' => $myPvc->uid]
-                    ) . '">' . $myPvc->name . '</a>'
+                        ['volume_keyword' => $myPvc->uid],
+                    false) . '">' . $myPvc->name . '</a>'
                 );
             }
 

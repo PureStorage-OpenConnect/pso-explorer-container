@@ -73,7 +73,7 @@
                                                     </td>
                                                     <td>
                                                         <b>Stale volumes</b>
-                                                        <sup>(<a href="{{ Route('Settings-DeleteDbvols') }}">Remove using Ansible</a>)</sup>
+                                                        <sup>(<a href="{{ Route('Settings-DeleteDbvols', [], false) }}">Remove using Ansible</a>)</sup>
                                                         <br>
                                                         @foreach($settings['dbvols'] ?? [] as $item)
                                                             @if($item['unhealthy'])

@@ -9,7 +9,7 @@
     </div>
     <div class="row justify-content-center">
         <div class="with-banner col-md-4" style="width: 250px;">
-            <form class="login-center ng-pristine ng-invalid ng-touched" method="POST" action="{{ route('login') }}">
+            <form class="login-center ng-pristine ng-invalid ng-touched" method="POST" action="{{ route('login', [], false) }}">
                 @csrf
 
                 <div class="login-inputs">

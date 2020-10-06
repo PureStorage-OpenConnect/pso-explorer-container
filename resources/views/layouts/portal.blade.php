@@ -95,7 +95,7 @@
                     {{-- Dashboard --}}
                     <li @if(Request::is('/'))class="sidebar-item dropdown mm-active"
                         @else()class="sidebar-item dropdown"@endif>
-                        <a class="nav-link" href="{{ route('Dashboard') }}">
+                        <a class="nav-link" href="{{ route('Dashboard', [], false) }}">
                             <!-- Dashboard -->
                             <div class="nav-content">
                                 <img class="mm-main" src="/images/dashboard_icon.svg">
@@ -114,37 +114,37 @@
                         </a>
                         <ul class="mm-collapse">
                             <li @if(Request::is('analysis/pods'))class="mm-active"@endif>
-                                <a href="{{ route('Analysis-Pods') }}">
+                                <a href="{{ route('Analysis-Pods', [], false) }}">
                                     <img class="mm-sub" src="/images/k8s/pod-pure.svg">
                                     <span class="mm-sub-text">Pods</span>
                                 </a>
                             </li>
                             <li @if(Request::is('analysis/jobs'))class="mm-active"@endif>
-                                <a href="{{ route('Analysis-Jobs') }}">
+                                <a href="{{ route('Analysis-Jobs', [], false) }}">
                                     <img class="mm-sub" src="/images/k8s/job-pure.svg">
                                     <span class="mm-sub-text">Jobs</span>
                                 </a>
                             </li>
                             <li @if(Request::is('analysis/deployments'))class="mm-active"@endif>
-                                <a href="{{ route('Analysis-Deployments') }}">
+                                <a href="{{ route('Analysis-Deployments', [], false) }}">
                                     <img class="mm-sub" src="/images/k8s/deploy-pure.svg">
                                     <span class="mm-sub-text">Deployments</span>
                                 </a>
                             </li>
                             <li @if(Request::is('analysis/statefulsets'))class="mm-active"@endif>
-                                <a href="{{ route('Analysis-StatefulSets') }}">
+                                <a href="{{ route('Analysis-StatefulSets', [], false) }}">
                                     <img class="mm-sub" src="/images/k8s/sts-pure.svg">
                                     <span class="mm-sub-text">StatefulSets</span>
                                 </a>
                             </li>
                             <li @if(Request::is('analysis/labels'))class="mm-active"@endif>
-                                <a href="{{ route('Analysis-Labels') }}">
+                                <a href="{{ route('Analysis-Labels', [], false) }}">
                                     <img class="mm-sub" src="/images/k8s/cm-pure.svg">
                                     <span class="mm-sub-text">Labels</span>
                                 </a>
                             </li>
                             <li @if(Request::is('analysis/namespaces'))class="mm-active"@endif>
-                                <a href="{{ route('Analysis-Namespaces') }}">
+                                <a href="{{ route('Analysis-Namespaces', [], false) }}">
                                     <img class="mm-sub" src="/images/k8s/ns-pure.svg">
                                     <span class="mm-sub-text">Namespaces</span>
                                 </a>
@@ -162,25 +162,25 @@
                         </a>
                         <ul class="mm-collapse">
                             <li @if(Request::is('storage/storagearrays'))class="mm-active"@endif>
-                                <a href="{{ route('Storage-StorageArrays') }}">
+                                <a href="{{ route('Storage-StorageArrays', [], false) }}">
                                     <img class="mm-sub" src="/images/k8s/storage.svg">
                                     <span class="mm-sub-text">Arrays</span>
                                 </a>
                             </li>
                             <li @if(Request::is('storage/storageclasses'))class="mm-active"@endif>
-                                <a href="{{ route('Storage-StorageClasses') }}">
+                                <a href="{{ route('Storage-StorageClasses', [], false) }}">
                                     <img class="mm-sub" src="/images/k8s/sc-pure.svg">
                                     <span class="mm-sub-text">StorageClasses</span>
                                 </a>
                             </li>
                             <li @if(Request::is('storage/volumes'))class="mm-active"@endif>
-                                <a href="{{ route('Storage-Volumes') }}">
+                                <a href="{{ route('Storage-Volumes', [], false) }}">
                                     <img class="mm-sub" src="/images/k8s/vol-pure.svg">
                                     <span class="mm-sub-text">Volumes</span>
                                 </a>
                             </li>
                             <li @if(Request::is('storage/snapshots'))class="mm-active"@endif>
-                                <a href="{{ route('Storage-Snapshots') }}">
+                                <a href="{{ route('Storage-Snapshots', [], false) }}">
                                     <img class="mm-sub" src="/images/k8s/snap-pure.svg">
                                     <span class="mm-sub-text">Snapshots</span>
                                 </a>
@@ -198,20 +198,20 @@
                         </a>
                         <ul class="mm-collapse">
                             <li @if(Request::is('settings/pso'))class="mm-active"@endif>
-                                <a href="{{ route('Settings-Pso') }}">
+                                <a href="{{ route('Settings-Pso', [], false) }}">
                                     <img class="mm-sub" src="/images/settings_icon.svg">
                                     <span class="mm-sub-text">PSO</span>
                                 </a>
                             </li>
                             <li @if(Request::is('settings/nodes'))class="mm-active"@endif>
-                                <a href="{{ route('Settings-Nodes') }}">
+                                <a href="{{ route('Settings-Nodes', [], false) }}">
                                     <img class="mm-sub" src="/images/k8s/node-pure.svg">
                                     <span class="mm-sub-text">Nodes</span>
                                 </a>
                             </li>
                             @if(env('APP_DEBUG'))
                                 <li @if(Request::is('settings/config'))class="mm-active"@endif>
-                                    <a href="{{ route('Settings-Config') }}">
+                                    <a href="{{ route('Settings-Config', [], false) }}">
                                         <img class="mm-sub" src="/images/settings_icon.svg">
                                         <span class="mm-sub-text">Configuration</span>
                                     </a>
@@ -234,22 +234,22 @@
                     <a class="sidebar-info sidebar-link" href="http://www.purestorage.com/legal/productenduserinfo"
                        id="eula" target="_blank">Terms</a>
 
-                    <form id="refresh-form" action="{{ route('RefreshData') }}" method="POST" style="display: none;">
+                    <form id="refresh-form" action="{{ route('RefreshData', [], false) }}" method="POST" style="display: none;">
                         @csrf
                         <input value="{{ Route::current()->getName() }}" name="route" id="frm1_submit"/>
                     </form>
 
                     @if(env('APP_DEBUG'))
                         @guest
-                            <a class="sidebar-info sidebar-link" href="{{ route('login') }}">Login</a>
+                            <a class="sidebar-info sidebar-link" href="{{ route('login', [], false) }}">Login</a>
                         @else
-                            <a class="sidebar-info sidebar-link" href="{{ route('logout') }}"
+                            <a class="sidebar-info sidebar-link" href="{{ route('logout', [], false) }}"
                                onclick="event.preventDefault();
                                                              document.getElementById('logout-form').submit();">
                                 Logout
                             </a>
 
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                            <form id="logout-form" action="{{ route('logout', [], false) }}" method="POST" class="d-none">
                                 @csrf
                             </form>
                         @endguest
@@ -340,7 +340,7 @@
             </div>
             <div class="topbar-item with-padding">
                 @if (Route::has(Route::currentRouteName() . '-Api'))
-                    <form action="{{ Route(Route::currentRouteName() . '-Api') }}" method="get">
+                    <form action="{{ Route(Route::currentRouteName() . '-Api', [], false) }}" method="get">
                         <input type="submit" class="btn btn-w-m btn-pure" value="View as JSON"
                                name="Submit" id="frm2_submit"/>
                     </form>
