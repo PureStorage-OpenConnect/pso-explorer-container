@@ -387,12 +387,12 @@
                     <div class="dropdown-divider"></div>
                     <div>
                         <h4>License statement</h4>
-                        {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} licensed under the <a href="/docs/license.pdf') }}" target="_blank">Apache License version 2.0</a>.<br><br>
+                        {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} licensed under the <a href="/docs/license.pdf" target="_blank">Apache License version 2.0</a>.<br><br>
                     </div>
                     <div class="dropdown-divider"></div>
                     <div>
                         <h4>3rd Party/Open-Source Code</h4>
-                        {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} uses best of breed open source technologies as part of the solution. The following <a href="/docs/PSO_Explorer_Third_Party_Code.pdf') }}" target="_blank">document</a> provides 3rd Party/Open-Source Code attribution.<br><br>
+                        {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} uses best of breed open source technologies as part of the solution. The following <a href="/docs/PSO_Explorer_Third_Party_Code.pdf" target="_blank">document</a> provides 3rd Party/Open-Source Code attribution.<br><br>
                     </div>
 
                 </div>
