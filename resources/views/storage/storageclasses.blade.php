@@ -18,10 +18,10 @@
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
-                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter" placeholder="Search in table">
+                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter1" placeholder="Search in table">
                             </div>
                             <div class="row with-padding">
-                                <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter>
+                                <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter1>
                                     <thead>
                                     <tr>
                                         <th data-toggle="true">Storageclass</th>
@@ -108,10 +108,10 @@
                         </div>
                         <div class="panel-body list-container">
                             <div class="row with-padding">
-                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter" placeholder="Search in table">
+                                <input type="text" class="form-control form-control-sm margin-left" id="tablefilter2" placeholder="Search in table">
                             </div>
                             <div class="row with-padding">
-                                <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter>
+                                <table class="footable table table-stripped toggle-arrow-tiny margin-left" data-filter=#tablefilter2>
                                     <thead>
                                     <tr>
                                         <th data-toggle="true">VolumeSnapshotClass</th>

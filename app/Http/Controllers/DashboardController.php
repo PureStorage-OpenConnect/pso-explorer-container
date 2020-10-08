@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Pso;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 
 class DashboardController extends Controller
@@ -71,10 +72,12 @@ class DashboardController extends Controller
         if (!$pso) {
             return view('dashboard');
         } else {
+            Log::info($redirectTo);
+            Log::info(redirect()->route($redirectTo));
             if (\Illuminate\Support\Facades\Route::has($redirectTo)) {
-                return redirect()->route($redirectTo, [], false);
+                return redirect()->route($redirectTo);
             } else {
-                return redirect()->route('Dashboard', [], false);
+                return redirect()->route('Dashboard');
             }
         }
     }
