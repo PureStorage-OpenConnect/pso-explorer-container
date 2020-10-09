@@ -921,34 +921,38 @@ class Pso
             $this->psoInfo->isOpenShift = false;
         }
 
-        try {
-            Client::configure($this->master, $this->authentication, ['timeout' => 10]);
-            $configMap = new ConfigMap();
-            $configMapList = $configMap->list($this->psoInfo->namespace);
+        if ($this->psoInfo->namespace !== null) {
+            try {
+                Client::configure($this->master, $this->authentication, ['timeout' => 10]);
+                $configMap = new ConfigMap();
+                $configMapList = $configMap->list($this->psoInfo->namespace);
 
-            $this->psoInfo->nfsExportRules = '*(rw,no_root_squash)';
-            foreach ($configMapList->items as $item) {
-                if ($item->metadata->name == 'pure-csi-container-configmap') {
-                    foreach ($item->data as $filename => $json) {
-                        $data = json_decode($json, true);
+                $this->psoInfo->nfsExportRules = '*(rw,no_root_squash)';
+                foreach ($configMapList->items as $item) {
+                    if ($item->metadata->name == 'pure-csi-container-configmap') {
+                        foreach ($item->data as $filename => $json) {
+                            $data = json_decode($json, true);
 
-                        foreach ($data as $key => $value) {
-                            switch ($key) {
-                                case 'exportRules':
-                                    $this->psoInfo->nfsExportRules = $value ?? '*(rw,no_root_squash)';
-                                    break;
+                            foreach ($data as $key => $value) {
+                                switch ($key) {
+                                    case 'exportRules':
+                                        $this->psoInfo->nfsExportRules = $value ?? '*(rw,no_root_squash)';
+                                        break;
+                                }
                             }
                         }
                     }
                 }
+            } catch (Exception $e) {
+                // Log error message4
+                $message = '    Unable to retrieving PSO configmap, ' .
+                    'for PSO 5.x and earlier this message can be ignored.';
+                Log::debug($message);
+                Log::debug('    - Message: "' . $e->getMessage() . '"');
+                Log::debug('    - File: "' . $e->getFile() . '"');
+                Log::debug('    - Line: "' . $e->getLine() . '"');
+                unset($e);
             }
-        } catch (Exception $e) {
-            // Log error message
-            Log::debug('    Unable to retrieving PSO configmap, for PSO 5.x and earlier this message can be ignored.');
-            Log::debug('    - Message: "' . $e->getMessage() . '"');
-            Log::debug('    - File: "' . $e->getFile() . '"');
-            Log::debug('    - Line: "' . $e->getLine() . '"');
-            unset($e);
         }
 
         if (!$this->psoFound) {
