@@ -239,7 +239,7 @@
                         <input value="{{ Route::current()->getName() }}" name="route" id="frm1_submit"/>
                     </form>
 
-                    @if(env('APP_DEBUG'))
+                    @if(env('APP_DEBUG') or (getenv('PSOX_ANONYMOUS_ACCESS') !== "true"))
                         @guest
                             <a class="sidebar-info sidebar-link" href="{{ route('login', [], false) }}">Login</a>
                         @else
