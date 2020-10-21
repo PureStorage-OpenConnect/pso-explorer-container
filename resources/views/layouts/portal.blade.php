@@ -30,7 +30,7 @@
 </head>
 
 <body onload="settime()">
-@if(getenv('PSOX_ANONYMOUS_ACCESS') == "true" or Auth::check())
+@if((getenv('PSOX_ANONYMOUS_ACCESS') == "true") or Auth::check())
     <div id="wrapper">
 
         <!-- Navigation sidebar -->
