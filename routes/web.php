@@ -37,11 +37,12 @@ Route::get('/storage/snapshots', 'StorageController@snapshots')->name('Storage-S
 Route::get('/settings/pso', 'SettingsController@pso')->name('Settings-Pso');
 Route::get('/settings/nodes', 'SettingsController@nodes')->name('Settings-Nodes');
 
+Route::get('login', 'Auth\LoginController@showLoginForm')->name('login');
+Route::post('login', 'Auth\LoginController@login');
+Route::post('logout', 'Auth\LoginController@logout')->name('logout');
+
 if (env('APP_DEBUG')) {
-// *** Authenticated settings routes
-    Route::get('login', 'Auth\LoginController@showLoginForm')->name('login');
-    Route::post('login', 'Auth\LoginController@login');
-    Route::post('logout', 'Auth\LoginController@logout')->name('logout');
+    // *** Authenticated settings routes
     Route::get('/settings/config', 'ConfigController@config')->name('Settings-Config');
     Route::post('/settings/config', 'ConfigController@configPost');
     Route::get('/settings/delete-dbvols', 'ConfigController@deleteDbvols')->name('Settings-DeleteDbvols');

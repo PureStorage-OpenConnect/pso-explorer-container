@@ -41,8 +41,8 @@ kubectl create -f  https://raw.githubusercontent.com/kubernetes-csi/external-sna
                                         </li>
                                         <li>
                                             (Optional) To use Snapshots, you also need to install the Snapshot Controller:
-                                            <pre>kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-2.0/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-2.0/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml</pre>
+                                            <pre>kubectl apply -n default -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-2.0/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml
+kubectl apply -n default -f https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/release-2.0/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml</pre>
                                         </li>
                                         @endif
                                         <li>

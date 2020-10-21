@@ -60,6 +60,9 @@
                                                             <span class="label label-warning">{{ $item }}</span><br>
                                                         @endif
                                                     @endforeach
+                                                    @if(count($node['conditions'] ?? []) == 0)
+                                                        <span class="label label-warning">Not Ready</span><br>
+                                                    @endif
                                                 </td>
 
                                                 <td>{{ $node['creationTimestamp'] ?? 'Unknown' }}</td>
