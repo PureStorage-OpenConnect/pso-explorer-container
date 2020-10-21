@@ -41,7 +41,7 @@ Route::get('login', 'Auth\LoginController@showLoginForm')->name('login');
 Route::post('login', 'Auth\LoginController@login');
 Route::post('logout', 'Auth\LoginController@logout')->name('logout');
 
-if (env('APP_DEBUG')) {
+if (getenv('PSOX_ALPHA_FEATURES') == "true") {
     // *** Authenticated settings routes
     Route::get('/settings/config', 'ConfigController@config')->name('Settings-Config');
     Route::post('/settings/config', 'ConfigController@configPost');

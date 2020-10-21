@@ -73,7 +73,7 @@
                                                     </td>
                                                     <td>
                                                         <b>Stale volumes</b>
-                                                        @if(getenv('PSOX_ALPHA_FEATURES'))
+                                                        @if(getenv('PSOX_ALPHA_FEATURES') == "true")
                                                             <sup>(<a href="{{ Route('Settings-DeleteDbvols', [], false) }}">Remove using Ansible</a>)</sup>
                                                         @endif
                                                         <br>
