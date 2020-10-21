@@ -211,7 +211,7 @@
                                     <span class="mm-sub-text">Nodes</span>
                                 </a>
                             </li>
-                            @if(env('APP_DEBUG'))
+                            @if(getenv('PSOX_ALPHA_FEATURES'))
                                 <li @if(Request::is('settings/config'))class="mm-active"@endif>
                                     <a href="{{ route('Settings-Config', [], false) }}">
                                         <img class="mm-sub" src="/images/settings_icon.svg">
@@ -241,7 +241,7 @@
                         <input value="{{ Route::current()->getName() }}" name="route" id="frm1_submit"/>
                     </form>
 
-                    @if(env('APP_DEBUG') or (getenv('PSOX_ANONYMOUS_ACCESS') !== "true"))
+                    @if(getenv('PSOX_ALPHA_FEATURES') or (getenv('PSOX_ANONYMOUS_ACCESS') !== "true"))
                         @guest
                             <a class="sidebar-info sidebar-link" href="{{ route('login', [], false) }}">Login</a>
                         @else
@@ -292,7 +292,7 @@
                         <div id="toggle-btn">
                             <img id="toggle-icon" src="/images/menu.svg">
                         </div>
-                        <h4 class="inline-header page-title">{{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }}</h4>
+                        <h4 class="inline-header page-title">{{ config('app.fullname', 'Pure Service Orchestrator™ eXplorer') }}</h4>
                     </div>
                 </div>
             </topbar>
@@ -376,25 +376,25 @@
             <div class="modal-content">
                 <modal-header>
                     <div class="modal-header">
-                        <h4 class="modal-title">{{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} license statement</h4>
+                        <h4 class="modal-title">{{ config('app.fullname', 'Pure Service Orchestrator™ eXplorer') }} license statement</h4>
                     </div>
                 </modal-header>
                 <modal-body class="tab-container">
                     <div class="modal-body">
                         <div>
-                            <h4>About {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }}</h4>
-                            <span class="pager">Pure Service Orchestrator™ Explorer (or PSO eXplorer) provides a web based user interface for Pure Service Orchestrator™ PSO. It shows details of the persistent volumes and snapshots that have been provisioned using PSO, showing provisioned space, actual used space, performance and growth characteristics.</span><br>
-                            <span class="pager">{{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} is maintainced at:<br><a href="{{ env('PSO_EXPLORER_REPO', 'https://code.purestorage.com/') }}" target="_blank">{{ env('PSO_EXPLORER_REPO', 'https://code.purestorage.com/') }}</a></span><br>
+                            <h4>About {{ config('app.fullname', 'Pure Service Orchestrator™ eXplorer') }}</h4>
+                            <span class="pager">Pure Service Orchestrator™ eXplorer (or PSO eXplorer) provides a web based user interface for Pure Service Orchestrator™ PSO. It shows details of the persistent volumes and snapshots that have been provisioned using PSO, showing provisioned space, actual used space, performance and growth characteristics.</span><br>
+                            <span class="pager">{{ config('app.fullname', 'Pure Service Orchestrator™ eXplorer') }} is maintainced at:<br><a href="{{ env('PSOX_REPO', 'https://code.purestorage.com/') }}" target="_blank">{{ env('PSOX_REPO', 'https://code.purestorage.com/') }}</a></span><br>
                         </div>
                         <div class="dropdown-divider"></div>
                         <div>
                             <h4>License statement</h4>
-                            {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} licensed under the <a href="/docs/license.pdf" target="_blank">Apache License version 2.0</a>.<br><br>
+                            {{ config('app.fullname', 'Pure Service Orchestrator™ eXplorer') }} licensed under the <a href="/docs/license.pdf" target="_blank">Apache License version 2.0</a>.<br><br>
                         </div>
                         <div class="dropdown-divider"></div>
                         <div>
                             <h4>3rd Party/Open-Source Code</h4>
-                            {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} uses best of breed open source technologies as part of the solution. The following <a href="/docs/PSO_Explorer_Third_Party_Code.pdf" target="_blank">document</a> provides 3rd Party/Open-Source Code attribution.<br><br>
+                            {{ config('app.fullname', 'Pure Service Orchestrator™ eXplorer') }} uses best of breed open source technologies as part of the solution. The following <a href="/docs/PSO_Explorer_Third_Party_Code.pdf" target="_blank">document</a> provides 3rd Party/Open-Source Code attribution.<br><br>
                         </div>
 
                     </div>
