@@ -30,9 +30,11 @@
 </head>
 
 <body onload="settime()">
-<div id="wrapper">
-    <!-- Navigation sidebar -->
-    <sidebar>
+@if(getenv('PSOX_ANONYMOUS_ACCESS') == "true" or Auth::check())
+    <div id="wrapper">
+
+        <!-- Navigation sidebar -->
+        <sidebar>
         <div id="sidebar-wrapper">
             <!-- Pure Storage® logo -->
             <div id="sidebar-branding">
@@ -281,204 +283,212 @@
         </div>
     </sidebar>
 
-    <!-- Main content wrapper -->
-    <div id="page-content-wrapper">
-        <!-- Top bar title -->
-        <topbar>
-            <div id="topbar">
-                <div id="topbar-title">
-                    <div id="toggle-btn">
-                        <img id="toggle-icon" src="/images/menu.svg">
+        <!-- Main content wrapper -->
+        <div id="page-content-wrapper">
+            <!-- Top bar title -->
+            <topbar>
+                <div id="topbar">
+                    <div id="topbar-title">
+                        <div id="toggle-btn">
+                            <img id="toggle-icon" src="/images/menu.svg">
+                        </div>
+                        <h4 class="inline-header page-title">{{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }}</h4>
                     </div>
-                    <h4 class="inline-header page-title">{{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }}</h4>
+                </div>
+            </topbar>
+
+            <!-- Top bar warning/error icons -->
+            <div id="topbar-right">
+                <div class="topbar-item">
+                    <alert-counts>
+                        <div>
+                            <div class="topbar-icon-with-count">
+                                <a>
+                                    <ps-count-tooltip class="for-warning">
+                                        <div data-placement="bottom" data-toggle="tooltip"
+                                             data-original-title="0 open warning alert(s)" title="">
+                                            <alert-indicator>
+                                                <div>
+                                                    <alert-warning-icon>
+                                                        {{-- Future use for warnings --}}
+                                                    </alert-warning-icon>
+                                                </div>
+                                            </alert-indicator>
+                                        </div>
+                                    </ps-count-tooltip>
+                                </a>
+                            </div>
+
+                            <div class="topbar-icon-with-count">
+                                <a>
+                                    <ps-count-tooltip class="for-critical">
+                                        <div data-placement="bottom" data-toggle="tooltip"
+                                             data-original-title="0 open critical alert(s)" title="">
+                                            <alert-indicator>
+                                                <div>
+                                                    <alert-critical-icon>
+                                                        {{-- Future use for errors --}}
+                                                    </alert-critical-icon>
+                                                </div>
+                                            </alert-indicator>
+                                        </div>
+
+                                        <div class="empty-relative-container"><span
+                                                    class="ps-floating-count-text"></span></div>
+                                    </ps-count-tooltip>
+                                </a></div>
+                        </div>
+                    </alert-counts>
+                </div>
+                <div class="topbar-item with-padding">
+                    @if (Route::has(Route::currentRouteName() . '-Api'))
+                        <form action="{{ Route(Route::currentRouteName() . '-Api', [], false) }}" method="get">
+                            <input type="submit" class="btn btn-w-m btn-pure" value="View as JSON"
+                                   name="Submit" id="frm2_submit"/>
+                        </form>
+                    @endif
                 </div>
             </div>
-        </topbar>
 
-        <!-- Top bar warning/error icons -->
-        <div id="topbar-right">
-            <div class="topbar-item">
-                <alert-counts>
-                    <div>
-                        <div class="topbar-icon-with-count">
-                            <a>
-                                <ps-count-tooltip class="for-warning">
-                                    <div data-placement="bottom" data-toggle="tooltip"
-                                         data-original-title="0 open warning alert(s)" title="">
-                                        <alert-indicator>
-                                            <div>
-                                                <alert-warning-icon>
-                                                    {{-- Future use for warnings --}}
-                                                </alert-warning-icon>
-                                            </div>
-                                        </alert-indicator>
-                                    </div>
-                                </ps-count-tooltip>
-                            </a>
+            <!-- Page content -->
+            <div class="container-fluid" id="tab-content">
+                @include('layouts.error')
+
+                @yield('content')
+            </div>
+        </div>
+        <div class="footer fixed" id="page-footer">
+            @ISSET($portalInfo['totalUsed'])
+                <div class="pull-right">
+                    Currently <strong>{{ $portalInfo['totalUsed'] ?? 'unknown' }}</strong> of capacity is used out of
+                    <strong>{{ $portalInfo['totalSize'] ?? 'unknown' }}</strong> provisioned capacity
+                </div>
+            @ENDISSET
+            <div>
+                <strong>Copyright</strong> Remko Deenik &copy; 2020
+            </div>
+        </div>
+    </div>
+
+    <modal backdrop="static" class="modal in" id="license-info" role="dialog" tabindex="-1" data-keyboard="true"
+           data-backdrop="static" style="display: none;">
+        <div class="modal-dialog"><!---->
+            <div class="modal-content">
+                <modal-header>
+                    <div class="modal-header">
+                        <h4 class="modal-title">{{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} license statement</h4>
+                    </div>
+                </modal-header>
+                <modal-body class="tab-container">
+                    <div class="modal-body">
+                        <div>
+                            <h4>About {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }}</h4>
+                            <span class="pager">Pure Service Orchestrator™ Explorer (or PSO eXplorer) provides a web based user interface for Pure Service Orchestrator™ PSO. It shows details of the persistent volumes and snapshots that have been provisioned using PSO, showing provisioned space, actual used space, performance and growth characteristics.</span><br>
+                            <span class="pager">{{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} is maintainced at:<br><a href="{{ env('PSO_EXPLORER_REPO', 'https://code.purestorage.com/') }}" target="_blank">{{ env('PSO_EXPLORER_REPO', 'https://code.purestorage.com/') }}</a></span><br>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div>
+                            <h4>License statement</h4>
+                            {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} licensed under the <a href="/docs/license.pdf" target="_blank">Apache License version 2.0</a>.<br><br>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div>
+                            <h4>3rd Party/Open-Source Code</h4>
+                            {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} uses best of breed open source technologies as part of the solution. The following <a href="/docs/PSO_Explorer_Third_Party_Code.pdf" target="_blank">document</a> provides 3rd Party/Open-Source Code attribution.<br><br>
                         </div>
 
-                        <div class="topbar-icon-with-count">
-                            <a>
-                                <ps-count-tooltip class="for-critical">
-                                    <div data-placement="bottom" data-toggle="tooltip"
-                                         data-original-title="0 open critical alert(s)" title="">
-                                        <alert-indicator>
-                                            <div>
-                                                <alert-critical-icon>
-                                                    {{-- Future use for errors --}}
-                                                </alert-critical-icon>
-                                            </div>
-                                        </alert-indicator>
-                                    </div>
-
-                                    <div class="empty-relative-container"><span
-                                                class="ps-floating-count-text"></span></div>
-                                </ps-count-tooltip>
-                            </a></div>
                     </div>
-                </alert-counts>
-            </div>
-            <div class="topbar-item with-padding">
-                @if (Route::has(Route::currentRouteName() . '-Api'))
-                    <form action="{{ Route(Route::currentRouteName() . '-Api', [], false) }}" method="get">
-                        <input type="submit" class="btn btn-w-m btn-pure" value="View as JSON"
-                               name="Submit" id="frm2_submit"/>
-                    </form>
-                @endif
+                </modal-body>
+                <modal-footer>
+                    <div class="modal-footer">
+                        <button class="btn btn-default" onclick="toggleLicenseInfo()">Close</button>
+                </modal-footer>
             </div>
         </div>
+    </modal>
 
-        <!-- Page content -->
-        <div class="container-fluid" id="tab-content">
-            @include('layouts.error')
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/metisMenu.min.js"></script>
+    
+    <script>
+        $(function () {
+            $('#sidebar-menu').metisMenu();
+        });
+    </script>
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
+    <script>
+        $("#toggle-btn").click(function (e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("toggled");
 
-            @yield('content')
-        </div>
-    </div>
-    <div class="footer fixed" id="page-footer">
-        @ISSET($portalInfo['totalUsed'])
-            <div class="pull-right">
-                Currently <strong>{{ $portalInfo['totalUsed'] ?? 'unknown' }}</strong> of capacity is used out of
-                <strong>{{ $portalInfo['totalSize'] ?? 'unknown' }}</strong> provisioned capacity
-            </div>
-        @ENDISSET
-        <div>
-            <strong>Copyright</strong> Remko Deenik &copy; 2020
-        </div>
-    </div>
-</div>
+            var x = document.getElementsByClassName("pure-logo-text");
+            for (var i = 0, len = x.length | 0; i < len; i = i + 1 | 0) {
+                if (x[i].style.display === "none") {
+                    x[i].style.display = "block";
+                } else {
+                    x[i].style.display = "none";
+                }
+            }
 
-<modal backdrop="static" class="modal in" id="license-info" role="dialog" tabindex="-1" data-keyboard="true"
-       data-backdrop="static" style="display: none;">
-    <div class="modal-dialog"><!---->
-        <div class="modal-content">
-            <modal-header>
-                <div class="modal-header">
-                    <h4 class="modal-title">{{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} license statement</h4>
-                </div>
-            </modal-header>
-            <modal-body class="tab-container">
-                <div class="modal-body">
-                    <div>
-                        <h4>About {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }}</h4>
-                        <span class="pager">Pure Service Orchestrator™ Explorer (or PSO eXplorer) provides a web based user interface for Pure Service Orchestrator™ PSO. It shows details of the persistent volumes and snapshots that have been provisioned using PSO, showing provisioned space, actual used space, performance and growth characteristics.</span><br>
-                        <span class="pager">{{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} is maintainced at:<br><a href="{{ env('PSO_EXPLORER_REPO', 'https://code.purestorage.com/') }}" target="_blank">{{ env('PSO_EXPLORER_REPO', 'https://code.purestorage.com/') }}</a></span><br>
-                    </div>
-                    <div class="dropdown-divider"></div>
-                    <div>
-                        <h4>License statement</h4>
-                        {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} licensed under the <a href="/docs/license.pdf" target="_blank">Apache License version 2.0</a>.<br><br>
-                    </div>
-                    <div class="dropdown-divider"></div>
-                    <div>
-                        <h4>3rd Party/Open-Source Code</h4>
-                        {{ config('app.fullname', 'Pure Service Orchestrator™ Explorer') }} uses best of breed open source technologies as part of the solution. The following <a href="/docs/PSO_Explorer_Third_Party_Code.pdf" target="_blank">document</a> provides 3rd Party/Open-Source Code attribution.<br><br>
-                    </div>
+            var y = document.getElementsByClassName("mm-sub-text");
+            for (var i = 0, len = y.length | 0; i < len; i = i + 1 | 0) {
+                if (y[i].style.display === "none") {
+                    y[i].style.display = "inline";
+                } else {
+                    y[i].style.display = "none";
+                }
+            }
 
-                </div>
-            </modal-body>
-            <modal-footer>
-                <div class="modal-footer">
-                    <button class="btn btn-default" onclick="toggleLicenseInfo()">Close</button>
-            </modal-footer>
-        </div>
-    </div>
-</modal>
-
-<script src="/js/jquery.min.js"></script>
-<script src="/js/popper.min.js"></script>
-<script src="/js/bootstrap.min.js"></script>
-<script src="/js/metisMenu.min.js"></script>
-
-<script>
-    $(function () {
-        $('#sidebar-menu').metisMenu();
-    });
-</script>
-<script>
-    $(function () {
-        $('[data-toggle="tooltip"]').tooltip()
-    })
-</script>
-<script>
-    $("#toggle-btn").click(function (e) {
-        e.preventDefault();
-        $("#wrapper").toggleClass("toggled");
-
-        var x = document.getElementsByClassName("pure-logo-text");
-        for (var i = 0, len = x.length | 0; i < len; i = i + 1 | 0) {
-            if (x[i].style.display === "none") {
-                x[i].style.display = "block";
+            settime();
+        });
+    </script>
+    <script>
+        function toggleLicenseInfo() {
+            var x = document.getElementById("license-info");
+            if (x.style.display === "none") {
+                x.style.display = "inline";
             } else {
-                x[i].style.display = "none";
+                x.style.display = "none";
             }
         }
+    </script>
+    {{-- Show localized refresh time --}}
+    <script>
+        function settime() {
+            var timestamp = {{ $portalInfo['lastRefesh'] ?? 0 }}
+            var date = new Date(timestamp * 1000);
 
-        var y = document.getElementsByClassName("mm-sub-text");
-        for (var i = 0, len = y.length | 0; i < len; i = i + 1 | 0) {
-            if (y[i].style.display === "none") {
-                y[i].style.display = "inline";
+            if (document.getElementById("wrapper").classList.contains("toggled")) {
+                var s = date.getHours() + ":" + String(date.getMinutes()).padStart(2, "0") + ":" + String(date.getSeconds()).padStart(2, "0");
             } else {
-                y[i].style.display = "none";
+                var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                var s = months[date.getMonth()] + " " + date.getDate() + " " + date.getFullYear() + " " + date.getHours() + ":" + String(date.getMinutes()).padStart(2, "0") + ":" + String(date.getSeconds()).padStart(2, "0");
+            }
+
+            if (timestamp !== 0) {
+                document.getElementById("sidebar-info-refresh-time").innerHTML = s;
+            } else {
+                document.getElementById("sidebar-info-refresh-time").innerHTML = '<i>No data found</i>';
             }
         }
+    </script>
 
-        settime();
-    });
-</script>
-<script>
-    function toggleLicenseInfo() {
-        var x = document.getElementById("license-info");
-        if (x.style.display === "none") {
-            x.style.display = "inline";
-        } else {
-            x.style.display = "none";
-        }
-    }
-</script>
-{{-- Show localized refresh time --}}
-<script>
-    function settime() {
-        var timestamp = {{ $portalInfo['lastRefesh'] ?? 0 }}
-        var date = new Date(timestamp * 1000);
+    <!-- Blade specific scripts -->
+    @yield('script')
+@else
+    <!-- Page content -->
+    <div id="tab-content">
+        @include('layouts.error')
 
-        if (document.getElementById("wrapper").classList.contains("toggled")) {
-            var s = date.getHours() + ":" + String(date.getMinutes()).padStart(2, "0") + ":" + String(date.getSeconds()).padStart(2, "0");
-        } else {
-            var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            var s = months[date.getMonth()] + " " + date.getDate() + " " + date.getFullYear() + " " + date.getHours() + ":" + String(date.getMinutes()).padStart(2, "0") + ":" + String(date.getSeconds()).padStart(2, "0");
-        }
-
-        if (timestamp !== 0) {
-            document.getElementById("sidebar-info-refresh-time").innerHTML = s;
-        } else {
-            document.getElementById("sidebar-info-refresh-time").innerHTML = '<i>No data found</i>';
-        }
-    }
-</script>
-
-<!-- Blade specific scripts -->
-@yield('script')
+        @yield('content')
+    </div>
+@endif
 
 </body>
 </html>

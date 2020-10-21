@@ -4,7 +4,7 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="mt-5">
-            <p>To access this section of {{ config('app.name', 'PSO eXplorer') }} you'll need to login</p>
+            <p>Login is required</p>
         </div>
     </div>
     <div class="row justify-content-center">
