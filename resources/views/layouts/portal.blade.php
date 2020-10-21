@@ -211,7 +211,7 @@
                                     <span class="mm-sub-text">Nodes</span>
                                 </a>
                             </li>
-                            @if(getenv('PSOX_ALPHA_FEATURES'))
+                            @if(getenv('PSOX_ALPHA_FEATURES') == "true")
                                 <li @if(Request::is('settings/config'))class="mm-active"@endif>
                                     <a href="{{ route('Settings-Config', [], false) }}">
                                         <img class="mm-sub" src="/images/settings_icon.svg">
@@ -241,7 +241,7 @@
                         <input value="{{ Route::current()->getName() }}" name="route" id="frm1_submit"/>
                     </form>
 
-                    @if(getenv('PSOX_ALPHA_FEATURES') or (getenv('PSOX_ANONYMOUS_ACCESS') !== "true"))
+                    @if((getenv('PSOX_ALPHA_FEATURES') == "true") or (getenv('PSOX_ANONYMOUS_ACCESS') !== "true"))
                         @guest
                             <a class="sidebar-info sidebar-link" href="{{ route('login', [], false) }}">Login</a>
                         @else
