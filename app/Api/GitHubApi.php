@@ -39,18 +39,18 @@ class GitHubApi
                 ['connect_timeout' => $this::TIMEOUT, 'verify' => true]
             )->get($url);
         } catch (ConnectionException $e) {
-            Log::debug('xxx Error in GitHubApi connecting to "' . $url . '"');
-            Log::debug('    - Message: "' . $e->getMessage() . '"');
-            Log::debug('    - File: "' . $e->getFile() . '"');
-            Log::debug('    - Line: "' . $e->getLine() . '"');
+            Log::error('  xxx Error in GitHubApi connecting to "' . $url . '"');
+            Log::debug('      - Message: "' . $e->getMessage() . '"');
+            Log::debug('      - File: "' . $e->getFile() . '"');
+            Log::debug('      - Line: "' . $e->getLine() . '"');
 
             throw $e;
         }
 
         $result = json_decode($response->body());
         if (isset($result->message) and ($result->message == 'Not Found')) {
-            Log::debug('xxx GitHubApi returned an error while connecting to "' . $url . '"');
-            Log::debug('    - Message: "Not Found"');
+            Log::error('  xxx GitHubApi returned an error while connecting to "' . $url . '"');
+            Log::debug('      - Message: "Not Found"');
 
             throw new ConnectionException('Not Found');
         }
@@ -70,10 +70,10 @@ class GitHubApi
                 ['connect_timeout' => $this::TIMEOUT, 'verify' => true]
             )->get($url);
         } catch (ConnectionException $e) {
-            Log::debug('xxx Error in GitHubApi connecting to "' . $url . '"');
-            Log::debug('    - Message: "' . $e->getMessage() . '"');
-            Log::debug('    - File: "' . $e->getFile() . '"');
-            Log::debug('    - Line: "' . $e->getLine() . '"');
+            Log::error('  xxx Error in GitHubApi connecting to "' . $url . '"');
+            Log::debug('      - Message: "' . $e->getMessage() . '"');
+            Log::debug('      - File: "' . $e->getFile() . '"');
+            Log::debug('      - Line: "' . $e->getLine() . '"');
 
             throw $e;
         }

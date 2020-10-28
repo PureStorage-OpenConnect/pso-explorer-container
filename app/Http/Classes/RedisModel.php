@@ -38,7 +38,7 @@ class RedisModel
             }
             $this->data[$name] = $value;
         } else {
-            Log::debug('    Error trying to save field "' . $name . '" since it\'s not in fillable');
+            Log::debug('      Error trying to save field "' . $name . '" since it\'s not in fillable');
         }
     }
 
@@ -54,7 +54,7 @@ class RedisModel
                     break;
             }
         } else {
-            Log::debug('    Error trying to access field "' . $name . '" since it\'s not in fillable');
+            Log::debug('      Error trying to access field "' . $name . '" since it\'s not in fillable');
         }
     }
 

@@ -52,10 +52,10 @@ class FlashArrayApi
                 $result = null;
             }
         } catch (Exception $e) {
-            Log::debug('xxx Error in FlashArrayApi connecting to "' . $this->url . '"');
-            Log::debug('    - Message: "' . $e->getMessage() . '"');
-            Log::debug('    - File: "' . $e->getFile() . '"');
-            Log::debug('    - Line: "' . $e->getLine() . '"');
+            Log::error('  xxx Error in FlashArrayApi connecting to "' . $this->url . '"');
+            Log::debug('      - Message: "' . $e->getMessage() . '"');
+            Log::debug('      - File: "' . $e->getFile() . '"');
+            Log::debug('      - Line: "' . $e->getLine() . '"');
 
             return false;
         }
@@ -117,10 +117,10 @@ class FlashArrayApi
                 $this->username = json_decode($response->body())->username;
                 $result = true;
             } else {
-                Log::debug('xxx Error in FlashArrayApi connecting to "' . $this->url . '"');
-                Log::debug('    - Message: "' . $e->getMessage() . '"');
-                Log::debug('    - File: "' . $e->getFile() . '"');
-                Log::debug('    - Line: "' . $e->getLine() . '"');
+                Log::error('  xxx Error in FlashArrayApi connecting to "' . $this->url . '"');
+                Log::debug('      - Message: "' . $e->getMessage() . '"');
+                Log::debug('      - File: "' . $e->getFile() . '"');
+                Log::debug('      - Line: "' . $e->getLine() . '"');
             }
         } catch (Exception $e) {
             // TO DO Should add more error handling...

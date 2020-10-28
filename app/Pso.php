@@ -382,10 +382,10 @@ class Pso
             }
         } catch (Exception $e) {
             // Log error message
-            Log::debug('xxx Error retrieving historical space usage for volumes.');
-            Log::debug('    - Message: "' . $e->getMessage() . '"');
-            Log::debug('    - File: "' . $e->getFile() . '"');
-            Log::debug('    - Line: "' . $e->getLine() . '"');
+            Log::warning('xxx Error retrieving historical space usage for volumes.');
+            Log::debug('      - Message: "' . $e->getMessage() . '"');
+            Log::debug('      - File: "' . $e->getFile() . '"');
+            Log::debug('      - Line: "' . $e->getLine() . '"');
             unset($e);
         }
     }
@@ -468,10 +468,10 @@ class Pso
             );
         } catch (Exception $e) {
             // Log error message
-            Log::debug('xxx Error getting FileSystems for "' . $array->mgmtEndPoint . '"');
-            Log::debug('    - Message: "' . $e->getMessage() . '"');
-            Log::debug('    - File: "' . $e->getFile() . '"');
-            Log::debug('    - Line: "' . $e->getLine() . '"');
+            Log::error('  xxx Error getting FileSystems for "' . $array->mgmtEndPoint . '"');
+            Log::debug('      - Message: "' . $e->getMessage() . '"');
+            Log::debug('      - File: "' . $e->getFile() . '"');
+            Log::debug('      - Line: "' . $e->getLine() . '"');
 
             unset($e);
             $filesystems = null;
@@ -598,7 +598,7 @@ class Pso
     private function getNodes()
     {
         // Log function call
-        Log::debug('    Call getNodes()');
+        Log::info('       Call getNodes()');
 
         try {
             // Retrieve all Kubernetes StatefulSets for this cluster
@@ -608,10 +608,10 @@ class Pso
             $nodeList = $node->list();
         } catch (Exception $e) {
             // Log error message
-            Log::debug('xxx Error connecting to Kubernetes API at "' . $this->master . '"');
-            Log::debug('    - Message: "' . $e->getMessage() . '"');
-            Log::debug('    - File: "' . $e->getFile() . '"');
-            Log::debug('    - Line: "' . $e->getLine() . '"');
+            Log::error('  xxx Error connecting to Kubernetes API at "' . $this->master . '"');
+            Log::debug('      - Message: "' . $e->getMessage() . '"');
+            Log::debug('      - File: "' . $e->getFile() . '"');
+            Log::debug('      - Line: "' . $e->getLine() . '"');
 
             $this->psoFound = false;
             $this->errorSource = 'k8s';
@@ -701,7 +701,7 @@ class Pso
     private function getPsoDetails()
     {
         // Log function call
-        Log::debug('    Call getPsoDetails()');
+        Log::info('       Call getPsoDetails()');
 
         // Initialize variables
         $this->psoFound = false;
@@ -714,10 +714,10 @@ class Pso
             $podList = $pod->list('');
         } catch (Exception $e) {
             // Log error message
-            Log::debug('xxx Error connecting to Kubernetes API at "' . $this->master . '"');
-            Log::debug('    - Message: "' . $e->getMessage() . '"');
-            Log::debug('    - File: "' . $e->getFile() . '"');
-            Log::debug('    - Line: "' . $e->getLine() . '"');
+            Log::error('  xxx Error connecting to Kubernetes API at "' . $this->master . '"');
+            Log::debug('      - Message: "' . $e->getMessage() . '"');
+            Log::debug('      - File: "' . $e->getFile() . '"');
+            Log::debug('      - Line: "' . $e->getLine() . '"');
 
             // If we catch a CURL error, return an error message
             $this->errorSource = 'k8s';
@@ -731,7 +731,7 @@ class Pso
         if (isset($podList->status)) {
             if ($podList->status == 'Failure') {
                 // Log error message
-                Log::debug('xxx Error connecting to Kubernetes API at "' . $this->master . '"');
+                Log::error('  xxx Error connecting to Kubernetes API at "' . $this->master . '"');
 
                 // If status is set to Failure, we hit an error, so we return an error message
                 $this->errorSource = 'k8s';
@@ -947,17 +947,17 @@ class Pso
                 // Log error message4
                 $message = '    Unable to retrieving PSO configmap, ' .
                     'for PSO 5.x and earlier this message can be ignored.';
-                Log::debug($message);
-                Log::debug('    - Message: "' . $e->getMessage() . '"');
-                Log::debug('    - File: "' . $e->getFile() . '"');
-                Log::debug('    - Line: "' . $e->getLine() . '"');
+                Log::warning($message);
+                Log::debug('      - Message: "' . $e->getMessage() . '"');
+                Log::debug('      - File: "' . $e->getFile() . '"');
+                Log::debug('      - Line: "' . $e->getLine() . '"');
                 unset($e);
             }
         }
 
         if (!$this->psoFound) {
             // Log error message
-            Log::debug('xxx Error unable to find PSO instance "' . $this->master . '"');
+            Log::error('  xxx Error unable to find PSO instance "' . $this->master . '"');
 
             // If PSO was not found, return an error
             $this->errorSource = 'pso';
@@ -976,7 +976,7 @@ class Pso
     private function getStorageClasses()
     {
         // Log function call
-        Log::debug('    Call getStorageClasses()');
+        Log::info('       Call getStorageClasses()');
 
         // Retrieve all Kubernetes StorageClasses for this cluster
         Client::configure($this->master, $this->authentication);
@@ -1043,7 +1043,7 @@ class Pso
     private function getPersistentVolumes()
     {
         // Log function call
-        Log::debug('    Call getPersistentVolumes()');
+        Log::info('       Call getPersistentVolumes()');
 
         // Retrieve all Kubernetes PVC's for this cluster
         Client::configure($this->master, $this->authentication);
@@ -1060,6 +1060,7 @@ class Pso
 
         $pureStorageClasses = PsoStorageClass::items(PsoStorageClass::PREFIX, 'name');
         foreach (($pvList->items ?? []) as $item) {
+
             // Only use PVs that are managed by PSO
             if (in_array($item->spec->storageClassName, $pureStorageClasses)) {
                 $name = $item->metadata->name ?? '';
@@ -1125,7 +1126,7 @@ class Pso
     private function getPersistentVolumeClaims()
     {
         // Log function call
-        Log::debug('    Call getPersistentVolumeClaims()');
+        Log::info('       Call getPersistentVolumeClaims()');
 
         // Retrieve all Kubernetes PVC's for this cluster
         Client::configure($this->master, $this->authentication);
@@ -1142,7 +1143,14 @@ class Pso
 
         $pureStorageClasses = PsoStorageClass::items(PsoStorageClass::PREFIX, 'name');
         foreach (($pvcList->items ?? []) as $item) {
-            if (in_array($item->spec->storageClassName, $pureStorageClasses)) {
+
+            $storageProvisioner = $item->metadata->annotations['volume.beta.kubernetes.io/storage-provisioner']
+                ?? 'unknown';
+
+            if (
+                in_array($item->spec->storageClassName, $pureStorageClasses) or
+                in_array($storageProvisioner, self::PURE_PROVISIONERS)
+            ) {
                 $uid = $item->metadata->uid ?? '';
                 if ($uid !== '') {
                     // Create PV record by PV name
@@ -1198,7 +1206,7 @@ class Pso
     private function getStatefulsets()
     {
         // Log function call
-        Log::debug('    Call getStatefulsets()');
+        Log::info('       Call getStatefulsets()');
 
         // Retrieve all Kubernetes StatefulSets for this cluster
         Client::configure($this->master, $this->authentication);
@@ -1257,7 +1265,7 @@ class Pso
     private function getDeployments()
     {
         // Log function call
-        Log::debug('    Call getDeployments()');
+        Log::info('       Call getDeployments()');
 
         // Retrieve all Kubernetes StatefulSets for this cluster
         Client::configure($this->master, $this->authentication);
@@ -1308,7 +1316,7 @@ class Pso
     private function getJobs()
     {
         // Log function call
-        Log::debug('    Call getJobs()');
+        Log::info('       Call getJobs()');
 
         // Retrieve all Kubernetes StatefulSets for this cluster
         Client::configure($this->master, $this->authentication);
@@ -1371,7 +1379,7 @@ class Pso
     public function getVolumeSnapshotClasses()
     {
         // Log function call
-        Log::debug('    Call getVolumeSnapshotClasses()');
+        Log::info('       Call getVolumeSnapshotClasses()');
 
         // Get API version for snapshot.storage.k8s.io
         $this->psoInfo->snapshotApiVersion = '';
@@ -1403,7 +1411,7 @@ class Pso
             if (isset($classList->code)) {
                 // If we cannot select the API version or an error is returned, we will abort
                 // However we will not return an error, since snapshots suppport is optional
-                Log::debug('xxx Unable to access the VolumeSnapshotClasses API.');
+                Log::warning('xxx Unable to access the VolumeSnapshotClasses API.');
                 return false;
             }
 
@@ -1425,13 +1433,13 @@ class Pso
             }
         } catch (Exception $e) {
             // Log error message
-            Log::debug(
+            Log::warning(
                 'xxx Error retrieving VolumeSnapshotClasses using API version ' .
                 $this->psoInfo->snapshotApiVersion
             );
-            Log::debug('    - Message: "' . $e->getMessage() . '"');
-            Log::debug('    - File: "' . $e->getFile() . '"');
-            Log::debug('    - Line: "' . $e->getLine() . '"');
+            Log::debug('      - Message: "' . $e->getMessage() . '"');
+            Log::debug('      - File: "' . $e->getFile() . '"');
+            Log::debug('      - Line: "' . $e->getLine() . '"');
             unset($e);
         }
     }
@@ -1446,7 +1454,7 @@ class Pso
     public function getVolumeSnapshots()
     {
         // Log function call
-        Log::debug('    Call getVolumeSnapshots()');
+        Log::info('       Call getVolumeSnapshots()');
 
         Client::configure($this->master, $this->authentication, ['timeout' => 10]);
         $snap = new VolumeSnapshot();
@@ -1516,13 +1524,13 @@ class Pso
             }
         } catch (Exception $e) {
             // Log error message
-            Log::debug(
+            Log::warning(
                 'xxx Error retrieving VolumeSnapshots using API version ' .
                 $this->psoInfo->snapshotApiVersion
             );
-            Log::debug('    - Message: "' . $e->getMessage() . '"');
-            Log::debug('    - File: "' . $e->getFile() . '"');
-            Log::debug('    - Line: "' . $e->getLine() . '"');
+            Log::debug('      - Message: "' . $e->getMessage() . '"');
+            Log::debug('      - File: "' . $e->getFile() . '"');
+            Log::debug('      - Line: "' . $e->getLine() . '"');
             unset($e);
         }
     }
@@ -1536,7 +1544,7 @@ class Pso
     private function getArrayInfo()
     {
         // Log function call
-        Log::debug('    Call getArrayInfo()');
+        Log::info('       Call getArrayInfo()');
 
         // Get the PSO secret from Kubernetes to retrieve the MgmtEndPoint and APIToken
         Client::configure($this->master, $this->authentication);
@@ -1610,10 +1618,10 @@ class Pso
                     }
                 } catch (Exception $e) {
                     // Log error message
-                    Log::debug('xxx Error connecting to FlashArray™ "' . $mgmtEndPoint . '"');
-                    Log::debug('    - Message: "' . $e->getMessage() . '"');
-                    Log::debug('    - File: "' . $e->getFile() . '"');
-                    Log::debug('    - Line: "' . $e->getLine() . '"');
+                    Log::error('  xxx Error connecting to FlashArray™ "' . $mgmtEndPoint . '"');
+                    Log::debug('      - Message: "' . $e->getMessage() . '"');
+                    Log::debug('      - File: "' . $e->getFile() . '"');
+                    Log::debug('      - Line: "' . $e->getLine() . '"');
 
                     $newArray->name = $mgmtEndPoint;
                     $newArray->model = 'Unknown';
@@ -1661,10 +1669,10 @@ class Pso
                     $newArray->flashblade = 'flashblade';
                 } catch (Exception $e) {
                     // Log error message
-                    Log::debug('xxx Error connecting to FlashBlade® "' . $mgmtEndPoint . '"');
-                    Log::debug('    - Message: "' . $e->getMessage() . '"');
-                    Log::debug('    - File: "' . $e->getFile() . '"');
-                    Log::debug('    - Line: "' . $e->getLine() . '"');
+                    Log::error('  xxx Error connecting to FlashBlade® "' . $mgmtEndPoint . '"');
+                    Log::debug('      - Message: "' . $e->getMessage() . '"');
+                    Log::debug('      - File: "' . $e->getFile() . '"');
+                    Log::debug('      - Line: "' . $e->getLine() . '"');
 
                     $newArray->name = $mgmtEndPoint;
                     $newArray->model = 'Offline';
@@ -1715,7 +1723,7 @@ class Pso
     private function addArrayVolumeInfo()
     {
         // Log function call
-        Log::debug('    Call addArrayVolumeInfo()');
+        Log::info('       Call addArrayVolumeInfo()');
 
         // Initialize variables
         $this->psoInfo->totalUsed = 0;
@@ -1729,7 +1737,7 @@ class Pso
 
         foreach (PsoArray::items(PsoArray::PREFIX, 'mgmtEndPoint') as $item) {
             $array = new PsoArray($item);
-            Log::debug('    Array: ' . $array->mgmtEndPoint);
+            Log::info('       Array: ' . $array->mgmtEndPoint);
 
             if (strpos($array->model, 'FlashArray') and ($array->offline == null)) {
                 $this->addFlashArrayVolInfo($array, $this->psoInfo->prefix . '-*');
@@ -1753,7 +1761,7 @@ class Pso
     private function addImportedVolumeInfo()
     {
         // Log function call
-        Log::debug('    Call addImportedVolumeInfo()');
+        Log::info('       Call addImportedVolumeInfo()');
 
         $pureStorageClasses = PsoStorageClass::items(PsoStorageClass::PREFIX, 'name');
 
@@ -1803,7 +1811,7 @@ class Pso
      */
     public static function requestRefresh()
     {
-        Log::debug('--- Data refresh scheduled');
+        Log::info('   --- Data refresh scheduled');
         Redis::del(self::VALID_PSO_DATA_KEY);
     }
 
@@ -1824,10 +1832,10 @@ class Pso
             }
         } catch (Exception $e) {
             // Log error message
-            Log::debug('xxx Error connecting to Redis');
-            Log::debug('    - Message: "' . $e->getMessage() . '"');
-            Log::debug('    - File: "' . $e->getFile() . '"');
-            Log::debug('    - Line: "' . $e->getLine() . '"');
+            Log::error('  xxx Error connecting to Redis');
+            Log::debug('      - Message: "' . $e->getMessage() . '"');
+            Log::debug('      - File: "' . $e->getFile() . '"');
+            Log::debug('      - Line: "' . $e->getLine() . '"');
 
             // If we catch a CURL error, return an error message
             $this->errorSource = 'redis';
@@ -1838,19 +1846,19 @@ class Pso
 
         // Check if an update is already running
         if (Redis::get(self::PSO_UPDATE_KEY) !== null) {
-            Log::debug('--- Already busy with refresh');
+            Log::notice(' --- Already busy with refresh');
             $this->psoFound = false;
             $this->errorSource = 'refresh';
             $this->errorMessage = null;
             return true;
         } else {
-            Log::debug('--- Start Refresh data');
+            Log::notice(' --- Start Refresh data');
             Redis::set(self::PSO_UPDATE_KEY, time());
             Redis::expire(self::PSO_UPDATE_KEY, 30);
         }
 
         // Remove stale PSO data from Redis
-        Log::debug('    Remove stale data');
+        Log::info('       Remove stale data');
         Redis::del(self::VALID_PSO_DATA_KEY);
         PsoArray::deleteAll(PsoArray::PREFIX);
         PsoBackendVolume::deleteAll(PsoBackendVolume::PREFIX);
@@ -1941,8 +1949,7 @@ class Pso
         $this->errorSource = '';
         $this->errorMessage = '';
         Redis::del(self::PSO_UPDATE_KEY, time());
-        Log::debug('    Refresh data completed.');
-        Log::debug('');
+        Log::notice('     Refresh data completed.');
         return true;
     }
 

@@ -44,10 +44,10 @@ class FlashBladeApi
                 $result = null;
             }
         } catch (Exception $e) {
-            Log::debug('xxx Error in FlashBladeApi connecting to "' . $this->url . '"');
-            Log::debug('    - Message: "' . $e->getMessage() . '"');
-            Log::debug('    - File: "' . $e->getFile() . '"');
-            Log::debug('    - Line: "' . $e->getLine() . '"');
+            Log::error('  xxx Error in FlashBladeApi connecting to "' . $this->url . '"');
+            Log::debug('      - Message: "' . $e->getMessage() . '"');
+            Log::debug('      - File: "' . $e->getFile() . '"');
+            Log::debug('      - Line: "' . $e->getLine() . '"');
 
             throw $e;
         }
@@ -106,15 +106,15 @@ class FlashBladeApi
                 $this->url = $this->url . '/api/' . $this->apiVersions . '/';
                 $this->authenticated = true;
             } else {
-                Log::debug('xxx Unable to authenticate to FlashBlade® at "' . $this->url . '"');
+                Log::error('  xxx Unable to authenticate to FlashBlade® at "' . $this->url . '"');
 
                 $this->authenticated = false;
             }
         } catch (ConnectionException $e) {
-            Log::debug('xxx Error in FlashBladeApi connecting to "' . $this->url . '"');
-            Log::debug('    - Message: "' . $e->getMessage() . '"');
-            Log::debug('    - File: "' . $e->getFile() . '"');
-            Log::debug('    - Line: "' . $e->getLine() . '"');
+            Log::error('  xxx Error in FlashBladeApi connecting to "' . $this->url . '"');
+            Log::debug('      - Message: "' . $e->getMessage() . '"');
+            Log::debug('      - File: "' . $e->getFile() . '"');
+            Log::debug('      - Line: "' . $e->getLine() . '"');
 
             $this->authenticated = false;
         }
