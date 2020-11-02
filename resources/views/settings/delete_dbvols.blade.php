@@ -22,6 +22,8 @@
                                 <div class="row no-padding no-margin">- Copy the playbook below and save it as <code>delete-volumes.yaml</code></div>
                                 <div class="row no-padding no-margin">- Have ansible version 2.9+ installed (<a href="https://docs.ansible.com/" target="_blank">https://docs.ansible.com/</a>)</div>
                                 <div class="row no-padding no-margin">- Have the FlashArray and FlashBlade Ansible collections installed, the following will make sure you have the latest relerase installed:</div>
+                                <pre>pip install purestorage
+pip install purity_fb</pre>
                                 <pre>ansible-galaxy collection install purestorage.flasharray --force
 ansible-galaxy collection install purestorage.flashblade --force</pre>
 

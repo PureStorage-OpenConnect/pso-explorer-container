@@ -630,6 +630,8 @@ class Pso
         foreach (($nodeList->items ?? []) as $item) {
             $mynode = new PsoNode($item->metadata->uid);
             $mynode->name = $item->metadata->name ?? $item->metadata->uid;
+            $mynode->pingErrors = false;
+
             $labels = [];
             foreach (($item->metadata->labels ?? []) as $key => $value) {
                 array_push($labels, $key . '=' . $value);
@@ -1606,6 +1608,15 @@ class Pso
                     $portDetails = $fa->getPort();
 
                     foreach (($portDetails  ?? []) as $portDetail) {
+                        if (isset($portDetail['portal'])) {
+                            $portal = explode(':', $portDetail['portal']);
+                            if (count($portal) == 2) {
+                                $ip = $portal[0];
+                                //$port = $portal[1];
+                                $newArray->arrayPush('iSCSIEndpoints', $ip);
+                            }
+                        }
+
                         if (isset($portDetail['iqn']) and !in_array('iSCSI', ($newArray->protocols ?? []))) {
                             $newArray->arrayPush('protocols', 'iSCSI');
                         }
@@ -1685,10 +1696,13 @@ class Pso
                     if (isset($flashblade->NfsEndPoint)) {
                         $newArray->message = 'Currently using NfsEndPoint for this FlashBlade®. ' .
                             'Please change your values.yaml to use NFSEndPoint, as NfsEndPoint is deprecated.';
+                        $newArray->arrayPush('nfsEndpoints', $flashblade->NfsEndPoint);
                     } else {
                         $newArray->message = 'No NFSEndPoint was set for this FlashBlade®. ' .
                             'Please check the PSO configurations (values.yaml).';
                     }
+                } else {
+                    $newArray->arrayPush('nfsEndpoints', $nfsEndPoint);
                 }
             } else {
                 if ($mgmtEndPoint !== 'not set') {

@@ -48,7 +48,11 @@ if (getenv('PSOX_ALPHA_FEATURES') == "true") {
     Route::get('/settings/delete-dbvols', 'ConfigController@deleteDbvols')->name('Settings-DeleteDbvols');
 }
 
+
 // *** API routes
+Route::get('/api/nodeAgentSettings', 'NodeAgentController@getInfo');
+Route::post('/api/nodeAgentSettings', 'NodeAgentController@postInfo');
+
 // --- Dashboard
 Route::get('/api/dashboard', 'ApiController@dashboard')->name('Dashboard-Api');
 

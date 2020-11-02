@@ -2,6 +2,8 @@
 
 namespace App\Http\Classes;
 
+use Illuminate\Support\Facades\Redis;
+
 class PsoNode extends RedisModel
 {
     public const PREFIX = 'pso_node';
@@ -25,6 +27,8 @@ class PsoNode extends RedisModel
         'internalIP',
         'conditions',
         'conditionMessages',
+        'pingStatus',
+        'pingErrors',
     ];
 
     protected $indexes = [
@@ -39,6 +43,22 @@ class PsoNode extends RedisModel
 
         if ($uid !== '') {
             $this->uid = $uid;
+        }
+    }
+
+    public static function getUidByNodeName(string $name)
+    {
+        $keys = Redis::keys(self::PREFIX . ':*:name');
+        foreach ($keys as $key) {
+            if (!strpos($key, '__index')) {
+                $keyname = str_replace(config('database.redis.options.prefix'), '', $key);
+
+                if (Redis::get($keyname) == $name) {
+                    $keyname = str_replace(':name', ':uid', $keyname);
+                    $uid = Redis::get($keyname);
+                    return $uid;
+                }
+            }
         }
     }
 }

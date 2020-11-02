@@ -27,6 +27,8 @@ class PsoArray extends RedisModel
         'flasharray',
         'flashblade',
         'protocols',
+        'iSCSIEndpoints',
+        'nfsEndpoints'
     ];
 
     protected $indexes = [

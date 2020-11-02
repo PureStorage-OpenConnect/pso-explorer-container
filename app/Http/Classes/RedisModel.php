@@ -13,6 +13,12 @@ class RedisModel
     protected $indexes = [];
     protected $fillable = [];
 
+    function isAssoc(array $arr)
+    {
+        if (array() === $arr) return false;
+        return array_keys($arr) !== range(0, count($arr) - 1);
+    }
+
     public function __construct(string $redisPrefix, string $redisUid)
     {
         $this->redisPrefix = $redisPrefix;
@@ -23,11 +29,20 @@ class RedisModel
     {
         if (in_array($name, $this->fillable)) {
             if (is_array($value)) {
-                Redis::del($this->redisPrefix . ':' . $this->redisUid . ':' . $name);
-                foreach ($value as $item) {
-                    Redis::rpush($this->redisPrefix . ':' . $this->redisUid . ':' . $name, $item);
-                    if (in_array($name, $this->indexes) and ($value !== '') and ($value !== null)) {
-                        Redis::sadd($this->redisPrefix . ':__index:' . $name, $item);
+                if ($this->isAssoc($value)) {
+                    // If this is a Key/Value array, use Redis hash to store the array
+                    Redis::del($this->redisPrefix . ':' . $this->redisUid . ':' . $name);
+                    foreach ($value as $k => $v) {
+                        Redis::hset($this->redisPrefix . ':' . $this->redisUid . ':' . $name, $k, $v);
+                    }
+                } else {
+                    // If this is a regular array, use Redis list to store the array
+                    Redis::del($this->redisPrefix . ':' . $this->redisUid . ':' . $name);
+                    foreach ($value as $item) {
+                        Redis::rpush($this->redisPrefix . ':' . $this->redisUid . ':' . $name, $item);
+                        if (in_array($name, $this->indexes) and ($value !== '') and ($value !== null)) {
+                            Redis::sadd($this->redisPrefix . ':__index:' . $name, $item);
+                        }
                     }
                 }
             } else {
@@ -45,12 +60,28 @@ class RedisModel
     public function __get($name)
     {
         if (in_array($name, $this->fillable)) {
-            switch (Redis::type($this->redisPrefix . ':' . $this->redisUid . ':' . $name)) {
-                case 1:
+            $type = Redis::type($this->redisPrefix . ':' . $this->redisUid . ':' . $name);
+            switch ($type) {
+                case 0: // REDIS_NOT_FOUND (https://github.com/phpredis/phpredis)
+                    // We need this when a "empty" variable is accessed
+                    return null;
+                    break;
+                case 1: // REDIS_STRING (https://github.com/phpredis/phpredis)
                     return Redis::get($this->redisPrefix . ':' . $this->redisUid . ':' . $name);
                     break;
-                case 3:
+                case 3: // REDIS_LIST (https://github.com/phpredis/phpredis)
                     return Redis::lrange($this->redisPrefix . ':' . $this->redisUid . ':' . $name, 0, -1);
+                    break;
+                case 5: // REDIS_HASH (https://github.com/phpredis/phpredis)
+                    return Redis::hgetall($this->redisPrefix . ':' . $this->redisUid . ':' . $name);
+                    break;
+                default:
+                    $message = '      Redis type "' . $type .
+                        '" for variable "' . $name .
+                        '" is unknown in prefix "' . $this->redisPrefix .
+                        '". No data returned.';
+                    Log::debug($message);
+                    return null;
                     break;
             }
         } else {

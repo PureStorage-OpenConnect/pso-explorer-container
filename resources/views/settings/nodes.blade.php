@@ -40,7 +40,9 @@
                                         <th data-hide="all">Labels</th>
                                         <th data-hide="all">Taints</th>
                                         <th data-hide="all">Messages</th>
+                                        <th data-hide="all">Array connectivity</th>
                                         <th>Schedulable</th>
+                                        <th>Array connectivity</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -92,11 +94,28 @@
                                                         {{ $item }}<br>
                                                     @endforeach
                                                 </td>
+                                                <td>
+                                                    @isset($node['pingStatus'])
+                                                        @foreach($node['pingStatus'] as $key => $value)
+                                                            @if($value)
+                                                                <span class="label label-success">{{ $key }}</span>
+                                                            @else
+                                                                <span class="label label-warning">{{ $key }}</span>
+                                                            @endif
+                                                        @endforeach
+                                                    @endisset
+                                                </td>
 
                                                 @if($node['unschedulable'] == 1)
                                                     <td><span class="label label-warning">Unschedulable</span></td>
                                                 @else
                                                     <td><span class="label label-success">Ready</span></td>
+                                                @endif
+
+                                                @if($node['pingErrors'])
+                                                    <td><span class="label label-warning">Ping errors</span></td>
+                                                @else
+                                                    <td><span class="label label-success">Healthy</span></td>
                                                 @endif
                                             </tr>
                                         @endforeach
