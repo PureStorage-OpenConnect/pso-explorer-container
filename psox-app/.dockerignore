@@ -1,0 +1,6 @@
+vendor
+psr-12
+psox-app/storage/logs/laravel.log
+.idea
+composer.lock
+*/.DS_Store
