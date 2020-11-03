@@ -6,7 +6,9 @@ if [ -z "$1" ] ; then
 fi
  
 # Change application version and debugging mode in .env
-cp .env .env.bak
+cd psox-app
+mv .env .env-devel
+cp .env-prod .env
 sed -i '' 's/APP_VERSION=.*/APP_VERSION="'"$1"'"/' .env
 sed -i '' 's/APP_DEBUG=.*/APP_DEBUG=false/' .env
 
@@ -61,5 +63,5 @@ else
   echo -e "\033[0;32mImage successfully pushed to the repo.\033[0m"
 fi
 
-# Restore .env file to retain original APP_VERSION
-mv .env.bak .env
+# Restore .env file to retain original version
+mv .env-devel .env

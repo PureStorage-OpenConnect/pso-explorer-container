@@ -1,7 +1,7 @@
 @extends('layouts.portal')
 
 @section('css')
-
+    <link href="/css/plugins/dropzone/dropzone.min.css" rel="stylesheet">
 @endsection
 
 @section('content')
@@ -71,12 +71,44 @@
                 </div>
             </div>
         </div>
+        @if($phase == 1)
+        <div class="row">
+            <div class="col-xs-12 tab-container">
+                <div class="with-padding">
+                    <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <span>PSO {{ $isUpgrade ? 'upgrade' : 'installation' }} helper</span>
+                            </div>
+                            <div class="panel-body">
+                                <div class="with-padding margin-left">
+                                    <form class="form-group form-group-sm " id="dropzone" action="/settings/config" method="post" enctype="multipart/form-data">
+
+                                        @csrf
+                                        <input type="hidden" name="_phase" value="2">
+                                        <input type="hidden" name="_isUpgrade" value="{{ $isUpgrade }}">
+                                        @isset($psoEdition)
+                                            <input type="hidden" name="_edition" value="{{ $psoEdition }}">
+                                        @endisset
+                                        <input type="file" name="values_file">
+                                        <div class="form-group">
+                                            <button class="btn btn-primary pull-right" form="dropzone">Next</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
     @endisset
 @endsection
 
 @section('script')
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/11.0.0/markdown-it.min.js"></script>
+    <script src="/js/plugins/dropzone/dropzone.min.js"></script>
+    <script src="/js/plugins/markdown/markdown-it.min.js"></script>
 
     <script>
         function getDescription(source)
@@ -95,5 +127,8 @@
                 document.getElementById("release").onchange();
             }
         })
+    </script>
+    <script>
+        $("div#dropzone").dropzone({ url: "/file/post" });
     </script>
 @endsection

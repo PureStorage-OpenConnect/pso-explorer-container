@@ -91,7 +91,6 @@ class ConfigController extends Controller
             $upgrade = false;
         }
 
-        $settings = $pso->settings();
         return view('settings/config', [
             'isUpgrade' => $upgrade,
             'psoEdition' => $edition,
@@ -137,30 +136,41 @@ class ConfigController extends Controller
                 // Could be a new install or upgrade
                 $pso = new Pso();
 
+                // TODO: This needs some work still...
+                var_dump($request->file('values_file'));
+                if($request->file('values_file') == null) {
+                    var_dump($request->file('values_file'));
+                }
+
+
                 if ($pso->psoFound) {
-                    if ($request->input('_release') == null) {
-                        $request->session()->flash('alert-class', 'alert-danger');
-                        $request->session()->flash('message', 'Unable to connect to GitHub');
-                        $request->session()->flash('source', 'generic');
+                    if ($request->file('values_file') == null) {
+                        if ($request->input('_release') == null) {
+                            $request->session()->flash('alert-class', 'alert-danger');
+                            $request->session()->flash('message', 'Unable to connect to GitHub');
+                            $request->session()->flash('source', 'generic');
 
-                        return redirect()->route('Settings-Config');
-                    }
-                    $repoUri = $pso->psoInfo->repoUri ?? '';
-                    $valuesUri = $pso->psoInfo->valuesUri ?? '';
+                            return redirect()->route('Settings-Config');
+                        }
+                        $repoUri = $pso->psoInfo->repoUri ?? '';
+                        $valuesUri = $pso->psoInfo->valuesUri ?? '';
 
-                    try {
-                        $myGit = new GitHubApi($repoUri, $valuesUri);
-                        $yaml = $myGit->values($request->input('_release'));
-                        if ($yaml == '404: Not Found') {
+                        try {
+                            $myGit = new GitHubApi($repoUri, $valuesUri);
+                            $yaml = $myGit->values($request->input('_release'));
+                            if ($yaml == '404: Not Found') {
+                                // TODO: Error handling
+                                $yaml = '[]';
+                            }
+                        } catch (ConnectionException $e) {
+                            unset($e);
                             // TODO: Error handling
                             $yaml = '[]';
                         }
-                    } catch (ConnectionException $e) {
-                        unset($e);
-                        // TODO: Error handling
-                        $yaml = '[]';
+                        $psoValues = yaml_parse($yaml);
+                    } else {
+                        $psoValues = yaml_parse($request->file('values_file')->get());
                     }
-                    $psoValues = yaml_parse($yaml);
 
                     // Set the clusterID or pure.namespace
                     if (array_key_exists('namespace', $psoValues)) {
@@ -288,6 +298,9 @@ class ConfigController extends Controller
                         'psoRelease' => $request->input('_release'),
                         ]);
                 } else {
+                    $psoValues = yaml_parse($request->file('values_file')->get());
+                    var_dump($psoValues);
+
                     // This is when it's a new install
                     switch ($request->input('_edition')) {
                         case 'FLEX':
@@ -362,13 +375,17 @@ class ConfigController extends Controller
                     if (isset($inputs['arrays']['FlashArray'])) {
                         $flasharrays = [];
                         foreach ($inputs['arrays']['FlashArray'] as $key => $value) {
-                            $inputLabels = explode(',', $value['Labels']);
-                            $newLabel = [];
-                            foreach ($inputLabels as $inputLabel) {
-                                $input = explode(':', $inputLabel);
-                                $newLabel[trim($input[0])] = str_replace('"', '', trim($input[1]));
+                            if ($value['Labels'] !== null) {
+                                $inputLabels = explode(',', $value['Labels']);
+                                $newLabel = [];
+                                foreach ($inputLabels as $inputLabel) {
+                                    $input = explode(':', $inputLabel);
+                                    $newLabel[trim($input[0])] = str_replace('"', '', trim($input[1]));
+                                }
+                                $value['Labels'] = $newLabel;
+                            } else {
+                                unset($value['Labels']);
                             }
-                            $value['Labels'] = $newLabel;
                             array_push($flasharrays, $value);
                         }
                         $psoValues['arrays']['FlashArrays'] = $flasharrays;

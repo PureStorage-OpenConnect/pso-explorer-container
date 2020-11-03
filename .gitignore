@@ -1,6 +1,6 @@
-/storage/logs/laravel.log
-/psr-12
-/vendor/
+/psox-app/storage/logs/laravel.log
+/psox-app/psr-12
+psox-app/vendor/
 .idea
 .editorconfig
 *.example
