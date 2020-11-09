@@ -14,6 +14,7 @@ class PsoPersistentVolume extends RedisModel
 
         // metadata fields
         'creationTimestamp',
+        'updateTimestamp',
         'finalizers',
         'resourceVersion',
         'uid',

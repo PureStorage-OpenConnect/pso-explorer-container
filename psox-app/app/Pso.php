@@ -52,9 +52,6 @@ use Kubernetes\API\Secret;
 use Kubernetes\API\StatefulSet;
 use Kubernetes\API\StorageClass;
 use KubernetesRuntime\Client;
-use PhpParser\Node\Expr\PostDec;
-
-use function HighlightUtilities\splitCodeIntoArray;
 
 class Pso
 {
@@ -1062,7 +1059,6 @@ class Pso
 
         $pureStorageClasses = PsoStorageClass::items(PsoStorageClass::PREFIX, 'name');
         foreach (($pvList->items ?? []) as $item) {
-
             // Only use PVs that are managed by PSO
             if (in_array($item->spec->storageClassName, $pureStorageClasses)) {
                 $name = $item->metadata->name ?? '';
@@ -1072,6 +1068,13 @@ class Pso
 
                     // Save metadata fields
                     $newPv->creationTimestamp = $item->metadata->creationTimestamp ?? null;
+
+                    // Save latest update time field from managedFields for csi-provisioner
+                    foreach ($item->metadata->managedFields as $managedField) {
+                        if ($managedField->manager == 'csi-provisioner') {
+                            $newPv->updateTimestamp = $managedField->time;
+                        }
+                    }
                     $newPv->finalizers = $item->metadata->finalizers ?? [];
                     $newPv->resourceVersion = $item->metadata->resourceVersion ?? null;
                     $newPv->uid = $item->metadata->uid ?? null;

@@ -143,6 +143,7 @@
                                         <th>Provisioned size</th>
                                         <th>Used capacity</th>
                                         <th>Data reduction</th>
+                                        <th data-hide="all">Latest provisioner update</th>
                                         <th data-hide="all">Claim reference name</th>
                                         <th data-hide="all">Claim reference namespace</th>
                                         <th>State</th>
@@ -161,6 +162,7 @@
                                                 <td>{{ $vol['pureSizeFormatted'] }}</td>
                                                 <td>{{ $vol['pureUsedFormatted'] }}</td>
                                                 <td>{{ number_format($vol['pureDrr'], 1) }}:1</td>
+                                                <td>{{ $vol['creationTimestamp'] ?? ' ' }}</td>
                                                 <td>{{ $vol['claimRef_name'] ?? ' ' }}</td>
                                                 <td>{{ $vol['claimRef_namespace'] ?? ' ' }}</td>
 
