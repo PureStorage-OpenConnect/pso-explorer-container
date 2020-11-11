@@ -153,7 +153,7 @@
                                     @isset($orphanedVols)
                                         @foreach($orphanedVols as $vol)
                                             <tr>
-                                                <td><a href="https://{{ $vol['pureArrayMgmtEndPoint'] }}" target="_blank">{{ $vol['pureArrayName'] }}</a></td>
+                                                <td><a href="https://{{ $vol['pureArrayMgmtEndPoint'] }}" target="_blank">{{ $vol['pureArrayName'] ?? $vol['name'] . ' (no matching volume on array)' }}</a></td>
                                                 @if ($vol['pureArrayType'] == 'FA')
                                                     <td><a href="https://{{ $vol['pureArrayMgmtEndPoint'] }}/storage/volumes/volume/{{ $vol['pureName'] }}" target="_blank">{{ $vol['pureName'] }}</a></td>
                                                 @else
