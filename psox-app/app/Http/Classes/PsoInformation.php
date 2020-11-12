@@ -17,6 +17,8 @@ class PsoInformation extends RedisModel
         'provisionerTag',
         'isCsiDriver',
         'isOpenShift',
+        'psoNodes',
+        'psoProvisionerNode',
         'dbMaxSuspectSeconds',
         'dbMaxStartupSeconds',
         'faPreemptAttachments',

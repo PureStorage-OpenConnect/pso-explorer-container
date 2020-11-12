@@ -112,16 +112,28 @@
                                                     <td><span class="label label-success">Ready</span></td>
                                                 @endif
 
-                                                @if($node['pingErrors'])
-                                                    <td><span class="label label-warning">Ping errors</span></td>
-                                                @else
-                                                    <td><span class="label label-success">Healthy</span></td>
-                                                @endif
+                                                <td>
+                                                    @if($node['pingErrors'])
+                                                        <span class="label label-warning">Ping errors</span>
+                                                    @elseif(count($node['pingStatus'] ?? []) > 0)
+                                                        <span class="label label-success">Healthy</span>
+                                                    @endif
+                                                </td>
                                             </tr>
                                         @endforeach
                                         @if(count($nodes) == 0)
                                             <tr>
                                                 <td><i>No nodes found</i></td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
+                                                <td> </td>
                                                 <td> </td>
                                                 <td> </td>
                                                 <td> </td>
@@ -137,7 +149,7 @@
                                     </tbody>
                                     <tfoot>
                                     <tr>
-                                        <td colspan="6">
+                                        <td colspan="20">
                                             <ul class="pagination float-right"></ul>
                                         </td>
                                     </tr>

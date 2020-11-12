@@ -54,14 +54,6 @@ class DashboardController extends Controller
 
     public function refreshData(Request $request)
     {
-        // Check if a return route was included in the request
-        if ($request->input('route') !== 'RefreshData') {
-            $redirectTo = $request->input('route');
-        } else {
-            // If not set, return to 'Dashboard' after the refresh
-            $redirectTo = 'Dashboard';
-        }
-
         // Make sure PSO data is refreshed on next data collection
         pso::requestRefresh();
 
@@ -72,13 +64,7 @@ class DashboardController extends Controller
         if (!$pso) {
             return view('dashboard');
         } else {
-            Log::info($redirectTo);
-            Log::info(redirect()->route($redirectTo));
-            if (\Illuminate\Support\Facades\Route::has($redirectTo)) {
-                return redirect()->route($redirectTo);
-            } else {
-                return redirect()->route('Dashboard');
-            }
+            return redirect()->back();
         }
     }
 }

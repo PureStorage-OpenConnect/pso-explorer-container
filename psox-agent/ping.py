@@ -15,7 +15,7 @@ wait = int(os.environ.get('PSOX_REFRESHTIMEOUT'))
 if (wait is None): wait = 30
 
 # URL to query for IP addresses to ping
-url = 'http://' + service + '/api/nodeAgentSettings'
+url = 'http://' + service + '/api/nodeAgentSettings?node=' + node
 
 
 # Main program
@@ -25,7 +25,7 @@ while True:
   
   # Try to connect to PSO eXplorer for IP addresses
   try:
-    r = requests.get(url, timeout=10)
+    r = requests.get(url, timeout=20)
   except:
     mytime=datetime.datetime.now().isoformat(timespec='minutes')
     print(mytime + ' ERROR:   Connection error while trying to connect to PSO eXplorer at "' + url + '"')

@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class NodeAgentRequest extends FormRequest
+class NodeAgentGetRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,8 +24,6 @@ class NodeAgentRequest extends FormRequest
     public function rules()
     {
         return [
-            'ip' => 'required|ipv4',
-            'result' => 'required|boolean',
             'node' => 'required|string|min:2|max:255',
         ];
     }

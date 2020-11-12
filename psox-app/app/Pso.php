@@ -833,6 +833,30 @@ class Pso
                                 break;
                         }
                     }
+                    if (
+                        // Provisioner POD name used for PSO6+
+                        ($this->startsWith('pso-csi-controller-0', $myPodName))
+                        // Provisioner POD name used for PSO5
+                        or ($this->startsWith('pure-provisioner', $myPodName))
+                    ) {
+                        if (!in_array($item->spec->nodeName, $this->psoInfo->psoNodes ?? [])) {
+                            $this->psoInfo->psoProvisionerNode = $item->spec->nodeName;
+                        }
+                    }
+
+                    if (
+                        // Daemonset POD name used for PSO6+
+                        ($this->startsWith('pso-csi-node', $myPodName))
+                        // Daemonset POD name used for PSO5
+                        or ($this->startsWith('pure-csi-', $myPodName))
+                        // Daemonset POD name used for Flex
+                        or ($this->startsWith('pure-flex-', $myPodName))
+                    ) {
+                        if (!in_array($item->spec->nodeName, $this->psoInfo->psoNodes ?? [])) {
+                            $this->psoInfo->arrayPush('psoNodes', $item->spec->nodeName);
+                        }
+                    }
+                    // psoProvisionerNode
                 }
 
                 if (
@@ -1148,7 +1172,6 @@ class Pso
 
         $pureStorageClasses = PsoStorageClass::items(PsoStorageClass::PREFIX, 'name');
         foreach (($pvcList->items ?? []) as $item) {
-
             $storageProvisioner = $item->metadata->annotations['volume.beta.kubernetes.io/storage-provisioner']
                 ?? 'unknown';
 
@@ -2338,7 +2361,8 @@ class Pso
                         '<a href="' . route(
                             'Storage-Volumes',
                             ['volume_keyword' => $myPvc->uid],
-                        false) . '">' . $myPvc->name . '</a>'
+                            false
+                        ) . '">' . $myPvc->name . '</a>'
                     );
                 }
             }
@@ -2394,7 +2418,8 @@ class Pso
                     '<a href="' . route(
                         'Storage-Volumes',
                         ['volume_keyword' => $myPvc->uid],
-                    false) . '">' . $myPvc->name . '</a>'
+                        false
+                    ) . '">' . $myPvc->name . '</a>'
                 );
             }
 
