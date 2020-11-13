@@ -117,6 +117,8 @@
                                                         <span class="label label-warning">Ping errors</span>
                                                     @elseif(count($node['pingStatus'] ?? []) > 0)
                                                         <span class="label label-success">Healthy</span>
+                                                    @else
+                                                        n/a
                                                     @endif
                                                 </td>
                                             </tr>

@@ -906,8 +906,20 @@ class Pso
                     if (($myContainerName == 'csi-provisioner') or ($myContainerName == 'pure-provisioner')) {
                         array_push($images, $container->name . ': ' . $container->image);
                         foreach (($container->args ?? []) as $arg) {
-                            if (strpos($arg, '--feature-gates=') !== false) {
-                                $this->psoInfo->arrayPush('psoArgs', str_replace('--feature-gates=', '', $arg));
+                            Log::debug($arg);
+                            switch ($arg) {
+                                case '--feature-gates=Topology=true':
+                                    Log::debug('psoStorageTopology = true');
+                                    $this->psoInfo->psoStorageTopology = 'true';
+                                    break;
+                                case '--feature-gates=Topology=false':
+                                    Log::debug('psoStorageTopology = false');
+                                    $this->psoInfo->psoStorageTopology = 'false';
+                                    break;
+                                case '--strict-topology':
+                                    Log::debug('stricttopology = true');
+                                    $this->psoInfo->psoStrictTopology = 'true';
+                                    break;
                             }
                         }
                     }

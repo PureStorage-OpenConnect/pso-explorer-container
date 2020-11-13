@@ -102,11 +102,37 @@
                                         </td>
                                     </tr>
                                     @endif
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        {{-- Storage Topology settings --}}
+        <div class="row">
+            <div class="col-xs-12 tab-container">
+                <div class="with-padding">
+                    <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <span>Storage topology settings</span>
+                            </div>
+                            <div class="panel-body table-no-filter">
+                                <table class="table pure-table ps-table">
+                                    <tbody>
                                     <tr>
-                                        <td class="col-xs-4 left"><span>PSO Arguments</span></td>
+                                        <td class="col-xs-4 left"><span>Storage topology enabled</span></td>
                                         <td class="col-xs-8 left">
-                                            <span>{!! implode('<br>', ($settings['psoArgs'] ?? []))  !!} </span>
+                                            <span>{{ $settings['psoStorageTopology'] ?? '' }}</span><br>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-xs-4 left"><span>Strict topology enabled</span></td>
+                                        <td class="col-xs-8 left">
+                                            <span>{{ $settings['psoStrictTopology'] ?? 'false' }}</span><br>
                                         </td>
                                     </tr>
                                     </tbody>

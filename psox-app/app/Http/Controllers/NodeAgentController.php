@@ -64,6 +64,16 @@ class NodeAgentController extends Controller
             $details['ips'] = array_merge($details['ips'], $iscsiIps, $nfsIps);
         }
 
+        // Record node agent check-in
+        $node = new PsoNode($uid);
+        $pingStatus = $node->pingStatus;
+        $pingStatus['Node agent'] = true;
+
+        foreach ($details['ips'] as $ip) {
+            $pingStatus[$ip] = 'Unknown';
+        }
+        $node->pingStatus = $pingStatus;
+
         return $details;
     }
 

@@ -198,12 +198,13 @@ class ConfigController extends Controller
 
                     // Set storagetopology
                     if (array_key_exists('enable', ($psoValues['storagetopology'] ?? []))) {
-                        if (in_array('Topology=true', $pso->psoInfo->psoArgs)) {
+                        if ($pso->psoInfo->psoStorageTopology ?? false) {
                             $psoValues['storagetopology']['enable'] = true;
                         } else {
                             $psoValues['storagetopology']['enable'] = false;
                         }
                     }
+                    // TODO: Add strict topology
 
                     // Set arrays section and change deprecated NfsEndPoint to NFSEndPoint
                     $arrays = $pso->psoInfo->yaml;
