@@ -127,7 +127,11 @@ class Pso
 
         $bytes /= pow(1024, $pow);
 
-        return round($bytes, $precision) . ' ' . $units[$pow];
+        if (array_key_exists(intval($pow), $units)) {
+            return round($bytes, $precision) . ' ' . $units[$pow];
+        } else {
+            return round($bytes, $precision);
+        }
     }
 
     /**
@@ -842,6 +846,10 @@ class Pso
                         if (!in_array($item->spec->nodeName, $this->psoInfo->psoNodes ?? [])) {
                             $this->psoInfo->psoProvisionerNode = $item->spec->nodeName;
                         }
+
+                        if (array_key_exists('chart', $item->metadata->labels)) {
+                            $this->psoInfo->helmChart = $item->metadata->labels['chart'];
+                        }
                     }
 
                     if (
@@ -944,6 +952,12 @@ class Pso
                     $line = $container->name . ': ' . $container->image;
                     if (!in_array($line, $images)) {
                         array_push($images, $line);
+                    }
+                    foreach(($item->spec->initContainers ?? []) as $initContainer) {
+                        $line = $initContainer->name . ': ' . $initContainer->image;
+                        if (!in_array($line, $images)) {
+                            array_push($images, $line);
+                        }
                     }
                 }
             }

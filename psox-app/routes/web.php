@@ -41,10 +41,19 @@ Route::get('login', 'Auth\LoginController@showLoginForm')->name('login');
 Route::post('login', 'Auth\LoginController@login');
 Route::post('logout', 'Auth\LoginController@logout')->name('logout');
 
+Route::get('/settings/config-builder', 'ConfigController@initialize')->name('Settings-Builder-Initialize');
+Route::get('/settings/config-builder/upgrade-helper', 'ConfigController@upgradeHelper');
+Route::get('/settings/config-builder/upgrade-source', 'ConfigController@upgradeSource');
+Route::post('/settings/config-builder/upgrade-final', 'ConfigController@upgradeFinal');
+Route::get('/settings/config-builder/install-helper', 'ConfigController@installHelper');
+Route::get('/settings/config-builder/install-source', 'ConfigController@installSource');
+Route::get('/settings/config-builder/install-github-edition', 'ConfigController@installGithubEdition');
+Route::post('/settings/config-builder/install-github-version', 'ConfigController@installGithubVersion');
+Route::get('/settings/config-builder/install-upload', 'ConfigController@installUpload');
+Route::post('/settings/config-builder/install-builder', 'ConfigController@installBuilder');
+Route::post('/settings/config-builder/install-final', 'ConfigController@installFinal');
+
 if (getenv('PSOX_ALPHA_FEATURES') == "true") {
-    // *** Authenticated settings routes
-    Route::get('/settings/config', 'ConfigController@config')->name('Settings-Config');
-    Route::post('/settings/config', 'ConfigController@configPost');
     Route::get('/settings/delete-dbvols', 'ConfigController@deleteDbvols')->name('Settings-DeleteDbvols');
 }
 

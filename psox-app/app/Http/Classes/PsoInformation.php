@@ -10,6 +10,7 @@ class PsoInformation extends RedisModel
         'prefix',
         'namespace',
         'images',
+        'helmChart',
         'provisionerPod',
         'provisionerLabels',
         'provisionerContainer',

@@ -6,10 +6,10 @@
 
 @section('content')
     @isset($psoValues)
-        <form action="/settings/config" method="post" accept-charset="utf-8">
+        <form action="/settings/config-builder/install-final" method="post" accept-charset="utf-8">
             @csrf
-            <input type="hidden" name="edition" value="{{ $edition }}">
-            <input type="hidden" name="release" value="{{ $version }}">
+            <input type="hidden" name="edition" value="{{ $settings['psoEdition'] }}">
+            <input type="hidden" name="version" value="{{ $settings['provisionerTag'] }}">
             <div class="row">
                 <div class="col-xs-12 tab-container">
                     <div class="with-padding">
@@ -121,8 +121,8 @@
                                                 @endif
                                             @endforeach
                                             <div class="form-group no-margin">
-                                                <button class="btn btn-primary pull-right">Next</button>
-                                                <a href="{{ Route::current()->getName() }}" class="btn pull-right">Restart</a>
+                                                <button class="btn btn-primary pull-right">Create yaml file</button>
+                                                <a href="/settings/config-builder/install-helper" class="btn pull-right">Restart</a>
                                             </div>
                                         </div>
                                     </div>
