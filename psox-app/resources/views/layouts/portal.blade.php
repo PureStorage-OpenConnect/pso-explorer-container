@@ -211,14 +211,12 @@
                                     <span class="mm-sub-text">Nodes</span>
                                 </a>
                             </li>
-                            @if(getenv('PSOX_ALPHA_FEATURES') == "true")
-                                <li @if(Request::is('settings/config'))class="mm-active"@endif>
-                                    <a href="{{ route('Settings-Builder-Initialize', [], false) }}">
-                                        <img class="mm-sub" src="/images/settings_icon.svg">
-                                        <span class="mm-sub-text">Configuration</span>
-                                    </a>
-                                </li>
-                            @endif
+                            <li @if(Request::is('settings/config'))class="mm-active"@endif>
+                                <a href="{{ route('Settings-Builder-Initialize', [], false) }}">
+                                    <img class="mm-sub" src="/images/settings_icon.svg">
+                                    <span class="mm-sub-text">Configuration</span>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 </ul>
