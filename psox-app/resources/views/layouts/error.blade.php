@@ -64,13 +64,17 @@
                                         <div>This should only take a couple of seconds. This page will reload automatically.</div>
                                     </div>
                                 @else
-                                    <div class="alert-message"><strong>The Pure Storage® Pure Service Orchestrator™ was not found or not correctly configured</strong>
-                                    Please make sure you have installed the Pure Service Orchstrator™ (PSO) in your Kubernetes cluster.
+                                    <div class="alert-message">
+                                        <strong>The Pure Storage® Pure Service Orchestrator™ was not found or not correctly configured</strong>
+                                        Please make sure you have installed the Pure Service Orchstrator™ (PSO) in your Kubernetes cluster.
 
-                                    For installation instruction of PSO, please visit<br>
-                                    <a href="https://github.com/purestorage/helm-charts" target="_blank">https://github.com/purestorage/helm-charts</a>
-                                    For installation instruction of PSO v6, please visit<br>
-                                    <a href="https://github.com/purestorage/pso-csi" target="_blank">https://github.com/purestorage/pso-csi</a>
+                                        For installation instruction of PSO v6, please visit
+                                        <a href="https://github.com/purestorage/pso-csi" target="_blank">https://github.com/purestorage/pso-csi</a>
+                                        <form action="/settings/config-builder">
+                                            <strong>Installation helper</strong>
+                                            Do you want help to setup Pure Service Orchestrator™? Use the install helper below.
+                                            <input class="btn btn-primary" type="submit" value="Go to PSO Install Helper" />
+                                        </form>
 
                                     <strong>Validation of values.yaml syntax:</strong>
                                     Also make sure your values.yaml file is formatted as shown below. Please note that YAML is case sensitive

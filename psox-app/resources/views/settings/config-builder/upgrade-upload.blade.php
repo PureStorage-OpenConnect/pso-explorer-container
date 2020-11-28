@@ -60,11 +60,14 @@
                                             <div>
                                                 The upgrade helper allows you to create a <code>values.yaml</code>
                                                 file, which you can then use to upgrade your deployment.
-                                            </div>
-                                            <div>&nbsp</div>
-                                            <div class="block">
-                                                To get started, upload your current values.yaml file. You can download
-                                                a clean copy at the GitHub repo.
+                                            </div><div>&nbsp</div><div class="breaking-word">
+                                                To get started, manually download a fresh copy of the <code>values.yaml</code>
+                                                for the release you want to use from our GitHub repo.
+                                            </div><div>&nbsp</div><div class="breaking-word">
+                                                Use the button below to upload the <code>values.yaml</code> file. We'll
+                                                then use this file as base and merge the settings from this cluster with
+                                                it. In the next step we'll provide the result back to you, so that you
+                                                can use that file to upgrade your cluster.
                                             </div>
                                         </td>
                                     </tr>
@@ -72,6 +75,9 @@
                                         <td class="col-xs-6 left" colspan="2">
                                             <form class="form-group form-group-sm" method="post" action="/settings/config-builder/upgrade-final" enctype="multipart/form-data">
                                                 @csrf
+                                                <div class="col-sm-12 no-padding breaking-word">
+                                                    <b>Upload a copy of the <code>values.yaml</code> file you wish to use for the upgrade.</b>
+                                                </div>
                                                 <input type="file" class="btn btn-secondary" name="values_file">
                                                 <div class="form-group">
                                                     <button class="btn btn-primary pull-right">Next</button>

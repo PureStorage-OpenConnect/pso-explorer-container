@@ -52,20 +52,20 @@ kubectl apply -n default -f https://raw.githubusercontent.com/kubernetes-csi/ext
                                             Run the following commands from the directory where you've saved the <code>values.yaml</code> file.
                                             <div class="pre-scrollable">
                                                 @if($psoEdition == 'FLEX')
-                                                    <pre>helm repo add pure https://purestorage.github.io/helm-charts
+                                                    <pre>helm repo add pure --force-update https://purestorage.github.io/helm-charts
 helm repo update
 helm {{ $isUpgrade ? 'upgrade' : 'install' }} {{ env('FLEX_HELM') }} --version {{ $psoRelease ?? '' }} --namespace {{ $psoNamespace ?? 'pure-pso' }} -f values.yaml</pre>
                                                 @elseif(($psoEdition == 'FLEX') or ($psoEdition == 'PSO5'))
-                                                        <pre>helm repo add pure https://purestorage.github.io/helm-charts
+                                                        <pre>helm repo add pure --force-update https://purestorage.github.io/helm-charts
 helm repo update
 helm {{ $isUpgrade ? 'upgrade' : 'install' }} {{ env('PSO5_HELM') }} --version {{ '1'. substr($psoRelease, 1) ?? '' }} --namespace {{ $psoNamespace ?? 'pure-pso' }} -f values.yaml</pre>
                                                 @else
                                                     @if(substr(str_replace('v', '', $psoRelease), 0, 5) == '6.0.0')
-                                                        <pre>helm repo add pure https://purestorage.github.io/pso-csi
+                                                        <pre>helm repo add pure --force-update https://purestorage.github.io/pso-csi
 helm repo update
 helm {{ $isUpgrade ? 'upgrade' : 'install' }} {{ str_replace('pure/pure-pso', 'pure/pureStorageDriver', env('PSO6_HELM')) }} --version 6.0.0 --namespace {{ $psoNamespace ?? 'pure-pso' }} -f values.yaml</pre>
                                                     @else
-                                                    <pre>helm repo add pure https://purestorage.github.io/pso-csi
+                                                    <pre>helm repo add pure --force-update https://purestorage.github.io/pso-csi
 helm repo update
 helm {{ $isUpgrade ? 'upgrade' : 'install' }} {{ env('PSO6_HELM') }} --version {{ $psoRelease ?? '' }} --namespace {{ $psoNamespace ?? 'pure-pso' }} -f values.yaml</pre>
                                                     @endif

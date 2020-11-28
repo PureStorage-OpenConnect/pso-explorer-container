@@ -60,14 +60,15 @@
                                             <div>
                                                 The upgrade helper allows you to create a <code>values.yaml</code>
                                                 file, which you can then use to upgrade your deployment.
-                                            </div>
-                                            <div>&nbsp</div>
-                                            <div class="block">
-                                                To get started, you can choose to download a clean values.yaml
-                                                file directly from our GitHub or you can upload your own file.
-                                                To be able to download the values.yaml file from GitHub, the
-                                                {{ config('app.name', 'PSO eXplorer') }} application requires direct
-                                                (https) access to the public GitHub repo.
+                                            </div><div>&nbsp</div><div class="breaking-word">
+                                                The section below lists all available releases from our GitHub repo.
+                                                Once you select a release, the release notes are displayed.
+                                            </div><div>&nbsp</div><div class="breaking-word">
+                                                Once you have selecting the new version to use and click  the <i>Create yaml.file</i>
+                                                button, we'll download a clean <code>values.yaml</code> file from the
+                                                GitHub repo, add the settings from this cluster and provide this as a
+                                                new <code>values.yaml</code> file to you. You can then use that file to upgrade
+                                                your cluster.
                                             </div>
                                         </td>
                                     </tr>
@@ -76,7 +77,7 @@
                                             <form class="form-group form-group-sm" method="post" action="/settings/config-builder/upgrade-final" accept-charset="utf-8">
                                                 @csrf
                                                 <div class="col-sm-12 no-padding breaking-word">
-                                                    Select the PSO release you would like to use to base your <code>values.yaml</code> file on.
+                                                    <b>Select the PSO release you would like to use to base your <code>values.yaml</code> file on.</b>
                                                 </div>
                                                 <div class="col-sm-12 no-padding">
                                                     <select class="form-control form-control-select" id="release" name="version" onchange="getDescription(this)" @if($releases == null) disabled @endif>

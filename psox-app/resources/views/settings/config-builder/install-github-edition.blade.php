@@ -11,7 +11,7 @@
                 <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>PSO upgrade helper</span>
+                            <span>PSO install helper</span>
                         </div>
                         <div class="panel-body table-no-filter">
                             <table class="table pure-table ps-table">
@@ -21,10 +21,13 @@
                                             <div>
                                                 The installation helper allows you to create a <code>values.yaml</code>
                                                 file, that you can use for your PSO deployment.
-                                            </div>
-                                            <div>&nbsp</div>
-                                            <div class="block">
-                                                TO DO... some text here...
+                                            </div><div>&nbsp</div><div class="breaking-word">
+                                                The section below lists all available editions and releases from our
+                                                GitHub repo's. Once you select a release, the release notes are displayed.
+                                            </div><div>&nbsp</div><div class="breaking-word">
+                                                Once you have selecting the new version to use, we'll download a clean
+                                                <code>values.yaml</code> file from the GitHub repo. In the next
+                                                step we'll allow you to customize the settings for the deployment.
                                             </div>
                                         </td>
                                     </tr>

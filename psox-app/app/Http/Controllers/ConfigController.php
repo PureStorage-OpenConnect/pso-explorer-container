@@ -196,7 +196,6 @@ class ConfigController extends Controller
             } else {
                 if (array_key_exists('image', $psoValues)) {
                     if (array_key_exists('tag', $psoValues['image'])) {
-                        echo(substr($psoValues['image']['tag'], 0, 1));
                         if (substr($psoValues['image']['tag'], 0, 1) == 5) {
                             $edition = 'PSO5';
                         } else {
@@ -473,6 +472,17 @@ class ConfigController extends Controller
                 );
                 $request->session()->flash('source', 'generic');
                 return redirect()->back();
+            }
+
+            $version = 'upload';
+            if (array_key_exists('clusterID', $psoValues)) {
+                if (array_key_exists('images', $psoValues)) {
+                    if (array_key_exists('plugin', $psoValues['images'])) {
+                        if (array_key_exists('tag', $psoValues['images']['plugin'])) {
+                            $version = str_replace('v', '', $psoValues['images']['plugin']['tag']);
+                        }
+                    }
+                }
             }
         }
 

@@ -211,7 +211,7 @@
                                     <span class="mm-sub-text">Nodes</span>
                                 </a>
                             </li>
-                            <li @if(Request::is('settings/config'))class="mm-active"@endif>
+                            <li @if(Request::is('settings/config-builder*'))class="mm-active"@endif>
                                 <a href="{{ route('Settings-Builder-Initialize', [], false) }}">
                                     <img class="mm-sub" src="/images/settings_icon.svg">
                                     <span class="mm-sub-text">Configuration</span>

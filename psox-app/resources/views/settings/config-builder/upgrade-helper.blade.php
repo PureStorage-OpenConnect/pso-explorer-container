@@ -65,10 +65,12 @@
                                             <div>&nbsp</div>
                                             <div class="block">
                                                 To get started, you can choose to download a clean values.yaml
-                                                file directly from our GitHub or you can upload your own file.
+                                                file directly from our GitHub repo or you can upload your own file.
                                                 To be able to download the values.yaml file from GitHub, the
                                                 {{ config('app.name', 'PSO eXplorer') }} application requires direct
-                                                (https) access to the public GitHub repo.
+                                                (https) access to the public GitHub repo. If {{ config('app.name', 'PSO eXplorer') }}
+                                                does not have internet access, download the <code>values.yaml</code>
+                                                file yourself and use the upload method.
                                             </div>
                                         </td>
                                     </tr>

@@ -11,7 +11,7 @@
                 <div class="with-padding col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span>PSO upgrade helper</span>
+                            <span>PSO install helper</span>
                         </div>
                         <div class="panel-body table-no-filter">
                             <table class="table pure-table ps-table">
@@ -19,13 +19,14 @@
                                 <tr>
                                     <td class="col-xs-12 breaking" colspan="2">
                                         <div>
-                                            The upgrade helper allows you to create a <code>values.yaml</code>
-                                            file, which you can then use to upgrade your deployment.
-                                        </div>
-                                        <div>&nbsp</div>
-                                        <div class="block">
-                                            To get started, upload your current values.yaml file. You can download
-                                            a clean copy at the GitHub repo.
+                                            The install helper allows you to create a <code>values.yaml</code>
+                                            file, which you can then use to deploy Pure Service Orchestrator.
+                                        </div><div>&nbsp</div><div class="breaking-word">
+                                            To get started, manually download a fresh copy of the <code>values.yaml</code>
+                                            for the release you want to use from our GitHub repo.
+                                        </div><div>&nbsp</div><div class="breaking-word">
+                                            Use the button below to upload the <code>values.yaml</code> file. In the next
+                                            step we'll allow you to customize the settings for the deployment.
                                         </div>
                                     </td>
                                 </tr>
