@@ -1,4 +1,4 @@
-FROM php:7.4.8-fpm
+FROM php:7.4.12-fpm
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
