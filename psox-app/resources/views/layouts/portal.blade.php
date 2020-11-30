@@ -239,21 +239,19 @@
                         <input value="{{ Route::current()->getName() }}" name="route" id="frm1_submit"/>
                     </form>
 
-                    @if((getenv('PSOX_ALPHA_FEATURES') == "true") or (getenv('PSOX_ANONYMOUS_ACCESS') !== "true"))
-                        @guest
-                            <a class="sidebar-info sidebar-link" href="{{ route('login', [], false) }}">Login</a>
-                        @else
-                            <a class="sidebar-info sidebar-link" href="{{ route('logout', [], false) }}"
-                               onclick="event.preventDefault();
-                                                             document.getElementById('logout-form').submit();">
-                                Logout
-                            </a>
+                    @guest
+                        <a class="sidebar-info sidebar-link" href="{{ route('login', [], false) }}">Login</a>
+                    @else
+                        <a class="sidebar-info sidebar-link" href="{{ route('logout', [], false) }}"
+                           onclick="event.preventDefault();
+                                                         document.getElementById('logout-form').submit();">
+                            Logout
+                        </a>
 
-                            <form id="logout-form" action="{{ route('logout', [], false) }}" method="POST" class="d-none">
-                                @csrf
-                            </form>
-                        @endguest
-                    @endif
+                        <form id="logout-form" action="{{ route('logout', [], false) }}" method="POST" class="d-none">
+                            @csrf
+                        </form>
+                    @endguest
                 </div>
 
                 <!-- Sidebar footer -->
