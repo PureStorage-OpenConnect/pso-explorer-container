@@ -61,7 +61,13 @@ class NodeAgentController extends Controller
 
         // If PSO deamonset is active on this node, add iSCSI and NFS IP's to be checked
         if (in_array($nodeName, $pso->psoInfo->psoNodes)) {
-            $details['ips'] = array_merge($details['ips'], $iscsiIps, $nfsIps);
+            if (strtoupper($pso->psoInfo->sanType) == 'ISCSI') {
+                // If backend is iSCSI check iSCSI and NFS connectivity
+                $details['ips'] = array_merge($details['ips'], $iscsiIps, $nfsIps);
+            } else {
+                // If backend is FC check NFS connectivity only
+                $details['ips'] = array_merge($details['ips'], $nfsIps);
+            }
         }
 
         // Record node agent check-in
