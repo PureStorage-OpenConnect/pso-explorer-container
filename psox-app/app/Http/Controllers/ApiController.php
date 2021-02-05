@@ -15,7 +15,7 @@ class ApiController extends Controller
         $pso = new Pso();
 
         if ($pso->psoFound) {
-            return $pso->dashboard();
+            return [$pso->dashboard(), $pso->portalInfo()];
         } else {
             $response = array('Error' => self::PSO_NOTFOUND);
             return $response;

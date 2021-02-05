@@ -28,7 +28,7 @@
                                         <li>
                                             Make sure the namespace you wish to install PSO to is created.
                                             <div class="pre-scrollable">
-                                                <pre>kubectl create namespace {{ $psoNamespace ?? 'pure-pso' }}</pre>
+                                                <pre>kubectl create namespace {{ $settings['namespace'] ?? 'pure-pso' }}</pre>
                                             </div>
                                         </li>
                                             @if(($settings['psoEdition'] !== 'FLEX') and ($settings['psoEdition'] !== 'PSO5'))
@@ -54,20 +54,20 @@ kubectl apply -n default -f https://raw.githubusercontent.com/kubernetes-csi/ext
                                                 @if($settings['psoEdition'] == 'FLEX')
                                                     <pre>helm repo add pure --force-update https://purestorage.github.io/helm-charts
 helm repo update
-helm {{ $isUpgrade ? 'upgrade' : 'install' }} {{ $settings['helmChart'] }} {{ env('FLEX_HELM') }} @if($settings['provisionerTag'] !== 'upload')--version {{ $settings['provisionerTag'] ?? '' }} @endif()--namespace {{ $psoNamespace ?? 'pure-pso' }} -f values.yaml</pre>
+helm {{ $isUpgrade ? 'upgrade' : 'install' }} {{ $settings['helmChart'] }} {{ env('FLEX_HELM') }} @if($settings['provisionerTag'] !== 'upload')--version {{ $settings['provisionerTag'] ?? '' }} @endif()--namespace {{ $settings['namespace'] ?? 'pure-pso' }} -f values.yaml</pre>
                                                 @elseif(($settings['psoEdition'] == 'PSO5'))
                                                         <pre>helm repo add pure --force-update https://purestorage.github.io/helm-charts
 helm repo update
-helm {{ $isUpgrade ? 'upgrade' : 'install' }} {{ $settings['helmChart'] }} {{ env('PSO5_HELM') }} @if($settings['provisionerTag'] !== 'upload')--version {{ '1'. substr($settings['provisionerTag'], 1) ?? '' }} @endif()--namespace {{ $psoNamespace ?? 'pure-pso' }} -f values.yaml</pre>
+helm {{ $isUpgrade ? 'upgrade' : 'install' }} {{ $settings['helmChart'] }} {{ env('PSO5_HELM') }} @if($settings['provisionerTag'] !== 'upload')--version {{ '1'. substr($settings['provisionerTag'], 1) ?? '' }} @endif()--namespace {{ $settings['namespace'] ?? 'pure-pso' }} -f values.yaml</pre>
                                                 @else
                                                     @if(substr(str_replace('v', '', $settings['provisionerTag']), 0, 5) == '6.0.0')
                                                         <pre>helm repo add pure --force-update https://purestorage.github.io/pso-csi
 helm repo update
-helm {{ $isUpgrade ? 'upgrade' : 'install' }} {{ $settings['helmChart'] }} {{ str_replace('pure/pure-pso', 'pure/pureStorageDriver', env('PSO6_HELM')) }} --version 6.0.0 --namespace {{ $psoNamespace ?? 'pure-pso' }} -f values.yaml</pre>
+helm {{ $isUpgrade ? 'upgrade' : 'install' }} {{ $settings['helmChart'] }} {{ str_replace('pure/pure-pso', 'pure/pureStorageDriver', env('PSO6_HELM')) }} --version 6.0.0 --namespace {{ $settings['namespace'] ?? 'pure-pso' }} -f values.yaml</pre>
                                                     @else
                                                     <pre>helm repo add pure --force-update https://purestorage.github.io/pso-csi
 helm repo update
-helm {{ $isUpgrade ? 'upgrade' : 'install' }} {{ $settings['helmChart'] }} {{ env('PSO6_HELM') }} @if($settings['provisionerTag'] !== 'upload')--version {{ $settings['provisionerTag'] ?? '' }} @endif()--namespace {{ $psoNamespace ?? 'pure-pso' }} -f values.yaml</pre>
+helm {{ $isUpgrade ? 'upgrade' : 'install' }} {{ $settings['helmChart'] }} {{ env('PSO6_HELM') }} @if($settings['provisionerTag'] !== 'upload')--version {{ $settings['provisionerTag'] ?? '' }} @endif()--namespace {{ $settings['namespace'] ?? 'pure-pso' }} -f values.yaml</pre>
                                                     @endif
                                                 @endif
                                             </div>
