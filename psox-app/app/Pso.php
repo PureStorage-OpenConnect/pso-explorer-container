@@ -1120,7 +1120,7 @@ class Pso
                     $newPv->creationTimestamp = $item->metadata->creationTimestamp ?? null;
 
                     // Save latest update time field from managedFields for csi-provisioner
-                    foreach ($item->metadata->managedFields as $managedField) {
+                    foreach (($item->metadata->managedFields ?? []) as $managedField) {
                         if ($managedField->manager == 'csi-provisioner') {
                             $newPv->updateTimestamp = $managedField->time;
                         }
