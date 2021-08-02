@@ -56,6 +56,8 @@ RUN chmod -R g+w /var/log/nginx
 RUN chown -R 1001:0 /run
 RUN chmod -R g+w /run
 
+COPY --chown=1001 docker/php-fpm.conf /etc/php-fpm.d/php-fpm.conf
+
 COPY docker/entrypoint.sh /etc/entrypoint.sh
 RUN chmod +x /etc/entrypoint.sh
 
