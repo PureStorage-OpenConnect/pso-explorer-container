@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 service nginx start
-php-fpm
+php-fpm >/dev/null
